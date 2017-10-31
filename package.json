@@ -1,13 +1,28 @@
 {
   "name": "digital-citizenship-portal",
   "version": "0.1.0",
+  "scripts":{
+    "serve": "node build/app",
+    "build": "tsc --outDir build"
+  },
   "dependencies": {
-    "body-parser": "^1.15.2",
+    "@types/cookie-parser": "^1.4.1",
+    "@types/dotenv": "^4.0.2",
+    "@types/express": "^4.0.39",
+    "@types/method-override": "^0.0.31",
+    "@types/passport": "^0.3.5",
+    "@types/request": "^2.0.7",
+    "azure-arm-apimanagement": "^1.0.0-preview",
+    "body-parser": "^1.18.2",
     "cookie-parser": "^1.4.3",
     "dotenv": "^4.0.0",
-    "express": "3.x",
-    "method-override": "^2.3.6",
+    "express": "^4.16.2",
+    "method-override": "^2.3.10",
+    "ms-rest": "^2.2.4",
+    "ms-rest-azure": "^2.4.1",
     "passport": "*",
-    "passport-azure-ad": "^3.0.6"
+    "passport-azure-ad": "^3.0.8",
+    "request": "^2.83.0",
+    "ts-node": "^3.3.0"
   }
 }
