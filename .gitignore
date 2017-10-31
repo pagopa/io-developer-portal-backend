@@ -1,8 +1,6 @@
 gh-pages
 site
 **/node_modules
-.terraform
-*tfstate*
 *.exe
 local.*
 npm-debug.log
@@ -13,6 +11,4 @@ pids
 *.seed
 lib-cov
 coverage
-.grunt
 .lock-wscript
-build/Release
