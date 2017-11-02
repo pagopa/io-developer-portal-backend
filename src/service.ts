@@ -26,12 +26,15 @@ export interface IServicePayload {
  * 	  authorized_recipients: ['AFISCALCODE', 'ANOTHERFISCALCODE' ]     
  * }
  */
-const createService = (service: IServicePayload) => {
+export const createService = (service: IServicePayload) => {
   return new Promise((resolve, reject) => {
     const options = {
       uri: `${config.admin_api_url}/services`,
       method: "POST",
-      json: service
+      json: service,
+      headers: {
+        "Ocp-Apim-Subscription-Key": config.api_key
+      }
     };
     request(options, (err, res, body) => {
       if (err) {

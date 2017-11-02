@@ -1,5 +1,5 @@
 import * as passport from "passport";
-
+import * as express from "express";
 import { OIDCStrategy } from "passport-azure-ad";
 
 interface IProfile {
@@ -9,7 +9,7 @@ interface IProfile {
     family_name: string;
     given_name: string;
     extension_Organization: string;
-  }
+  };
 }
 
 /******************************************************************************
@@ -35,21 +35,22 @@ interface IProfile {
 //-----------------------------------------------------------------------------
 export const setupOidcStrategy = (
   config: any,
-  cb: (profile: IProfile) => Promise<void>
+  cb: (subscriptionId: string, profile: IProfile) => Promise<void>
 ) => {
   passport.use(
     "azuread-openidconnect",
     new OIDCStrategy(config.creds, function(
+      req: express.Request,
       _: string,
       sub: string,
       profile: IProfile,
       done: (err: Error | undefined, profile?: IProfile) => void
     ) {
+      const subscriptionId = (req as any).session.subscriptionId;
       if (!sub) {
         return done(new Error("No user id found"));
       }
-      profile._json.oid = sub;
-      return cb(profile)
+      return cb(subscriptionId, profile)
         .then(() => done(undefined, profile))
         .catch(e => done(e));
     })
