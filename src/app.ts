@@ -3,9 +3,9 @@
 import * as dotenv from "dotenv";
 dotenv.config({ path: __dirname + "/../local.env" });
 
-import * as express from "express";
-import * as cookieParser from "cookie-parser";
 import * as bodyParser from "body-parser";
+import * as cookieParser from "cookie-parser";
+import * as express from "express";
 import * as methodOverride from "method-override";
 import * as passport from "passport";
 import * as config from "./local.config";
@@ -13,10 +13,10 @@ import * as config from "./local.config";
 import * as cookieSession from "cookie-session";
 
 import { createOrUpdateApimUser, IUserData } from "./account";
-import { createService } from "./service";
 import { setupOidcStrategy } from "./oidc_strategy";
+import { createService } from "./service";
 
-setupOidcStrategy(config, async (subscriptionId, profile) => {
+setupOidcStrategy(config.creds, async (subscriptionId, profile) => {
   const userData: IUserData = {
     oid: profile._json.oid,
     firstName: profile._json.family_name,
@@ -25,17 +25,16 @@ setupOidcStrategy(config, async (subscriptionId, profile) => {
     productName: config.apim_product_name,
     groups: config.apim_user_groups.split(",")
   };
-  try {
-    await createOrUpdateApimUser(subscriptionId, userData);
-    await createService({});
-  } catch (e) {
-    console.error(e);
-  }
+  await createOrUpdateApimUser(subscriptionId, userData);
+  await createService({
+    authorized_recipients: [],
+    department_name: profile._json.extension_Organization,
+    organization_name: profile._json.extension_Organization,
+    service_id: subscriptionId,
+    service_name: profile._json.extension_Organization
+  });
 });
 
-//-----------------------------------------------------------------------------
-// Config the app, include middlewares
-//-----------------------------------------------------------------------------
 const app = express();
 
 app.use(
@@ -46,13 +45,12 @@ app.use(
 );
 
 // app.use(express.logger());
-
 app.use(methodOverride());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Set up the route controller
 //
 // 1. For 'login' route and 'returnURL' route, use `passport.authenticate`.
@@ -62,47 +60,45 @@ app.use(passport.initialize());
 // 2. For the routes you want to check if user is already logged in, use
 // `ensureAuthenticated`. It checks if there is an user stored in session, if not
 // it will call `passport.authenticate` to ask for user to log in.
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 // function ensureAuthenticated(req, res, next) {
 //   if (req.isAuthenticated()) { return next(); }
 //   res.redirect('/login');
 // };
 
-const verifier = function(
+const verifier = (
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
-) {
+) => {
   if (req.params.subscriptionId) {
+    // tslint:disable-next-line
     (req as any).session.subscriptionId = req.params.subscriptionId;
   }
   passport.authenticate("azuread-openidconnect", {
     session: false,
     failureRedirect: "/login",
     response: res
-  } as any)(req, res, next);
+  } as {})(req, res, next);
 };
 
-const callback = function(_: string, redirectUrl: string) {
-  return function(__: express.Request, res: express.Response) {
+const callback = (_: string, redirectUrl: string) => {
+  return (__: express.Request, res: express.Response) => {
     res.redirect(redirectUrl);
   };
 };
 
 app.get("/login/:subscriptionId", verifier, callback("login", config.apim_url));
 
-app.all(
-  "/auth/openid/return",
-  verifier,
-  callback("openid-post", config.apim_url)
-);
+app.all("/auth/openid/return", verifier, callback("openid", config.apim_url));
 
-app.get("/logout", function(req, res) {
+app.get("/logout", (req, res) => {
   req.logOut();
   res.redirect(config.destroySessionUrl);
 });
 
+// tslint:disable-next-line
 console.log(
   "Navigate to http://localhost:3000/login/<subscriptionId>?p=" +
     process.env.POLICY_NAME

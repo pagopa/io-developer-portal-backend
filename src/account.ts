@@ -1,10 +1,8 @@
 /**
- * Create API manager users and subscriptions.
- *   
+ * Methods used to add users to API manager Products and Groups.
  */
-// tslint:disable:no-console
-// tslint:disable:no-any
 import apiManagementClient = require("azure-arm-apimanagement");
+import * as winston from "winston";
 
 import {
   UserContract,
@@ -15,23 +13,16 @@ import * as config from "./local.config";
 import { login } from "./login";
 
 export interface IUserData extends UserCreateParameters {
-  oid: string;
-  productName: string;
-  groups: string[];
+  readonly oid: string;
+  readonly productName: string;
+  readonly groups: ReadonlyArray<string>;
 }
-
-// import * as crypto from "crypto";
-// const toId = (s: string) =>
-//   crypto
-//     .createHash("sha256")
-//     .update(s)
-//     .digest("hex");
 
 const getExistingUser = async (
   apiClient: apiManagementClient,
   subscriptionId: string
 ) => {
-  console.log("getExistingUser", subscriptionId);
+  winston.log("debug", "getExistingUser");
   return apiClient.user.get(
     config.azurerm_resource_group,
     config.azurerm_apim,
@@ -44,7 +35,7 @@ const addUserToProduct = async (
   user: UserContract,
   productName: string
 ) => {
-  console.log("addUserToProduct");
+  winston.log("debug", "addUserToProduct");
   const product = await apiClient.product.get(
     config.azurerm_resource_group,
     config.azurerm_apim,
@@ -74,7 +65,7 @@ const addUserToGroups = (
   user: UserContract,
   groups: ReadonlyArray<string>
 ) => {
-  console.log("addUserToGroups");
+  winston.log("debug", "addUserToGroups");
   return Promise.all(
     groups.map(async group => {
       if (user && user.name) {
@@ -95,9 +86,10 @@ export const createOrUpdateApimUser = async (
   subscriptionId: string,
   userData: IUserData
 ): Promise<void> => {
+  winston.log("debug", "createOrUpdateApimUser");
   const loginCreds = await login();
   const apiClient = new apiManagementClient(
-    (loginCreds as any).creds,
+    loginCreds.creds,
     loginCreds.subscriptionId
   );
   const user = await getExistingUser(apiClient, subscriptionId);

@@ -1,22 +1,22 @@
-import * as passport from "passport";
+/*
+ *  OpenID Connect strategy for passport / express.
+ */
+
 import * as express from "express";
+import * as passport from "passport";
 import { OIDCStrategy } from "passport-azure-ad";
 
 interface IProfile {
-  _json: {
-    oid: string;
-    emails: string[];
-    family_name: string;
-    given_name: string;
-    extension_Organization: string;
+  readonly _json: {
+    readonly oid: string;
+    readonly emails: ReadonlyArray<string>;
+    readonly family_name: string;
+    readonly given_name: string;
+    readonly extension_Organization: string;
   };
 }
 
-/******************************************************************************
- * Set up passport in the app 
- ******************************************************************************/
-
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Use the OIDCStrategy within Passport.
 //
 // Strategies in passport require a `verify` function, which accepts credentials
@@ -32,27 +32,36 @@ interface IProfile {
 // (6) prototype (1)-(5) with an additional `req` parameter as the first parameter
 //
 // To do prototype (6), passReqToCallback must be set to true in the config.
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+/**
+ * Calls a callback on the logged in user's profile.
+ */
 export const setupOidcStrategy = (
-  config: any,
+  // tslint:disable-next-line
+  creds: any,
   cb: (subscriptionId: string, profile: IProfile) => Promise<void>
 ) => {
   passport.use(
     "azuread-openidconnect",
-    new OIDCStrategy(config.creds, function(
-      req: express.Request,
-      _: string,
-      sub: string,
-      profile: IProfile,
-      done: (err: Error | undefined, profile?: IProfile) => void
-    ) {
-      const subscriptionId = (req as any).session.subscriptionId;
-      if (!sub) {
-        return done(new Error("No user id found"));
+    new OIDCStrategy(
+      creds,
+      (
+        req: express.Request,
+        _: string,
+        sub: string,
+        profile: IProfile,
+        done: (err: Error | undefined, profile?: IProfile) => void
+      ) => {
+        // tslint:disable-next-line
+        const subscriptionId = (req as any).session.subscriptionId;
+        if (!sub) {
+          return done(new Error("No user id found"));
+        }
+        return cb(subscriptionId, profile)
+          .then(() => done(undefined, profile))
+          .catch(e => done(e));
       }
-      return cb(subscriptionId, profile)
-        .then(() => done(undefined, profile))
-        .catch(e => done(e));
-    })
+    )
   );
 };
