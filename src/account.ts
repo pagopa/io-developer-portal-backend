@@ -5,6 +5,7 @@ import apiManagementClient = require("azure-arm-apimanagement");
 import * as winston from "winston";
 
 import {
+  SubscriptionContract,
   UserContract,
   UserCreateParameters
 } from "azure-arm-apimanagement/lib/models";
@@ -12,21 +13,36 @@ import {
 import * as config from "./local.config";
 import { login } from "./login";
 
+import * as crypto from "crypto";
+
 export interface IUserData extends UserCreateParameters {
   readonly oid: string;
   readonly productName: string;
   readonly groups: ReadonlyArray<string>;
 }
 
+/**
+ *  Assigns a deterministic / predicatable id to the user's subscription.
+ *  Useful in case we want to retrieve it later.
+ */
+export const userIdToSubscriptionId = (userId: string, productName: string) =>
+  // do not use dashes here as it does not play well
+  // together with the version field of the Service entity
+  `${userId}${crypto
+    .createHash("md5")
+    .update(productName)
+    .digest("hex")
+    .substring(0, 4)}`;
+
 const getExistingUser = async (
   apiClient: apiManagementClient,
-  subscriptionId: string
+  userId: string
 ) => {
-  winston.log("debug", "getExistingUser");
+  winston.debug("getExistingUser");
   return apiClient.user.get(
     config.azurerm_resource_group,
     config.azurerm_apim,
-    subscriptionId
+    userId
   );
 };
 
@@ -35,19 +51,35 @@ const addUserToProduct = async (
   user: UserContract,
   productName: string
 ) => {
-  winston.log("debug", "addUserToProduct");
+  winston.debug("addUserToProduct");
   const product = await apiClient.product.get(
     config.azurerm_resource_group,
     config.azurerm_apim,
     productName
   );
-  if (user && user.id && user.name && product && product.id) {
+  if (user && user.id && user.name && product && product.id && productName) {
+    const subscriptionId = userIdToSubscriptionId(user.name, productName);
+    // Get subscription for this user-product
+    const subscription = await apiClient.subscription.get(
+      config.azurerm_resource_group,
+      config.azurerm_apim,
+      subscriptionId
+    );
+    // Skip adding subscription if already existing
+    if (subscription) {
+      winston.debug(
+        "addUserToProduct|success|found existing subscription, skipping"
+      );
+      return subscription;
+    }
+    // For some odd reason in the Azure ARM API user.name here is
+    // in reality the user.id
     return apiClient.subscription.createOrUpdate(
       config.azurerm_resource_group,
       config.azurerm_apim,
-      `sid-${user.name}-${productName}`,
+      subscriptionId,
       {
-        displayName: `sid-${user.name}-${productName}`,
+        displayName: subscriptionId,
         productId: product.id,
         state: "active",
         userId: user.id
@@ -60,39 +92,57 @@ const addUserToProduct = async (
   }
 };
 
-const addUserToGroups = (
+const addUserToGroups = async (
   apiClient: apiManagementClient,
   user: UserContract,
   groups: ReadonlyArray<string>
 ) => {
-  winston.log("debug", "addUserToGroups");
+  winston.debug("addUserToGroups");
+  if (!user || !user.name) {
+    return Promise.reject(new Error("Cannot parse user"));
+  }
+  const existingGroups = await apiClient.userGroup.list(
+    config.azurerm_resource_group,
+    config.azurerm_apim,
+    user.name
+  );
+  const existingGroupsNames = new Set(existingGroups.map(g => g.name));
+  winston.debug("addUserToGroups|groups|", existingGroupsNames);
+  const missingGroups = new Set(
+    groups.filter(g => !existingGroupsNames.has(g))
+  );
+  if (missingGroups.size === 0) {
+    winston.debug(
+      "addUserToGroups|user already belongs to groups|",
+      existingGroupsNames
+    );
+    return Promise.resolve(user);
+  }
   return Promise.all(
     groups.map(async group => {
-      if (user && user.name) {
-        return await apiClient.groupUser.create(
-          config.azurerm_resource_group,
-          config.azurerm_apim,
-          group,
-          user.name
-        );
-      } else {
-        return Promise.reject("Error while adding user to group");
-      }
+      // For some odd reason in the Azure ARM API user.name here is
+      // in reality the user.id
+      return await apiClient.groupUser.create(
+        config.azurerm_resource_group,
+        config.azurerm_apim,
+        group,
+        user.name as string
+      );
     })
   );
 };
 
 export const createOrUpdateApimUser = async (
-  subscriptionId: string,
+  userId: string,
   userData: IUserData
-): Promise<void> => {
-  winston.log("debug", "createOrUpdateApimUser");
+): Promise<SubscriptionContract> => {
+  winston.debug("createOrUpdateApimUser");
   const loginCreds = await login();
   const apiClient = new apiManagementClient(
     loginCreds.creds,
     loginCreds.subscriptionId
   );
-  const user = await getExistingUser(apiClient, subscriptionId);
+  const user = await getExistingUser(apiClient, userId);
   if (
     !user.identities ||
     !user.identities[0] ||
@@ -102,5 +152,5 @@ export const createOrUpdateApimUser = async (
     throw new Error("createOrUpdateApimUser|profile.oid != user.id");
   }
   await addUserToGroups(apiClient, user, userData.groups);
-  await addUserToProduct(apiClient, user, userData.productName);
+  return addUserToProduct(apiClient, user, userData.productName);
 };

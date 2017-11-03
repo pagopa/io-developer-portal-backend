@@ -40,7 +40,7 @@ interface IProfile {
 export const setupOidcStrategy = (
   // tslint:disable-next-line
   creds: any,
-  cb: (subscriptionId: string, profile: IProfile) => Promise<void>
+  cb: (userId: string, profile: IProfile) => Promise<void>
 ) => {
   passport.use(
     "azuread-openidconnect",
@@ -54,11 +54,11 @@ export const setupOidcStrategy = (
         done: (err: Error | undefined, profile?: IProfile) => void
       ) => {
         // tslint:disable-next-line
-        const subscriptionId = (req as any).session.subscriptionId;
+        const userId = (req as any).session.userId;
         if (!sub) {
           return done(new Error("No user id found"));
         }
-        return cb(subscriptionId, profile)
+        return cb(userId, profile)
           .then(() => done(undefined, profile))
           .catch(e => done(e));
       }

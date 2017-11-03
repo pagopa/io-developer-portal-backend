@@ -16,7 +16,15 @@ import { createOrUpdateApimUser, IUserData } from "./account";
 import { setupOidcStrategy } from "./oidc_strategy";
 import { createService } from "./service";
 
-setupOidcStrategy(config.creds, async (subscriptionId, profile) => {
+import * as winston from "winston";
+
+winston.configure({
+  transports: [
+    new winston.transports.Console({ level: process.env.LOG_LEVEL || "info" })
+  ]
+});
+
+setupOidcStrategy(config.creds, async (userId, profile) => {
   const userData: IUserData = {
     oid: profile._json.oid,
     firstName: profile._json.family_name,
@@ -25,14 +33,16 @@ setupOidcStrategy(config.creds, async (subscriptionId, profile) => {
     productName: config.apim_product_name,
     groups: config.apim_user_groups.split(",")
   };
-  await createOrUpdateApimUser(subscriptionId, userData);
-  await createService({
-    authorized_recipients: [],
-    department_name: profile._json.extension_Organization,
-    organization_name: profile._json.extension_Organization,
-    service_id: subscriptionId,
-    service_name: profile._json.extension_Organization
-  });
+  const subscription = await createOrUpdateApimUser(userId, userData);
+  if (subscription && subscription.name) {
+    await createService({
+      authorized_recipients: [],
+      department_name: profile._json.extension_Organization,
+      organization_name: profile._json.extension_Organization,
+      service_id: subscription.name,
+      service_name: profile._json.extension_Organization
+    });
+  }
 });
 
 const app = express();
@@ -72,9 +82,9 @@ const verifier = (
   res: express.Response,
   next: express.NextFunction
 ) => {
-  if (req.params.subscriptionId) {
+  if (req.params.userId) {
     // tslint:disable-next-line
-    (req as any).session.subscriptionId = req.params.subscriptionId;
+    (req as any).session.userId = req.params.userId;
   }
   passport.authenticate("azuread-openidconnect", {
     session: false,
@@ -83,13 +93,14 @@ const verifier = (
   } as {})(req, res, next);
 };
 
-const callback = (_: string, redirectUrl: string) => {
-  return (__: express.Request, res: express.Response) => {
-    res.redirect(redirectUrl);
-  };
+const callback = (_: string, redirectUrl: string) => (
+  __: express.Request,
+  res: express.Response
+) => {
+  res.redirect(redirectUrl);
 };
 
-app.get("/login/:subscriptionId", verifier, callback("login", config.apim_url));
+app.get("/login/:userId", verifier, callback("login", config.apim_url));
 
 app.all("/auth/openid/return", verifier, callback("openid", config.apim_url));
 
@@ -100,7 +111,7 @@ app.get("/logout", (req, res) => {
 
 // tslint:disable-next-line
 console.log(
-  "Navigate to http://localhost:3000/login/<subscriptionId>?p=" +
+  "Navigate to http://localhost:3000/login/<userId>?p=" +
     process.env.POLICY_NAME
 );
 

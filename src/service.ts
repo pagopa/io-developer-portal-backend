@@ -15,6 +15,10 @@ export interface IServicePayload {
   readonly authorized_recipients: ReadonlyArray<string>;
 }
 
+const HTTP_STATUS_CONFLICT = "409";
+// tslint:disable-next-line:no-any
+const isConflict = (body: any) => body.title.indexOf(HTTP_STATUS_CONFLICT) >= 0;
+
 /**
  * Creates a service for the user's organization.
  * 
@@ -28,7 +32,7 @@ export interface IServicePayload {
  * }
  */
 export const createService = (service: IServicePayload) => {
-  winston.log("info", "createService");
+  winston.debug("createService|service|", service);
   return new Promise((resolve, reject) => {
     const options = {
       uri: `${config.admin_api_url}/services`,
@@ -40,9 +44,19 @@ export const createService = (service: IServicePayload) => {
     };
     request(options, (err, res, body) => {
       if (err) {
-        winston.log("debug", "createService|error|" + JSON.stringify(err));
+        winston.error("createService|error|" + JSON.stringify(err));
         return reject(err);
       }
+      if (res.statusCode !== 200 && !isConflict(body)) {
+        winston.debug(
+          "createService|error|",
+          body.toString(),
+          isConflict(body)
+        );
+        return reject(new Error(body));
+      }
+      winston.debug("createService|success|service exists|", isConflict(body));
+      winston.debug("createService|success|", body);
       resolve({ res, body });
     });
   });

@@ -1,83 +1,91 @@
-#Azure Active Directory OIDC Web Sample
-
-This Node.js app will give you with a quick and easy way to set up a Web application in node.js with Express using OpenID Connect. The sample server included in the download are designed to run on any platform.
-
-We've released all of the source code for this example in GitHub under an MIT license, so feel free to clone (or even better, fork!) and provide feedback on the forums.
-
+# Digital Citizenship - Developer portal facilities
 
 ## Quick Start
 
-Getting started with the sample is easy. It is configured to run out of the box with minimal setup.
+### Step 1 - Deploy the code from this GitHub repository to a an Azure Web application
 
-### Step 1: Register an web application in B2C Azure AD Tenant
+You need to set up the following environment variables:
 
-If you don't have an Azure AD B2C Tenant yet, please [create one](https://azure.microsoft.com/en-us/documentation/articles/active-directory-b2c-get-started/).
+Where to receive logged in ADB2C user's claims after login in:
+```
+REPLY_URL="http://<webApplicationName>.azureweb.net/auth/openid/return"
+```
 
-Next let's register an web application in your tenant.
+Where to redirect the user after assigning products, groups and service:
+```
+POST_LOGIN_URL="https://<apiDeveloperPortalUrl>/developer"
+```
 
-* In the main page of your tenant, click `Manage B2C settings`, and you will be redirected to the settings page.
+Where to redirect user after a user log out:
+```
+POST_LOGOUT_URL="https://<apiDeveloperPortalUrl>"
+```
 
-* Click `Applications`, then click `Add`. Enter a name like 'my_b2c_app', and switch the `Web App / Web API` option to yes. After that, enter 'http://localhost:3000/auth/openid/return' into the `Reply URL` field. Then click `Generate key` to generate a app key, and save it somewhere. This app key is the client secret of your application. Now click `Create` button to finish registration.
+Needed to encrypt / decrypt cookies:
+```
+COOKIE_KEY="<32 characters string...>"
+COOKIE_IV="<12 characters string...>"
+```
 
-* Click the application you just created, copy the `Application ID` field and save it somewhere. This value is the clientID of your application.
+### Step 2 - Add an Azure Active Directory B2C resource (aka, tenant)
 
-* Now let's add some policies we will use for this sample. In the setting page, add a sign-in policy, a sign-up poligy, a profile-editing policy and a password-reset policy. When you add the policies, use the names 'signin', 'signup', 'updateprofile' and 'resetpassword' respectively. For `Identity providers`, choose `Email signup`; for `Application claims`, choose `Email Addresses`, `User's Object ID` and any other claims you want; for `Sign-up attributes`, choose `Email Address` and anything else you like.
+Follow the procedure described in the documentation here to create a new ADB2C tenant resource:
+https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-get-started
 
-* Now we have a B2C web application and policies registered. Note that Azure AD adds a 'B2C_1_' prefix automatically to all policy names, so the policy names we will use are actually 'B2C_1_signin', 'B2C_1_signup', 'B2C_1_updateprofile' and 'B2C_1_resetpassword'. 
+Then set up the following environment variable:
+```
+TENANT_ID="<tenantName>.onmicrosoft.com"
+```
 
-### Step 2: Download node.js for your platform
-To successfully use this sample, you need a working installation of Node.js.
+### Step 3 - Add an Azure Active Directory B2C policy
 
-### Step 3: Download the Sample application and modules
+Set up an ADB2C Policy for sign-up / sign-in users as described in the documentation:
+https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-reference-policies
 
-Next, clone the sample repo and install the NPM.
+Then set up the following environment variable:
+```
+POLICY_NAME="B2C_1_<policyName>"
+```
 
-From your shell or command line:
+### Step 4 - Add an Azure Active Directory B2C application
 
-* `$ git clone git@github.com:AzureADQuickStarts/B2C-WebApp-OpenIDConnect-NodeJS.git`
-* `$ npm install`
+Register a new application in the ADB2C tenant:
+https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-app-registration
 
-### Step 4: Configure your server
+Then set up environment variables with the application client secret (key) and id:
+```
+CLIENT_SECRET="<clientSecretKey>"
+CLIENT_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
+```
 
-* Provide the parameters in `exports.creds` in config.js as instructed.
+### Step 5 - Register an application in the main Azure Active Directory tenant
 
-* Update `exports.destroySessionUrl` in config.js, using your tenant name and signin policy name. If you want to redirect the users to a different url after they log out, update the  `post_logout_redirect_uri` part as well.
+Set up environment variables with the credentials of the application belonging
+to the *main* AD tenant (**not** the ADB2C one !).
 
-* Set `exports.useMongoDBSessionStore` in config.js to false, if you want to use the
-default session store for `express-session`. Note that the default session store is
-not suitable for production, you must use mongoDB or other [compatible session stores](https://github.com/expressjs/session#compatible-session-stores).
+These are needed to use ARM APIs to manage API Manager users' subscriptions:
+```
+ARM_CLIENT_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
+ARM_CLIENT_SECRET="<adClientSecret>"
+ARM_TENANT_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
+ARM_SUBSCRIPTION_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
+```
 
-* Update `exports.databaseUri`, if you want to use mongoDB session store and a different database uri.
+### Step 6 - Set up API manager resource and settings
+```
+ARM_RESOURCE_GROUP="<resourceGroupName>"
+ARM_APIM="<apiManagerResourceName>"
+```
 
-* Update `exports.mongoDBSessionMaxAge`. Here you can specify how long you want
-to keep a session in mongoDB. The unit is second(s).
+Needed to subscribe users to API manager product and groups:
+```
+APIM_PRODUCT_NAME="starter"
+APIM_USER_GROUPS="ApiMessageWrite,ApiInfoRead"
+```
 
-### Step 5: Run the application
-
-* Start mongoDB service.
-
-If you are using mongoDB session store in this app, you have to install mongoDB and start the service first. If you are using the default session store, you can skip this step.
-
-* Run the app.
-
-Use the following command in terminal.
-
-* `$ node app.js`
-
-**Is the server output hard to understand?:** We use `bunyan` for logging in this sample. The console won't make much sense to you unless you also install bunyan and run the server like above but pipe it through the bunyan binary:
-
-* `$ npm install -g bunyan`
-* `$ node app.js | bunyan`
-
-### You're done!
-
-You will have a server successfully running on `http://localhost:3000`.
-
-### Acknowledgements
-
-We would like to acknowledge the folks who own/contribute to the following projects for their support of Azure Active Directory and their libraries that were used to build this sample. In places where we forked these libraries to add additional functionality, we ensured that the chain of forking remains intact so you can navigate back to the original package. Working with such great partners in the open source community clearly illustrates what open collaboration can accomplish. Thank you!
-
-
-## About The Code
-
-Code hosted on GitHub under MIT license
+These are needed to create a Service, linked to the user's subscription,
+using the Functions API:
+```
+ADMIN_API_KEY="<ocm-Api-Subscription-Key>"
+ADMIN_API_URL="https://<apiManagerUrl>/adm"
+```
