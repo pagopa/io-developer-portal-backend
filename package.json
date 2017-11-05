@@ -1,7 +1,8 @@
 {
   "name": "digital-citizenship-portal",
   "version": "0.1.0",
-  "scripts": {
+  "license": "MIT",
+    "scripts": {
     "start": "node build/app",
     "build": "tsc --outDir build"
   },
