@@ -9,7 +9,7 @@
     "postinstall": "tsc --outDir build"
   },
   "engines": {
-    "node": ">=6.9.1"
+    "node": "6.5.0"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.1",
