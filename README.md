@@ -39,6 +39,11 @@ https://docs.microsoft.com/en-us/azure/app-service/app-service-continuous-deploy
 
 Set up the following environment variables:
 
+```
+PORT=3000
+WEBSITE_NODE_DEFAULT_VERSION=6.5.0
+```
+
 Where to receive logged in ADB2C user's claims after login in:
 ```
 REPLY_URL="http://<webApplicationName>.azureweb.net/auth/openid/return"

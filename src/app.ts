@@ -109,10 +109,7 @@ app.get("/logout", (req, res) => {
   res.redirect(config.destroySessionUrl);
 });
 
-// tslint:disable-next-line
-console.log(
-  "Navigate to http://localhost:3000/login/<userId>?p=" +
-    process.env.POLICY_NAME
-);
+//  Navigate to "http://<hostName>:" + process.env.PORT
+// + "/login/<userId>?p=" + process.env.POLICY_NAME
 
-app.listen(3000);
+app.listen(process.env.PORT);
