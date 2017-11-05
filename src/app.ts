@@ -100,6 +100,8 @@ const callback = (_: string, redirectUrl: string) => (
   res.redirect(redirectUrl);
 };
 
+app.get("/info", (_: express.Request, res: express.Response) => res.json("OK"));
+
 app.get("/login/:userId", verifier, callback("login", config.apimUrl));
 
 app.all("/auth/openid/return", verifier, callback("openid", config.apimUrl));
