@@ -82,6 +82,8 @@ const verifier = (
   res: express.Response,
   next: express.NextFunction
 ) => {
+  // tslint:disable-next-line
+  req.query.p = process.env.POLICY_NAME;
   if (req.params.userId) {
     // tslint:disable-next-line
     (req as any).session.userId = req.params.userId;
