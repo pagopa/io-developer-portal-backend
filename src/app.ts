@@ -112,4 +112,8 @@ app.get("/logout", (req, res) => {
 //  Navigate to "http://<hostName>:" + process.env.PORT
 // + "/login/<userId>?p=" + process.env.POLICY_NAME
 
-app.listen(process.env.PORT || 3000);
+const port = process.env.PORT || 3000;
+app.listen(port);
+
+// tslint:disable-next-line
+console.log("Listening on port " + port);
