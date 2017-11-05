@@ -4,7 +4,8 @@
   "license": "MIT",
     "scripts": {
     "start": "node build/app",
-    "build": "tsc --outDir build"
+    "build": "tsc --outDir build",
+    "postinstall": "tsc --outDir build"
   },
   "engines": {
     "node": ">=6.9.1"
