@@ -8,7 +8,7 @@ import * as cookieParser from "cookie-parser";
 import * as express from "express";
 import * as methodOverride from "method-override";
 import * as passport from "passport";
-import * as config from "./local.config";
+import * as config from "./config";
 
 import * as cookieSession from "cookie-session";
 
@@ -30,8 +30,8 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
     firstName: profile._json.family_name,
     lastName: profile._json.given_name,
     email: profile._json.emails[0],
-    productName: config.apim_product_name,
-    groups: config.apim_user_groups.split(",")
+    productName: config.apimProductName,
+    groups: config.apimUserGroups.split(",")
   };
   const subscription = await createOrUpdateApimUser(userId, userData);
   if (subscription && subscription.name) {
@@ -100,9 +100,9 @@ const callback = (_: string, redirectUrl: string) => (
   res.redirect(redirectUrl);
 };
 
-app.get("/login/:userId", verifier, callback("login", config.apim_url));
+app.get("/login/:userId", verifier, callback("login", config.apimUrl));
 
-app.all("/auth/openid/return", verifier, callback("openid", config.apim_url));
+app.all("/auth/openid/return", verifier, callback("openid", config.apimUrl));
 
 app.get("/logout", (req, res) => {
   req.logOut();

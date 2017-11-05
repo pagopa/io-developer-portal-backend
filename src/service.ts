@@ -5,7 +5,7 @@
 
 import * as request from "request";
 import * as winston from "winston";
-import * as config from "./local.config";
+import * as config from "./config";
 
 export interface IServicePayload {
   readonly service_name: string;
@@ -35,11 +35,11 @@ export const createService = (service: IServicePayload) => {
   winston.debug("createService|service|", service);
   return new Promise((resolve, reject) => {
     const options = {
-      uri: `${config.admin_api_url}/services`,
+      uri: `${config.adminApiUrl}/services`,
       method: "POST",
       json: service,
       headers: {
-        "Ocp-Apim-Subscription-Key": config.admin_api_key
+        "Ocp-Apim-Subscription-Key": config.adminApiKey
       }
     };
     request(options, (err, res, body) => {

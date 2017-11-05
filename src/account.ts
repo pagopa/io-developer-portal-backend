@@ -10,7 +10,7 @@ import {
   UserCreateParameters
 } from "azure-arm-apimanagement/lib/models";
 
-import * as config from "./local.config";
+import * as config from "./config";
 import { login } from "./login";
 
 import * as crypto from "crypto";
@@ -40,8 +40,8 @@ const getExistingUser = async (
 ) => {
   winston.debug("getExistingUser");
   return apiClient.user.get(
-    config.azurerm_resource_group,
-    config.azurerm_apim,
+    config.azurermResourceGroup,
+    config.azurermApim,
     userId
   );
 };
@@ -53,16 +53,16 @@ const addUserToProduct = async (
 ) => {
   winston.debug("addUserToProduct");
   const product = await apiClient.product.get(
-    config.azurerm_resource_group,
-    config.azurerm_apim,
+    config.azurermResourceGroup,
+    config.azurermApim,
     productName
   );
   if (user && user.id && user.name && product && product.id && productName) {
     const subscriptionId = userIdToSubscriptionId(user.name, productName);
     // Get subscription for this user-product
     const subscription = await apiClient.subscription.get(
-      config.azurerm_resource_group,
-      config.azurerm_apim,
+      config.azurermResourceGroup,
+      config.azurermApim,
       subscriptionId
     );
     // Skip adding subscription if already existing
@@ -75,8 +75,8 @@ const addUserToProduct = async (
     // For some odd reason in the Azure ARM API user.name here is
     // in reality the user.id
     return apiClient.subscription.createOrUpdate(
-      config.azurerm_resource_group,
-      config.azurerm_apim,
+      config.azurermResourceGroup,
+      config.azurermApim,
       subscriptionId,
       {
         displayName: subscriptionId,
@@ -102,8 +102,8 @@ const addUserToGroups = async (
     return Promise.reject(new Error("Cannot parse user"));
   }
   const existingGroups = await apiClient.userGroup.list(
-    config.azurerm_resource_group,
-    config.azurerm_apim,
+    config.azurermResourceGroup,
+    config.azurermApim,
     user.name
   );
   const existingGroupsNames = new Set(existingGroups.map(g => g.name));
@@ -123,8 +123,8 @@ const addUserToGroups = async (
       // For some odd reason in the Azure ARM API user.name here is
       // in reality the user.id
       return await apiClient.groupUser.create(
-        config.azurerm_resource_group,
-        config.azurerm_apim,
+        config.azurermResourceGroup,
+        config.azurermApim,
         group,
         user.name as string
       );
