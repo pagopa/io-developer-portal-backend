@@ -6,6 +6,9 @@
     "start": "node build/app",
     "build": "tsc --outDir build"
   },
+  "engines": {
+    "node": ">=6.9.1"
+  },
   "dependencies": {
     "@types/cookie-parser": "^1.4.1",
     "@types/dotenv": "^4.0.2",
