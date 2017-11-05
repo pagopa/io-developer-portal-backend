@@ -88,7 +88,7 @@ const verifier = (
   }
   passport.authenticate("azuread-openidconnect", {
     session: false,
-    failureRedirect: "/login",
+    failureRedirect: config.apimUrl,
     response: res
   } as {})(req, res, next);
 };
