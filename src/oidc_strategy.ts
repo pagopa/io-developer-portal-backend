@@ -13,6 +13,8 @@ interface IProfile {
     readonly family_name: string;
     readonly given_name: string;
     readonly extension_Organization: string;
+    readonly extension_AuthorizedRecipients: string;
+    readonly extension_ServiceName: string;
   };
 }
 

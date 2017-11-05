@@ -35,8 +35,12 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
   };
   const subscription = await createOrUpdateApimUser(userId, userData);
   if (subscription && subscription.name) {
+    const authorizedRecipients =
+      profile._json.extension_AuthorizedRecipients
+        .split(",")
+        .map((s: string) => s.trim()) || [];
     await createService({
-      authorized_recipients: [],
+      authorized_recipients: authorizedRecipients,
       department_name: profile._json.extension_Organization,
       organization_name: profile._json.extension_Organization,
       service_id: subscription.name,
