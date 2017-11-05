@@ -17,7 +17,8 @@ export interface IServicePayload {
 
 const HTTP_STATUS_CONFLICT = "409";
 // tslint:disable-next-line:no-any
-const isConflict = (body: any) => body.title.indexOf(HTTP_STATUS_CONFLICT) >= 0;
+const isConflict = (body: any) =>
+  body.title && body.title.indexOf(HTTP_STATUS_CONFLICT) >= 0;
 
 /**
  * Creates a service for the user's organization.
