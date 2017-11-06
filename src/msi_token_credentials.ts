@@ -4,6 +4,8 @@ import * as msRest from "ms-rest";
 
 import { MSITokenCredentials as IMSITokenCredentials } from "ms-rest-azure";
 
+const API_VERSION = "2017-09-01";
+
 export class MSITokenCredentials implements IMSITokenCredentials {
   private readonly resource: string;
   private readonly endpoint: string;
@@ -51,29 +53,33 @@ export class MSITokenCredentials implements IMSITokenCredentials {
     ) => void
   ): void {
     const reqOptions = this.prepareRequestOptions();
-    request.post(this.endpoint, reqOptions, (err, _, body) => {
-      if (err) {
-        // tslint:disable-next-line
-        return callback(err, undefined as any);
-      }
-      try {
-        const tokenResponse = JSON.parse(body);
-        if (!tokenResponse.token_type) {
-          throw new Error(
-            `Invalid token response, did not find token_type. Response body is: ${body}`
-          );
-        } else if (!tokenResponse.access_token) {
-          throw new Error(
-            `Invalid token response, did not find access_token. Response body is: ${body}`
-          );
+    request.post(
+      this.endpoint + "?api-version=" + API_VERSION,
+      reqOptions,
+      (err, _, body) => {
+        if (err) {
+          // tslint:disable-next-line
+          return callback(err, undefined as any);
         }
-        // tslint:disable-next-line
-        return callback(undefined as any, tokenResponse);
-      } catch (error) {
-        // tslint:disable-next-line
-        return callback(error, undefined as any);
+        try {
+          const tokenResponse = JSON.parse(body);
+          if (!tokenResponse.token_type) {
+            throw new Error(
+              `Invalid token response, did not find token_type. Response body is: ${body}`
+            );
+          } else if (!tokenResponse.access_token) {
+            throw new Error(
+              `Invalid token response, did not find access_token. Response body is: ${body}`
+            );
+          }
+          // tslint:disable-next-line
+          return callback(undefined as any, tokenResponse);
+        } catch (error) {
+          // tslint:disable-next-line
+          return callback(error, undefined as any);
+        }
       }
-    });
+    );
   }
 
   public signRequest(

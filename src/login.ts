@@ -8,6 +8,8 @@ import * as winston from "winston";
 import { MSITokenCredentials } from "./msi_token_credentials";
 
 const subscriptionId = process.env.ARM_SUBSCRIPTION_ID as string;
+const endpoint = process.env.MSI_ENDPOINT as string;
+const secret = process.env.MSI_SECRET as string;
 
 process.on("unhandledRejection", e => winston.error(e));
 
@@ -16,10 +18,17 @@ export interface ICreds {
   readonly subscriptionId: string;
 }
 
-export const loginWithMsi = async () => {
-  const creds = new MSITokenCredentials({
-    endpoint: process.env.MSI_ENDPOINT as string,
-    secret: process.env.MSI_SECRET as string
+export const loginWithMsi = (): Promise<ICreds> => {
+  return new Promise((resolve, reject) => {
+    const creds = new MSITokenCredentials({
+      endpoint,
+      secret
+    });
+    creds.getToken(err => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve({ creds, subscriptionId });
+    });
   });
-  return { creds, subscriptionId };
 };
