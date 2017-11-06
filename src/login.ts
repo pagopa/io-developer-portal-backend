@@ -3,11 +3,12 @@ import * as msRestAzure from "ms-rest-azure";
 import * as request from "request";
 import * as winston from "winston";
 
+import * as url from "url";
+
 const subscriptionId = process.env.ARM_SUBSCRIPTION_ID as string;
 
-const getMsiPort = (enpoint: string) => {
-  const url = new URL(enpoint);
-  return parseInt(url.port, 10);
+const getMsiPort = (endpoint: string) => {
+  return parseInt(url.parse(endpoint).port as string, 10);
 };
 
 process.on("unhandledRejection", e => winston.error(e));
