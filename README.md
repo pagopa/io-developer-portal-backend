@@ -111,6 +111,8 @@ needed to use ARM APIs to manage API Manager users' subscriptions:
 ARM_SUBSCRIPTION_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
 ```
 
+Restart the (web) App Service.
+
 ### Step 6 - Set up variables related to the API management resource
 
 Set up the following environment variables in the App Service instance:
