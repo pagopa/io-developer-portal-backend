@@ -7,25 +7,31 @@ import { MSITokenCredentials as IMSITokenCredentials } from "ms-rest-azure";
 export class MSITokenCredentials implements IMSITokenCredentials {
   private readonly resource: string;
   private readonly endpoint: string;
+  private readonly secret: string;
 
   constructor(options: {
     readonly endpoint: string;
+    readonly secret: string;
     readonly resource?: string;
   }) {
     if (!options) {
       throw new Error("please provide an endpoint.");
     }
-
     if (typeof options.endpoint !== "string") {
       throw new Error("endpoint must be a uri.");
     }
-
-    if (typeof options.resource !== "string") {
-      throw new Error("resource must be a uri.");
+    if (typeof options.secret !== "string") {
+      throw new Error("secret must be set.");
     }
-
+    if (typeof options.resource !== "string") {
+      // tslint:disable-next-line:no-object-mutation
+      this.resource = "https://management.azure.com/";
+    } else {
+      // tslint:disable-next-line:no-object-mutation
+      this.resource = options.resource;
+    }
     // tslint:disable-next-line:no-object-mutation
-    this.resource = options.resource || "https://management.azure.com/";
+    this.secret = options.secret;
     // tslint:disable-next-line:no-object-mutation
     this.endpoint = options.endpoint;
   }
@@ -93,7 +99,8 @@ export class MSITokenCredentials implements IMSITokenCredentials {
     return {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        Metadata: "true"
+        Metadata: "true",
+        Secret: this.secret
       },
       body: `resource=${resource}`
     };

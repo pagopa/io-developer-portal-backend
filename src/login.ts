@@ -18,7 +18,8 @@ export interface ICreds {
 
 export const loginWithMsi = async () => {
   const creds = new MSITokenCredentials({
-    endpoint: process.env.MSI_ENDPOINT as string
+    endpoint: process.env.MSI_ENDPOINT as string,
+    secret: process.env.MSI_SECRET as string
   });
   return { creds, subscriptionId };
 };
