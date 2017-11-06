@@ -1,9 +1,10 @@
 import * as msRest from "ms-rest";
-import { MSITokenCredentials } from "ms-rest-azure";
 import * as request from "request";
 import * as winston from "winston";
 
 import * as url from "url";
+
+import MSITokenCredentials = require("ms-rest-azure/lib/credentials/msiTokenCredentials");
 
 const subscriptionId = process.env.ARM_SUBSCRIPTION_ID as string;
 
