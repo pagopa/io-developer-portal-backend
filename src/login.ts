@@ -19,7 +19,7 @@ export interface ICreds {
 }
 
 export const loginWithMsi = async () => {
-  const creds = await msRestAzure.loginWithMSI({
+  const creds = new msRestAzure.MSITokenCredentials({
     port: getMsiPort(process.env.MSI_ENDPOINT as string)
   });
   // tslint:disable-next-line:no-object-mutation
@@ -27,11 +27,22 @@ export const loginWithMsi = async () => {
   return { creds, subscriptionId };
 };
 
+// function _withMSI(options, callback) {
+//   if (!callback) {
+//     throw new Error('callback cannot be null or undefined.');
+//   }
+//   const creds = new MSITokenCredentials(options);
+//   creds.getToken(function (err) {
+//     if (err) return callback(err);
+//     return callback(null, creds);
+//   });
+// }
+
 /**
  * Patched getToken()
  * see https://github.com/Azure/azure-sdk-for-node/issues/2292
  */
-export const getToken = (
+const getToken = (
   callback: (
     error: Error | undefined,
     result?: {
