@@ -51,7 +51,7 @@ export const createService = (service: IServicePayload) => {
       if (res.statusCode !== 200 && !isConflict(body)) {
         winston.debug(
           "createService|error|",
-          body.toString(),
+          JSON.stringify(body),
           isConflict(body)
         );
         return reject(new Error(body));
