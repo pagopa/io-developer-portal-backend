@@ -4,10 +4,10 @@ import * as winston from "winston";
 
 const subscriptionId = process.env.ARM_SUBSCRIPTION_ID as string;
 
-const msiPort =
-  typeof process.env.MSI_PORT === "string"
-    ? Number(process.env.MSI_PORT)
-    : 50342;
+// const msiPort =
+//   typeof process.env.MSI_PORT === "string"
+//     ? Number(process.env.MSI_PORT)
+//     : 50342;
 
 process.on("unhandledRejection", e => winston.error(e));
 
@@ -17,8 +17,6 @@ export interface ICreds {
 }
 
 export const loginWithMsi = async () => {
-  const creds = await msRestAzure.loginWithMSI({
-    port: msiPort
-  });
+  const creds = await msRestAzure.loginWithMSI();
   return { creds, subscriptionId };
 };
