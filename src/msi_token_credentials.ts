@@ -44,9 +44,8 @@ export class MSITokenCredentials implements IMSITokenCredentials {
       result: { readonly token_type: string; readonly access_token: string }
     ) => void
   ): void {
-    const postUrl = process.env.MSI_ENDPOINT as string;
     const reqOptions = this.prepareRequestOptions();
-    request.post(postUrl, reqOptions, (err, _, body) => {
+    request.post(this.endpoint, reqOptions, (err, _, body) => {
       if (err) {
         // tslint:disable-next-line
         return callback(err, undefined as any);
