@@ -4,6 +4,10 @@ import * as winston from "winston";
 
 import * as url from "url";
 
+/**
+ * We cannot use loginWithMSI()
+ * see https://github.com/Azure/azure-sdk-for-node/issues/2292
+ */
 import MSITokenCredentials = require("ms-rest-azure/lib/credentials/msiTokenCredentials");
 
 const subscriptionId = process.env.ARM_SUBSCRIPTION_ID as string;
@@ -27,17 +31,6 @@ export const loginWithMsi = async () => {
   creds.getToken = getToken.bind(creds);
   return { creds, subscriptionId };
 };
-
-// function _withMSI(options, callback) {
-//   if (!callback) {
-//     throw new Error('callback cannot be null or undefined.');
-//   }
-//   const creds = new MSITokenCredentials(options);
-//   creds.getToken(function (err) {
-//     if (err) return callback(err);
-//     return callback(null, creds);
-//   });
-// }
 
 /**
  * Patched getToken()
