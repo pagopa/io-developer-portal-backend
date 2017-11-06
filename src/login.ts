@@ -1,5 +1,5 @@
 import * as msRest from "ms-rest";
-import * as msRestAzure from "ms-rest-azure";
+import { MSITokenCredentials } from "ms-rest-azure";
 import * as request from "request";
 import * as winston from "winston";
 
@@ -19,7 +19,7 @@ export interface ICreds {
 }
 
 export const loginWithMsi = async () => {
-  const creds = new msRestAzure.MSITokenCredentials({
+  const creds = new MSITokenCredentials({
     port: getMsiPort(process.env.MSI_ENDPOINT as string)
   });
   // tslint:disable-next-line:no-object-mutation
