@@ -52,10 +52,14 @@ export class MSITokenCredentials implements IMSITokenCredentials {
       result: { readonly token_type: string; readonly access_token: string }
     ) => void
   ): void {
-    const reqOptions = this.prepareRequestOptions();
-    request.post(
-      this.endpoint + "?api-version=" + API_VERSION,
-      reqOptions,
+    const query = `?resource=${this.resource}&api-version=${API_VERSION}`;
+    request.get(
+      this.endpoint + query,
+      {
+        headers: {
+          Secret: this.secret
+        }
+      },
       (err, _, body) => {
         if (err) {
           // tslint:disable-next-line
@@ -98,17 +102,5 @@ export class MSITokenCredentials implements IMSITokenCredentials {
       // tslint:disable-next-line
       return callback(undefined as any);
     });
-  }
-
-  private prepareRequestOptions(): {} {
-    const resource = encodeURIComponent(this.resource);
-    return {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        Metadata: "true",
-        Secret: this.secret
-      },
-      body: `resource=${resource}`
-    };
   }
 }

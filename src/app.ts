@@ -31,13 +31,13 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
     lastName: profile._json.given_name,
     email: profile._json.emails[0],
     productName: config.apimProductName,
-    groups: config.apimUserGroups.split(",")
+    groups: (config.apimUserGroups || "").split(",")
   };
   try {
     const subscription = await createOrUpdateApimUser(userId, userData);
     if (subscription && subscription.name) {
       const authorizedRecipients =
-        profile._json.extension_AuthorizedRecipients
+        (profile._json.extension_AuthorizedRecipients || "")
           .split(",")
           .map((s: string) => s.trim()) || [];
       await createService({
