@@ -96,16 +96,18 @@ CLIENT_SECRET="<clientSecretKey>"
 CLIENT_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
 ```
 
-### Step 5 - Register an application in the main Azure Active Directory tenant
+### Step 5 - Activate Managed Service Identity for the Web application 
 
-Create (register) an application into the *main* AD tenant (**not** the ADB2C one !).
+Navigate to the Azure Portal App Service blade for the Web application (App Service)
+-> Managed Service Identity -> Register with Azure Active Directory
+and set the value to 'On'.
 
-Set up the following environment variables in the App Service instance;
-these are needed to use ARM APIs to manage API Manager users' subscriptions:
+Navigate to the Azure Portal API management blade -> Access Control (IAM) -> Add
+and add the registered Web application as a Contributor.
+
+Set up the AD tenant subscription id environment variable in the Web application (App Service) instance;
+needed to use ARM APIs to manage API Manager users' subscriptions:
 ```
-ARM_CLIENT_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
-ARM_CLIENT_SECRET="<adClientSecret>"
-ARM_TENANT_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
 ARM_SUBSCRIPTION_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
 ```
 

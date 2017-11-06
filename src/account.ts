@@ -11,7 +11,7 @@ import {
 } from "azure-arm-apimanagement/lib/models";
 
 import * as config from "./config";
-import { login } from "./login";
+import { loginWithMsi } from "./login";
 
 import * as crypto from "crypto";
 
@@ -141,7 +141,7 @@ export const createOrUpdateApimUser = async (
   userData: IUserData
 ): Promise<SubscriptionContract> => {
   winston.debug("createOrUpdateApimUser");
-  const loginCreds = await login();
+  const loginCreds = await loginWithMsi();
   const apiClient = new apiManagementClient(
     loginCreds.creds,
     loginCreds.subscriptionId

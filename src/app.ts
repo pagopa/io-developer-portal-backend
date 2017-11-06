@@ -33,19 +33,23 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
     productName: config.apimProductName,
     groups: config.apimUserGroups.split(",")
   };
-  const subscription = await createOrUpdateApimUser(userId, userData);
-  if (subscription && subscription.name) {
-    const authorizedRecipients =
-      profile._json.extension_AuthorizedRecipients
-        .split(",")
-        .map((s: string) => s.trim()) || [];
-    await createService({
-      authorized_recipients: authorizedRecipients,
-      department_name: profile._json.extension_Organization,
-      organization_name: profile._json.extension_Organization,
-      service_id: subscription.name,
-      service_name: profile._json.extension_Organization
-    });
+  try {
+    const subscription = await createOrUpdateApimUser(userId, userData);
+    if (subscription && subscription.name) {
+      const authorizedRecipients =
+        profile._json.extension_AuthorizedRecipients
+          .split(",")
+          .map((s: string) => s.trim()) || [];
+      await createService({
+        authorized_recipients: authorizedRecipients,
+        department_name: profile._json.extension_Organization,
+        organization_name: profile._json.extension_Organization,
+        service_id: subscription.name,
+        service_name: profile._json.extension_Organization
+      });
+    }
+  } catch (e) {
+    winston.error("setupOidcStrategy|error", e);
   }
 });
 
