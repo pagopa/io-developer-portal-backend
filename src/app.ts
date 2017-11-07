@@ -24,7 +24,8 @@ import * as config from "./config";
 
 import * as cookieSession from "cookie-session";
 
-import { updateApimUser, IUserData } from "./account";
+import { IUserData, updateApimUser } from "./account";
+import { secureExpressApp } from "./express";
 import { setupOidcStrategy } from "./oidc_strategy";
 import { createService } from "./service";
 
@@ -74,6 +75,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
 });
 
 const app = express();
+secureExpressApp(app);
 
 // Avoid stateful in-memory sessions
 app.use(
