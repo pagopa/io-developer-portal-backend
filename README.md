@@ -6,9 +6,9 @@ of users in the Digital Citizenship Azure API management *developer portal*.
 
 The aim is to automate some operations that would otherwise
 require the manual intervention of the APIs administrator:
-this lets the developers start testing the API just after signing-up.
+this lets developers start testing the API just after signing-up.
 
-Users' authentication takes place against an
+User's authentication takes place against an
 [Azure Active Directory B2C](https://azure.microsoft.com/en-us/services/active-directory-b2c/)
 tenant.
 
@@ -96,7 +96,7 @@ CLIENT_SECRET="<clientSecretKey>"
 CLIENT_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
 ```
 
-### Step 5 - Activate Managed Service Identity for the Web application 
+### Step 5 - Activate Managed Service Identity for this Web application 
 
 Navigate to the Azure Portal App Service blade for the Web application (App Service)
 -> Managed Service Identity -> Register with Azure Active Directory
@@ -128,10 +128,10 @@ APIM_PRODUCT_NAME="starter"
 APIM_USER_GROUPS="ApiMessageWrite,ApiInfoRead"
 ```
 
-### Step 7 - Set up variables related to Functions (Digital Citizenship API)
+### Step 7 - Set up variables related to Digital Citizenship API
 
 These are needed to create a Service, linked to the user's subscription,
-using the Functions API:
+using the Functions / Digital Citizenship API:
 ```
 ADMIN_API_KEY="<ocm-Api-Subscription-Key>"
 ADMIN_API_URL="https://<apiManagerUrl>/adm"

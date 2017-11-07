@@ -1,8 +1,7 @@
 /**
- * Creates a new service.
+ * Creates a new Service tied to the user subscription
+ * in the API management resource.
  */
-"use strict";
-
 import * as request from "request";
 import * as winston from "winston";
 import * as config from "./config";
@@ -21,7 +20,8 @@ const isConflict = (body: any) =>
   body.title && body.title.indexOf(HTTP_STATUS_CONFLICT) >= 0;
 
 /**
- * Creates a service for the user's organization.
+ * RESTful call to Digital Citizenship API
+ *  that creates a new Service for the current logged-in user.
  * 
  * @param service 
  * {

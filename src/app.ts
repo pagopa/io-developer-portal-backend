@@ -1,6 +1,18 @@
-"use strict";
+/**
+ * The aim of this Express Web application is to automate
+ * some tasks related to users management in the Digital Citizenship
+ * Azure API management developer portal resource.
+ * 
+ * The flow starts when the user, already logged into the developoer portal,
+ * clicks on a call-to-action that links to the '/login/<userId>' endpoint.
+ */
 
 import * as dotenv from "dotenv";
+/*
+ * Useful for testing the web application locally.
+ * 'local.env' file does not need to exists in the
+ * production environment (use Application Settings instead)
+ */
 dotenv.config({ path: __dirname + "/../local.env" });
 
 import * as bodyParser from "body-parser";
@@ -12,7 +24,7 @@ import * as config from "./config";
 
 import * as cookieSession from "cookie-session";
 
-import { createOrUpdateApimUser, IUserData } from "./account";
+import { updateApimUser, IUserData } from "./account";
 import { setupOidcStrategy } from "./oidc_strategy";
 import { createService } from "./service";
 
@@ -24,6 +36,14 @@ winston.configure({
   ]
 });
 
+/**
+ * Set up passport OpenID Connect strategy that works
+ * with Azure Active Directory B2C accounts.
+ * 
+ * Assigns logged-in user to API management products and groups,
+ * then create a Service tied to the user subscription using
+ * the Functions API.
+ */
 setupOidcStrategy(config.creds, async (userId, profile) => {
   const userData: IUserData = {
     oid: profile._json.oid,
@@ -34,7 +54,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
     groups: (config.apimUserGroups || "").split(",")
   };
   try {
-    const subscription = await createOrUpdateApimUser(userId, userData);
+    const subscription = await updateApimUser(userId, userData);
     if (subscription && subscription.name) {
       const authorizedRecipients =
         (profile._json.extension_AuthorizedRecipients || "")
@@ -42,10 +62,10 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
           .map((s: string) => s.trim()) || [];
       await createService({
         authorized_recipients: authorizedRecipients,
-        department_name: profile._json.extension_Organization,
-        organization_name: profile._json.extension_Organization,
+        department_name: profile._json.extension_Department || "",
+        organization_name: profile._json.extension_Organization || "",
         service_id: subscription.name,
-        service_name: profile._json.extension_Organization
+        service_name: profile._json.extension_ServiceName || ""
       });
     }
   } catch (e) {
@@ -55,6 +75,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
 
 const app = express();
 
+// Avoid stateful in-memory sessions
 app.use(
   cookieSession({
     name: "session",
@@ -63,6 +84,7 @@ app.use(
 );
 
 // app.use(express.logger());
+
 app.use(methodOverride());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -85,15 +107,19 @@ app.use(passport.initialize());
 //   res.redirect('/login');
 // };
 
+/**
+ * Express middleware that redirects anonymous users
+ * to the sign-in page.
+ */
 const verifier = (
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
 ) => {
-  // tslint:disable-next-line
+  // tslint:disable-next-line:no-object-mutation
   req.query.p = process.env.POLICY_NAME;
   if (req.params.userId) {
-    // tslint:disable-next-line
+    // tslint:disable-next-line:no-any no-object-mutation
     (req as any).session.userId = req.params.userId;
   }
   passport.authenticate("azuread-openidconnect", {
@@ -103,7 +129,7 @@ const verifier = (
   } as {})(req, res, next);
 };
 
-const callback = (_: string, redirectUrl: string) => (
+const redirect = (redirectUrl: string) => (
   __: express.Request,
   res: express.Response
 ) => {
@@ -112,14 +138,11 @@ const callback = (_: string, redirectUrl: string) => (
 
 app.get("/info", (_: express.Request, res: express.Response) => res.json("OK"));
 
-app.get("/login/:userId", verifier, callback("login", config.apimUrl));
+app.get("/login/:userId", verifier, redirect(config.apimUrl));
 
-app.all("/auth/openid/return", verifier, callback("openid", config.apimUrl));
+app.all("/auth/openid/return", verifier, redirect(config.apimUrl));
 
-app.get("/logout", (req, res) => {
-  req.logOut();
-  res.redirect(config.destroySessionUrl);
-});
+app.get("/logout", redirect(config.destroySessionUrl));
 
 //  Navigate to "http://<hostName>:" + process.env.PORT
 // + "/login/<userId>?p=" + process.env.POLICY_NAME
@@ -127,5 +150,5 @@ app.get("/logout", (req, res) => {
 const port = process.env.PORT || 3000;
 app.listen(port);
 
-// tslint:disable-next-line
+// tslint:disable-next-line:no-console
 console.log("Listening on port " + port);

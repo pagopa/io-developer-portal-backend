@@ -136,7 +136,7 @@ const addUserToGroups = async (
   );
 };
 
-export const createOrUpdateApimUser = async (
+export const updateApimUser = async (
   userId: string,
   userData: IUserData
 ): Promise<SubscriptionContract> => {
