@@ -27,7 +27,7 @@
     "helmet-csp": "^2.6.0",
     "method-override": "^2.3.10",
     "ms-rest": "^2.2.4",
-    "ms-rest-azure": "^2.4.3",
+    "ms-rest-azure": "^2.4.4",
     "passport": "*",
     "passport-azure-ad": "^3.0.8",
     "prettier": "^1.7.4",

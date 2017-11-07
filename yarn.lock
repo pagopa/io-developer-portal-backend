@@ -994,9 +994,9 @@ ms-rest-azure@^2.3.3:
     ms-rest "^2.2.3"
     uuid "^3.1.0"
 
-ms-rest-azure@^2.4.3:
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/ms-rest-azure/-/ms-rest-azure-2.4.3.tgz#09c680210ee2a30fd8d4ecccdd3d2332f9a8aabb"
+ms-rest-azure@^2.4.4:
+  version "2.4.4"
+  resolved "https://registry.yarnpkg.com/ms-rest-azure/-/ms-rest-azure-2.4.4.tgz#aa7a62a519a78917279b4cfffe947d25edcef7e0"
   dependencies:
     "@types/node" "^8.0.25"
     "@types/uuid" "^3.4.2"
