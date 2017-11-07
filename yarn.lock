@@ -55,6 +55,10 @@
   version "8.0.47"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.47.tgz#968e596f91acd59069054558a00708c445ca30c2"
 
+"@types/node@^8.0.47":
+  version "8.0.49"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.49.tgz#417f86ab4829c629fe561779ee48751e0fe2a11b"
+
 "@types/passport@^0.3.5":
   version "0.3.5"
   resolved "https://registry.yarnpkg.com/@types/passport/-/passport-0.3.5.tgz#2089c7046d120e8bb92aa4ed86338c9c62ef7853"
@@ -104,6 +108,20 @@ adal-node@^0.1.17:
     node-uuid "1.4.7"
     request ">= 2.52.0"
     underscore ">= 1.3.1"
+    xmldom ">= 0.1.x"
+    xpath.js "~1.0.5"
+
+adal-node@^0.1.25:
+  version "0.1.25"
+  resolved "https://registry.yarnpkg.com/adal-node/-/adal-node-0.1.25.tgz#6554350ab42914870004c45c0d64448f3dbfcd03"
+  dependencies:
+    "@types/node" "^8.0.47"
+    async ">=0.6.0"
+    date-utils "*"
+    jws "3.x.x"
+    request ">= 2.52.0"
+    underscore ">= 1.3.1"
+    uuid "^3.1.0"
     xmldom ">= 0.1.x"
     xpath.js "~1.0.5"
 
@@ -877,7 +895,7 @@ moment@~2.18.1:
   version "2.18.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
-ms-rest-azure@^2.3.3, ms-rest-azure@^2.4.1:
+ms-rest-azure@^2.3.3:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/ms-rest-azure/-/ms-rest-azure-2.4.1.tgz#0d5501449a3318c0cf5e10d4bb0494977989b967"
   dependencies:
@@ -889,9 +907,37 @@ ms-rest-azure@^2.3.3, ms-rest-azure@^2.4.1:
     ms-rest "^2.2.3"
     uuid "^3.1.0"
 
+ms-rest-azure@^2.4.2:
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/ms-rest-azure/-/ms-rest-azure-2.4.2.tgz#bd1f871ef1200f19984414f082f1d957bfd042f4"
+  dependencies:
+    "@types/node" "^8.0.25"
+    "@types/uuid" "^3.4.2"
+    adal-node "^0.1.25"
+    async "2.5.0"
+    moment "~2.18.1"
+    ms-rest "^2.2.5"
+    uuid "^3.1.0"
+
 ms-rest@^2.2.2, ms-rest@^2.2.3, ms-rest@^2.2.4:
   version "2.2.4"
   resolved "https://registry.yarnpkg.com/ms-rest/-/ms-rest-2.2.4.tgz#936b941b801d650abc744e240da010d3ea03b357"
+  dependencies:
+    "@types/node" "^8.0.25"
+    "@types/request" "^2.0.3"
+    "@types/uuid" "^3.4.1"
+    duplexer "~0.1.1"
+    is-buffer "^1.1.5"
+    is-stream "^1.1.0"
+    moment "~2.18.1"
+    request "^2.74.0"
+    through "~2.3.4"
+    tunnel "~0.0.2"
+    uuid "^3.0.1"
+
+ms-rest@^2.2.5:
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/ms-rest/-/ms-rest-2.2.5.tgz#cb439f415fb83f4c4e78e266dfa9adb3c2c51410"
   dependencies:
     "@types/node" "^8.0.25"
     "@types/request" "^2.0.3"

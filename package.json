@@ -3,13 +3,10 @@
   "version": "0.1.0",
   "main": "./build/app.js",
   "license": "MIT",
-    "scripts": {
+  "scripts": {
     "start": "node build/app",
     "build": "tsc --outDir build",
     "postinstall": "tsc --outDir build"
-  },
-  "engines": {
-    "node": "6.5.0"
   },
   "dependencies": {
     "@types/cookie-parser": "^1.4.1",
@@ -27,7 +24,7 @@
     "express": "^4.16.2",
     "method-override": "^2.3.10",
     "ms-rest": "^2.2.4",
-    "ms-rest-azure": "^2.4.1",
+    "ms-rest-azure": "^2.4.2",
     "passport": "*",
     "passport-azure-ad": "^3.0.8",
     "prettier": "^1.7.4",
