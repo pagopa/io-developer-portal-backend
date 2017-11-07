@@ -56,7 +56,10 @@ export const createService = (service: IServicePayload) => {
         );
         return reject(new Error(body));
       }
-      winston.debug("createService|success|service exists|", isConflict(body));
+      winston.debug(
+        "createService|success|service exists = ",
+        isConflict(body)
+      );
       winston.debug("createService|success|", body);
       resolve({ res, body });
     });
