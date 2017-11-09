@@ -14,8 +14,7 @@ interface IProfile {
     readonly given_name: string;
     readonly extension_Organization: string;
     readonly extension_Department: string;
-    readonly extension_AuthorizedRecipients: string;
-    readonly extension_ServiceName: string;
+    readonly extension_Service: string;
   };
 }
 

@@ -67,7 +67,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
         department_name: profile._json.extension_Department || "",
         organization_name: profile._json.extension_Organization || "",
         service_id: subscription.name,
-        service_name: profile._json.extension_ServiceName || ""
+        service_name: profile._json.extension_Service || ""
       });
       // @TODO: email template"
       await sendMessage(fakeFiscalCode, {
