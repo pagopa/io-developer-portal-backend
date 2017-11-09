@@ -26,6 +26,7 @@ import * as cookieSession from "cookie-session";
 
 import { IUserData, updateApimUser } from "./account";
 import { secureExpressApp } from "./express";
+import { createFakeProfile } from "./fake_profile";
 import { setupOidcStrategy } from "./oidc_strategy";
 import { createService } from "./service";
 
@@ -57,6 +58,9 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
   try {
     const subscription = await updateApimUser(userId, userData);
     if (subscription && subscription.name) {
+      await createFakeProfile({
+        email: userData.email
+      });
       const authorizedRecipients =
         (profile._json.extension_AuthorizedRecipients || "")
           .split(",")

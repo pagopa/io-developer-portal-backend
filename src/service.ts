@@ -15,22 +15,12 @@ export interface IServicePayload {
 }
 
 const HTTP_STATUS_CONFLICT = "409";
-// tslint:disable-next-line:no-any
-const isConflict = (body: any) =>
+const isConflict = (body: { readonly title: string }) =>
   body.title && body.title.indexOf(HTTP_STATUS_CONFLICT) >= 0;
 
 /**
  * RESTful call to Digital Citizenship API
  *  that creates a new Service for the current logged-in user.
- * 
- * @param service 
- * {
- *    service_name: "aService",
- * 	  department_name: "aDepartment",
- * 	  organization_name: "anOrganization",
- * 	  service_id: "aSubscriptionId",
- * 	  authorized_recipients: ['AFISCALCODE', 'ANOTHERFISCALCODE' ]     
- * }
  */
 export const createService = (service: IServicePayload) => {
   winston.debug("createService|service|", service);
