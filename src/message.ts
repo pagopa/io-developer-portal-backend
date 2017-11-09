@@ -24,7 +24,7 @@ export const sendMessage = (
   winston.debug("sendMessage|message|", message);
   return new Promise((resolve, reject) => {
     const options = {
-      uri: `${config.adminApiUrl}/messages/${fakeFiscalCode}`,
+      uri: `${config.adminApiUrl}/api/v1/messages/${fakeFiscalCode}`,
       method: "POST",
       json: message,
       headers: {
