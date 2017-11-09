@@ -26,7 +26,7 @@ export const createService = (service: IServicePayload) => {
   winston.debug("createService|service|", service);
   return new Promise((resolve, reject) => {
     const options = {
-      uri: `${config.adminApiUrl}/services`,
+      uri: `${config.adminApiUrl}/adm/services`,
       method: "POST",
       json: service,
       headers: {

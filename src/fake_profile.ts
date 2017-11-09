@@ -40,17 +40,17 @@ const generateFakeFiscalCode = () => {
 export const createFakeProfile = (
   profile: IProfilePayload
 ): Promise<string> => {
-  winston.debug("createFakeProfile|profile|", profile);
   return new Promise((resolve, reject) => {
     const fakeFiscalCode = generateFakeFiscalCode();
     const options = {
-      uri: `${config.adminApiUrl}/profiles/${fakeFiscalCode}`,
+      uri: `${config.adminApiUrl}/api/v1/profiles/${fakeFiscalCode}`,
       method: "POST",
       json: profile,
       headers: {
         "Ocp-Apim-Subscription-Key": config.adminApiKey
       }
     };
+    winston.debug("createFakeProfile|profile|", profile, options.uri);
     request(options, (err, res, body) => {
       if (err) {
         winston.error("createFakeProfile|error|" + JSON.stringify(err));
