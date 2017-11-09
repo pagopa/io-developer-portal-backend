@@ -41,7 +41,6 @@ winston.configure({
 
 const checkConfig = (conf: typeof localConfig) =>
   [
-    conf.adminApiKey,
     conf.adminApiUrl,
     conf.armClientId,
     conf.armClientSecret,
@@ -87,13 +86,15 @@ const createAdminUser = async (conf: typeof localConfig) => {
     throw new Error("Cannot create subscription");
   }
 
-  await createService({
+  await createService(subscription.primaryKey, {
     authorized_recipients: [],
     department_name: "IT",
     organization_name: "AgID",
     service_id: subscription.name,
     service_name: "Digital Citizenship"
   });
+
+  return subscription.primaryKey;
 };
 
 if (!checkConfig(localConfig)) {
@@ -101,5 +102,6 @@ if (!checkConfig(localConfig)) {
 }
 
 createAdminUser(localConfig)
-  .then(console.log)
+  // tslint:disable-next-line
+  .then(key => console.log("set ADMIN_API_KEY=" + key))
   .catch(console.error);

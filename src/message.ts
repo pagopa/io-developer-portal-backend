@@ -18,6 +18,7 @@ export interface IMessagePayload {
  * that send a new message to new user (fake profile).
  */
 export const sendMessage = (
+  apiKey: string,
   fakeFiscalCode: string,
   message: IMessagePayload
 ) => {
@@ -28,7 +29,7 @@ export const sendMessage = (
       method: "POST",
       json: message,
       headers: {
-        "Ocp-Apim-Subscription-Key": config.adminApiKey
+        "Ocp-Apim-Subscription-Key": apiKey
       }
     };
     request(options, (err, res, body) => {

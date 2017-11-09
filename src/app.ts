@@ -70,7 +70,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
     const loginCreds = await msRestAzure.loginWithAppServiceMSI();
     const subscription = await updateApimUser(userId, userData, loginCreds);
     if (subscription && subscription.name) {
-      const fakeFiscalCode = await createFakeProfile({
+      const fakeFiscalCode = await createFakeProfile(config.adminApiKey, {
         email: userData.email
       });
       winston.error(
@@ -78,7 +78,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
         fakeFiscalCode,
         profile._json
       );
-      await createService({
+      await createService(config.adminApiKey, {
         authorized_recipients: [fakeFiscalCode],
         department_name: profile._json.extension_Department || "",
         organization_name: profile._json.extension_Organization || "",
@@ -86,7 +86,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
         service_name: profile._json.extension_Service || ""
       });
       // @TODO: email template"
-      await sendMessage(fakeFiscalCode, {
+      await sendMessage(config.adminApiKey, fakeFiscalCode, {
         content: {
           markdown: `This is your fake fiscal code to test the Digital Citizenship API: ${fakeFiscalCode}. Have fun !!!`,
           subject: "Welcome new user !"

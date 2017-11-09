@@ -38,6 +38,7 @@ const generateFakeFiscalCode = () => {
  *  that creates a new fake Profile.
  */
 export const createFakeProfile = (
+  apiKey: string,
   profile: IProfilePayload
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -47,7 +48,7 @@ export const createFakeProfile = (
       method: "POST",
       json: profile,
       headers: {
-        "Ocp-Apim-Subscription-Key": config.adminApiKey
+        "Ocp-Apim-Subscription-Key": apiKey
       }
     };
     winston.debug("createFakeProfile|profile|", profile, options.uri);

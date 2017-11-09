@@ -22,14 +22,14 @@ const isConflict = (body: { readonly title: string }) =>
  * RESTful call to Digital Citizenship API
  *  that creates a new Service for the current logged-in user.
  */
-export const createService = (service: IServicePayload) => {
+export const createService = (apiKey: string, service: IServicePayload) => {
   return new Promise((resolve, reject) => {
     const options = {
       uri: `${config.adminApiUrl}/adm/services`,
       method: "POST",
       json: service,
       headers: {
-        "Ocp-Apim-Subscription-Key": config.adminApiKey
+        "Ocp-Apim-Subscription-Key": apiKey
       }
     };
     request(options, (err, res, body) => {
@@ -46,7 +46,7 @@ export const createService = (service: IServicePayload) => {
         return reject(new Error(body));
       }
       winston.debug(
-        "createService|success|service conflicts = ",
+        "createService|success|service is new = ",
         !isConflict(body)
       );
       winston.debug("createService|success|", body);

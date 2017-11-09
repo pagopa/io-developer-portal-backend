@@ -142,15 +142,26 @@ APIM_USER_GROUPS="ApiMessageWrite,ApiInfoRead"
 These are needed to create a Service, linked to the user's subscription,
 using the Digital Citizenship API (Functions).
 
-The API-Key must belong to an API management user assigned to the 
-`ApiServiceWrite,ApiMessageWrite,ApiProfileWrite` groups. 
-Moreover this user must be subscribed to both Admin
-and Digital Citizenship API and a Service tied to user's
-subscription must already exists. This Service is needed
-to send the welcome email to new users.
-
+Create an API user running the `create_user.ts` script,
+it will output the API-Key (Ocp-Apim-Subscription-Key):
 ```
-ADMIN_API_KEY="<ocm-Api-Subscription-Key>"
+$ ts-node src/scripts/create_user.ts
+set ADMIN_API_KEY=b4YYX6fFFdXXc44b5MMMf1d28a4WWWc
+```
+
+To run the script you need to provide the following environment variables 
+(set up these ones only locally, just to run the script,
+**do not set up these four vars in the remote App Service**):
+```
+ARM_CLIENT_ID="<client id of an Application registered in the main AD tenant>"
+ARM_CLIENT_SECRET="<client secret / key of the Application registered in the main AD tenant>"
+ARM_TENANT_ID="<AD tenant / directory id>"
+ARM_SUBSCRIPTION_ID="<Azure subscription id in the AD tenant>"
+```
+
+Set up the following variables in the App Service settings:
+```
+ADMIN_API_KEY="<API-key, obtained running the script>"
 ADMIN_API_URL="https://<apiManagerUrl>"
 ```
 
