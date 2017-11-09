@@ -24,6 +24,8 @@ import * as config from "./config";
 
 import * as cookieSession from "cookie-session";
 
+import * as msRestAzure from "ms-rest-azure";
+
 import { IUserData, updateApimUser } from "./account";
 import { secureExpressApp } from "./express";
 import { createFakeProfile } from "./fake_profile";
@@ -35,9 +37,11 @@ import * as winston from "winston";
 
 winston.configure({
   transports: [
-    new winston.transports.Console({ level: process.env.LOG_LEVEL || "info" })
+    new winston.transports.Console({ level: config.logLevel || "info" })
   ]
 });
+
+process.on("unhandledRejection", e => winston.error(e));
 
 /**
  * Set up passport OpenID Connect strategy that works
@@ -57,7 +61,14 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
     groups: (config.apimUserGroups || "").split(",")
   };
   try {
-    const subscription = await updateApimUser(userId, userData);
+    /*
+     * The following call expects MSI_ENDPOINT and MSI_SECRET
+     * environment variables to be set. They don't appear
+     * in the App Service settings; you can check them
+     * using Kudu console.
+     */
+    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+    const subscription = await updateApimUser(userId, userData, loginCreds);
     if (subscription && subscription.name) {
       const fakeFiscalCode = await createFakeProfile({
         email: userData.email
@@ -132,7 +143,7 @@ const verifier = (
   next: express.NextFunction
 ) => {
   // tslint:disable-next-line:no-object-mutation
-  req.query.p = process.env.POLICY_NAME;
+  req.query.p = config.policyName;
   if (req.params.userId) {
     // tslint:disable-next-line:no-any no-object-mutation
     (req as any).session.userId = req.params.userId;
@@ -159,11 +170,10 @@ app.all("/auth/openid/return", verifier, redirect(config.apimUrl));
 
 app.get("/logout", redirect(config.destroySessionUrl));
 
-//  Navigate to "http://<hostName>:" + process.env.PORT
-// + "/login/<userId>?p=" + process.env.POLICY_NAME
+//  Navigate to "http://<hostName>:" + .PORT
+// + "/login/<userId>?p=" + config.policyName
 
-const port = process.env.PORT || 3000;
+const port = config.port || 3000;
 app.listen(port);
 
-// tslint:disable-next-line:no-console
-console.log("Listening on port " + port);
+winston.log("Listening on port ", port.toString());

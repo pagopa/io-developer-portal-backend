@@ -96,6 +96,9 @@ CLIENT_SECRET="<clientSecretKey>"
 CLIENT_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
 ```
 
+This AD application is needed to check the user authentication status
+and retrieve the profile custom attributes.
+
 ### Step 5 - Activate Managed Service Identity for this Web application 
 
 Navigate to the Azure Portal App Service blade for the Web application (App Service)
@@ -112,6 +115,12 @@ ARM_SUBSCRIPTION_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
 ```
 
 Restart the (web) App Service.
+
+In this way we can manage API manager users from the Web application
+without providing any credential; we cannot use CLIENT\_ID and CLIENT\_SECRET
+obtained in step 4 as that application is registered in the ADB2C tenant
+so is not visibile by the API manager (which belongs to the AD tenant
+tied to the Azure subscription).
 
 ### Step 6 - Set up variables related to the API management resource
 
@@ -131,7 +140,7 @@ APIM_USER_GROUPS="ApiMessageWrite,ApiInfoRead"
 ### Step 7 - Set up variables to access Digital Citizenship API
 
 These are needed to create a Service, linked to the user's subscription,
-using the Functions / Digital Citizenship API.
+using the Digital Citizenship API (Functions).
 
 The API-Key must belong to an API management user assigned to the 
 `ApiServiceWrite,ApiMessageWrite,ApiProfileWrite` groups. 
@@ -142,7 +151,7 @@ to send the welcome email to new users.
 
 ```
 ADMIN_API_KEY="<ocm-Api-Subscription-Key>"
-ADMIN_API_URL="https://<apiManagerUrl>/adm"
+ADMIN_API_URL="https://<apiManagerUrl>"
 ```
 
 ## Usage

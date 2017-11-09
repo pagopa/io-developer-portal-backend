@@ -68,6 +68,8 @@ export const creds = {
   clockSkew: undefined
 };
 
+export const policyName = process.env.POLICY_NAME;
+
 // The url you need to go to destroy the session with AAD,
 // replace <tenant_name> with your tenant name, and
 // replace <signin_policy_name> with your signin policy name.
@@ -88,3 +90,8 @@ export const apimUserGroups = process.env.APIM_USER_GROUPS as string;
 
 export const adminApiUrl = process.env.ADMIN_API_URL as string;
 export const adminApiKey = process.env.ADMIN_API_KEY as string;
+
+export const subscriptionId = process.env.ARM_SUBSCRIPTION_ID as string;
+
+export const logLevel = process.env.LOG_LEVEL as string;
+export const port = process.env.PORT;

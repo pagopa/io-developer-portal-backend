@@ -23,7 +23,6 @@ const isConflict = (body: { readonly title: string }) =>
  *  that creates a new Service for the current logged-in user.
  */
 export const createService = (service: IServicePayload) => {
-  winston.debug("createService|service|", service);
   return new Promise((resolve, reject) => {
     const options = {
       uri: `${config.adminApiUrl}/adm/services`,
@@ -47,8 +46,8 @@ export const createService = (service: IServicePayload) => {
         return reject(new Error(body));
       }
       winston.debug(
-        "createService|success|service exists = ",
-        isConflict(body)
+        "createService|success|service conflicts = ",
+        !isConflict(body)
       );
       winston.debug("createService|success|", body);
       resolve({ res, body });

@@ -10,8 +10,8 @@ import {
   UserCreateParameters
 } from "azure-arm-apimanagement/lib/models";
 
+import * as msRest from "ms-rest";
 import * as config from "./config";
-import { loginWithMsi } from "./login";
 
 import * as crypto from "crypto";
 
@@ -136,24 +136,31 @@ const addUserToGroups = async (
   );
 };
 
+/**
+ * Assign an existing API user to products and groups.
+ * 
+ * @param userId                                  the id of user
+ * @param userData                                profile data (ie. email, name)
+ * @param loginCreds                              client credentials (service principal)
+ * @param dangerouslySkipAuthenticationCheck      useful in case you want to call the method locally
+ */
 export const updateApimUser = async (
   userId: string,
-  userData: IUserData
+  userData: IUserData,
+  loginCreds: msRest.ServiceClientCredentials,
+  dangerouslySkipAuthenticationCheck = false
 ): Promise<SubscriptionContract> => {
-  winston.debug("createOrUpdateApimUser");
-  const loginCreds = await loginWithMsi();
-  const apiClient = new apiManagementClient(
-    loginCreds.creds,
-    loginCreds.subscriptionId
-  );
+  winston.debug("updateApimUser");
+  const apiClient = new apiManagementClient(loginCreds, config.subscriptionId);
   const user = await getExistingUser(apiClient, userId);
   if (
-    !user.identities ||
-    !user.identities[0] ||
-    user.identities[0].provider !== "AadB2C" ||
-    user.identities[0].id !== userData.oid
+    !dangerouslySkipAuthenticationCheck &&
+    (!user.identities ||
+      !user.identities[0] ||
+      user.identities[0].provider !== "AadB2C" ||
+      user.identities[0].id !== userData.oid)
   ) {
-    throw new Error("createOrUpdateApimUser|profile.oid != user.id");
+    throw new Error("updateApimUser|profile.oid != user.id");
   }
   await addUserToGroups(apiClient, user, userData.groups);
   return addUserToProduct(apiClient, user, userData.productName);
