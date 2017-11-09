@@ -128,17 +128,22 @@ APIM_PRODUCT_NAME="starter"
 APIM_USER_GROUPS="ApiMessageWrite,ApiInfoRead"
 ```
 
-### Step 7 - Set up variables related to Digital Citizenship API
+### Step 7 - Set up variables to access Digital Citizenship API
 
 These are needed to create a Service, linked to the user's subscription,
-using the Functions / Digital Citizenship API:
+using the Functions / Digital Citizenship API.
+
+The API-Key must belong to an API management user assigned to the 
+`ApiServiceWrite,ApiMessageWrite,ApiProfileWrite` groups. 
+Moreover this user must be subscribed to both Admin
+and Digital Citizenship API and a Service tied to user's
+subscription must already exists. This Service is needed
+to send the welcome email to new users.
+
 ```
 ADMIN_API_KEY="<ocm-Api-Subscription-Key>"
 ADMIN_API_URL="https://<apiManagerUrl>/adm"
 ```
-
-The API-Key must belong to an API management user
-assigned to the `ApiServiceWrite` group.
 
 ## Usage
 

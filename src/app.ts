@@ -77,10 +77,8 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
       // @TODO: email template"
       await sendMessage(fakeFiscalCode, {
         content: {
-          markdown:
-            "01234567890012345678900123456789001234567890012345678900123456789001234" +
-            "567890012345678900123456789001234567890012345678900123456789001234567890",
-          subject: "Welcome !"
+          markdown: `This is your fake fiscal code to test the Digital Citizenship API: ${fakeFiscalCode}. Have fun !!!`,
+          subject: "Welcome new user !"
         }
       });
     }
