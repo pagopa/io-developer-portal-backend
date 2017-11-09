@@ -62,6 +62,11 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
       const fakeFiscalCode = await createFakeProfile({
         email: userData.email
       });
+      winston.error(
+        "setupOidcStrategy|create service|",
+        fakeFiscalCode,
+        profile._json
+      );
       await createService({
         authorized_recipients: [fakeFiscalCode],
         department_name: profile._json.extension_Department || "",
