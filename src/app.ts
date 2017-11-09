@@ -27,6 +27,7 @@ import * as cookieSession from "cookie-session";
 import { IUserData, updateApimUser } from "./account";
 import { secureExpressApp } from "./express";
 import { createFakeProfile } from "./fake_profile";
+import { sendMessage } from "./message";
 import { setupOidcStrategy } from "./oidc_strategy";
 import { createService } from "./service";
 
@@ -58,19 +59,24 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
   try {
     const subscription = await updateApimUser(userId, userData);
     if (subscription && subscription.name) {
-      await createFakeProfile({
+      const fakeFiscalCode = await createFakeProfile({
         email: userData.email
       });
-      const authorizedRecipients =
-        (profile._json.extension_AuthorizedRecipients || "")
-          .split(",")
-          .map((s: string) => s.trim()) || [];
       await createService({
-        authorized_recipients: authorizedRecipients,
+        authorized_recipients: [fakeFiscalCode],
         department_name: profile._json.extension_Department || "",
         organization_name: profile._json.extension_Organization || "",
         service_id: subscription.name,
         service_name: profile._json.extension_ServiceName || ""
+      });
+      // @TODO: email template"
+      await sendMessage(fakeFiscalCode, {
+        content: {
+          markdown:
+            "01234567890012345678900123456789001234567890012345678900123456789001234" +
+            "567890012345678900123456789001234567890012345678900123456789001234567890",
+          subject: "Welcome !"
+        }
       });
     }
   } catch (e) {

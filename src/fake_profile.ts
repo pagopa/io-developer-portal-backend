@@ -11,10 +11,6 @@ export interface IProfilePayload {
   readonly email: string;
 }
 
-const HTTP_STATUS_CONFLICT = "409";
-const isConflict = (body: { readonly title: string }) =>
-  body.title && body.title.indexOf(HTTP_STATUS_CONFLICT) >= 0;
-
 /**
  * Generate fake fiscal code for testing.
  * 
@@ -41,7 +37,9 @@ const generateFakeFiscalCode = () => {
  * RESTful call to Digital Citizenship API
  *  that creates a new fake Profile.
  */
-export const createFakeProfile = (profile: IProfilePayload) => {
+export const createFakeProfile = (
+  profile: IProfilePayload
+): Promise<string> => {
   winston.debug("createFakeProfile|profile|", profile);
   return new Promise((resolve, reject) => {
     const fakeFiscalCode = generateFakeFiscalCode();
@@ -55,23 +53,15 @@ export const createFakeProfile = (profile: IProfilePayload) => {
     };
     request(options, (err, res, body) => {
       if (err) {
-        winston.error("createProfile|error|" + JSON.stringify(err));
+        winston.error("createFakeProfile|error|" + JSON.stringify(err));
         return reject(err);
       }
-      if (res.statusCode !== 200 && !isConflict(body)) {
-        winston.debug(
-          "createProfile|error|",
-          JSON.stringify(body),
-          isConflict(body)
-        );
+      if (res.statusCode !== 200) {
+        winston.debug("createFakeProfile|error|", JSON.stringify(body));
         return reject(new Error(body));
       }
-      winston.debug(
-        "createProfile|success|profile exists = ",
-        isConflict(body)
-      );
-      winston.debug("createProfile|success|", body);
-      resolve({ res, body });
+      winston.debug("createFakeProfile|success|", body);
+      resolve(fakeFiscalCode);
     });
   });
 };
