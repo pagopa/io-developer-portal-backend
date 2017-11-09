@@ -20,6 +20,11 @@ clicking on call-to-action just after the sign-up in the developer portal:
 - user is assigned to configured API management *groups*
 - user gets subscribed to a configured API management *product*
 - the *service* tied to the user subscription is created through the Digital Citizenship APIs
+- a test profile (with a fake fiscal code) is created through the Digital Citizenship APIs
+- an email is sent to the user through the Digital Citizenship APIs
+
+The email contains the fake fiscal code so the user can start testing the API right now.
+At this point he can only send messages to his own email address, which is tied to the fake profile.
 
 ## Install
 
@@ -79,6 +84,9 @@ TENANT_ID="<tenantName>.onmicrosoft.com"
 
 Set up an ADB2C Policy for sign-up / sign-in users as described in the documentation:
 https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-reference-policies
+
+Upload `B2C_1_SignUpIn.xml`, found in the root of this repository, in the
+Azure portal AD2B2C blade to recreate the correct signin-signup policy.
 
 Then set up the following environment variable in the App Service:
 ```
@@ -149,9 +157,9 @@ $ ts-node src/scripts/create_user.ts
 set ADMIN_API_KEY=b4YYX6fFFdXXc44b5MMMf1d28a4WWWc
 ```
 
-To run the script you need to provide the following environment variables 
-(set up these ones only locally, just to run the script,
-**do not set up these four vars in the remote App Service**):
+To run the script you need to provide the following environment variables.
+
+**Set up these ones only locally, just to run the script, do not set up these four vars in the remote App Service**:
 ```
 ARM_CLIENT_ID="<client id of an Application registered in the main AD tenant>"
 ARM_CLIENT_SECRET="<client secret / key of the Application registered in the main AD tenant>"
