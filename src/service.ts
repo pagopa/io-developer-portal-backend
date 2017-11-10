@@ -24,7 +24,9 @@ export const createService = (apiKey: string, service: IServicePayload) => {
   return new Promise(async (resolve, reject) => {
     const maybeService = await getService(apiKey, service.service_id);
     const options = {
-      uri: `${config.adminApiUrl}/adm/services`,
+      uri: `${config.adminApiUrl}/adm/services${maybeService.isEmpty
+        ? ""
+        : "/" + service.service_id}`,
       method: maybeService.isEmpty ? "POST" : "PUT",
       json: service,
       headers: {
