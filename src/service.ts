@@ -16,10 +16,6 @@ export interface IServicePayload {
   readonly authorized_recipients: ReadonlyArray<string>;
 }
 
-const HTTP_STATUS_CONFLICT = "409";
-const isConflict = (body: { readonly title: string }) =>
-  body.title && body.title.indexOf(HTTP_STATUS_CONFLICT) >= 0;
-
 /**
  * RESTful call to Digital Citizenship API
  *  that creates a new Service for the current logged-in user.
@@ -39,21 +35,13 @@ export const createService = (apiKey: string, service: IServicePayload) => {
       if (err) {
         winston.error("createService|error|" + JSON.stringify(err));
         return reject(err);
-      }
-      if (res.statusCode !== 200 && !isConflict(body)) {
-        winston.debug(
-          "createService|error|",
-          JSON.stringify(body),
-          isConflict(body)
-        );
+      } else if (res.statusCode !== 200) {
+        winston.debug("createService|error|", JSON.stringify(body));
         return reject(new Error(body));
+      } else {
+        winston.debug("createService|success|", body);
+        resolve({ res, body });
       }
-      winston.debug(
-        "createService|success|service is new = ",
-        !isConflict(body)
-      );
-      winston.debug("createService|success|", body);
-      resolve({ res, body });
     });
   });
 };
