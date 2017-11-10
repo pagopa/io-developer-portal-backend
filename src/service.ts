@@ -74,16 +74,15 @@ export const getService = (
       if (err) {
         winston.error("getService|error|" + JSON.stringify(err));
         return reject(err);
-      }
-      if (res.statusCode === 404) {
+      } else if (res.statusCode === 404) {
         return resolve(none);
-      }
-      if (res.statusCode !== 200) {
+      } else if (res.statusCode !== 200) {
         winston.debug("getService|error|", JSON.stringify(body));
         return reject(new Error(body));
+      } else {
+        winston.debug("getService|success|", body);
+        resolve(some(body));
       }
-      winston.debug("getService|success|", body);
-      resolve(some(body));
     });
   });
 };
