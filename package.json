@@ -36,6 +36,7 @@
     "referrer-policy": "^1.1.0",
     "request": "^2.83.0",
     "ts-node": "^3.3.0",
+    "ts-option": "^1.1.4",
     "tslint": "^5.8.0",
     "tslint-config-prettier": "^1.6.0",
     "tslint-immutable": "^4.4.0",

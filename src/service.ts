@@ -6,6 +6,8 @@ import * as request from "request";
 import * as winston from "winston";
 import * as config from "./config";
 
+import { none, Option, some } from "ts-option";
+
 export interface IServicePayload {
   readonly service_name: string;
   readonly department_name: string;
@@ -23,10 +25,11 @@ const isConflict = (body: { readonly title: string }) =>
  *  that creates a new Service for the current logged-in user.
  */
 export const createService = (apiKey: string, service: IServicePayload) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    const maybeService = await getService(apiKey, service.service_id);
     const options = {
       uri: `${config.adminApiUrl}/adm/services`,
-      method: "POST",
+      method: maybeService.isEmpty ? "POST" : "PUT",
       json: service,
       headers: {
         "Ocp-Apim-Subscription-Key": apiKey
@@ -51,6 +54,36 @@ export const createService = (apiKey: string, service: IServicePayload) => {
       );
       winston.debug("createService|success|", body);
       resolve({ res, body });
+    });
+  });
+};
+
+export const getService = (
+  apiKey: string,
+  serviceId: string
+): Promise<Option<{}>> => {
+  return new Promise((resolve, reject) => {
+    const options = {
+      uri: `${config.adminApiUrl}/adm/services/${serviceId}`,
+      method: "GET",
+      headers: {
+        "Ocp-Apim-Subscription-Key": apiKey
+      }
+    };
+    request(options, (err, res, body) => {
+      if (err) {
+        winston.error("getService|error|" + JSON.stringify(err));
+        return reject(err);
+      }
+      if (res.statusCode === 404) {
+        return resolve(none);
+      }
+      if (res.statusCode !== 200) {
+        winston.debug("getService|error|", JSON.stringify(body));
+        return reject(new Error(body));
+      }
+      winston.debug("getService|success|", body);
+      resolve(some(body));
     });
   });
 };

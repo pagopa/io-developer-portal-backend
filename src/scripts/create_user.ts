@@ -55,7 +55,12 @@ const createAdminUser = async (conf: typeof localConfig) => {
     lastName: "deploy",
     email: "apim-deploy@agid.gov.it",
     productName: conf.apimProductName,
-    groups: ["ApiProfileWrite", "ApiMessageWrite", "ApiServiceWrite"]
+    groups: [
+      "ApiProfileWrite",
+      "ApiMessageWrite",
+      "ApiServiceWrite",
+      "ApiServiceRead"
+    ]
   };
   const creds = await msRestAzure.loginWithServicePrincipalSecret(
     localConfig.armClientId,
