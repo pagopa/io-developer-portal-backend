@@ -85,11 +85,16 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
         service_id: subscription.name,
         service_name: profile._json.extension_Service || ""
       });
-      // @TODO: email template"
       await sendMessage(config.adminApiKey, fakeFiscalCode, {
         content: {
-          markdown: `This is your fake fiscal code to test the Digital Citizenship API: ${fakeFiscalCode}. Have fun !!!`,
-          subject: "Welcome new user !"
+          markdown: [
+            `Hello,`,
+            `this is a bogus fiscal code you can use to start testing the Digital Citizenship API:\n`,
+            fakeFiscalCode,
+            `\nYou can start in the developer portal here:`,
+            config.apimUrl
+          ].join("\n"),
+          subject: `Welcome ${userData.firstName} ${userData.lastName} !`
         }
       });
     }

@@ -123,6 +123,7 @@ set ADMIN_API_KEY=b4YYX6fFFdXXc44b5MMMf1d28a4WWWc
 ```
 
 To run the script you need to provide the following environment variables.
+
 **Note: set up these variables only locally, before running the `create_user.ts` script;
 do not set up these 3 vars in the remote App Service**:
 ```
