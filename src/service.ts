@@ -58,6 +58,7 @@ export const getService = (
         "Ocp-Apim-Subscription-Key": apiKey
       }
     };
+    winston.debug("getService|serviceId|" + serviceId);
     request(options, (err, res, body) => {
       if (err) {
         winston.error("getService|error|" + JSON.stringify(err));
