@@ -58,6 +58,7 @@ const createAdminUser = async (conf: typeof localConfig) => {
     groups: [
       "ApiProfileWrite",
       "ApiMessageWrite",
+      "ApiMessageRead",
       "ApiServiceWrite",
       "ApiServiceRead"
     ]
