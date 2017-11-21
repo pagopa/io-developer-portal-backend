@@ -1,0 +1,46 @@
+<div class="localAccount" role="form">
+  <div class="intro">
+    <h2>
+      Sign in with your existing account
+    </h2>
+  </div>
+  <div class="error pageLevel">
+    <p role="alert" tabindex="1">We canot see to find your account !!!</p>
+  </div>
+  <div class="entry">
+    <div class="entry-item">
+      <label for="logonIdentifier">
+        Email Address
+      </label>
+      <div class="error itemLevel" aria-hidden="true" style="display: none;">
+        <p role="alert" tabindex="1"></p>
+      </div>
+      <input type="email" id="logonIdentifier" name="Username or email address" pattern="^[a-zA-Z0-9.!#$%&amp;’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
+        placeholder="Email Address" value="" tabindex="1">
+    </div>
+    <div class="entry-item">
+      <div class="password-label">
+        <label for="password">Password</label>
+        <a id="forgotPassword" tabindex="2" href="/agidweb.onmicrosoft.com/B2C_1_TestPolicyDeleteMe/api/CombinedSigninAndSignup/forgotPassword?csrf_token=YzVXWTV3N0dZRGFPRk5wMEh5bXQ0Tm9CcGpzS0w4UW9PK0M4bnJLNUFBK1JEZGdHdkVWdjN3TTN1eTRSeXZ0OW9SZEl4Z0xib0M3d2prckVnUWVsVnc9PTsyMDE3LTExLTIxVDE1OjQwOjM4LjE0MjU1Mlo7Wi9OeVg3TkFQVG1GVmNmQnhNYi9rUT09O3siT3JjaGVzdHJhdGlvblN0ZXAiOjF9&amp;tx=StateProperties=eyJUSUQiOiI0ZDFjNDc4YS05YTFjLTRlOTctODA2Ny0zMWUwMDIyNjQ0ZTYifQ&amp;p=B2C_1_TestPolicyDeleteMe">Forgot your password?</a>
+      </div>
+      <div class="error itemLevel" aria-hidden="true" style="display: none;">
+        <p role="alert" tabindex="1"></p>
+      </div>
+      <input type="password" id="password" name="Password" placeholder="Password" tabindex="1">
+    </div>
+    <div class="working"></div>
+    <div class="buttons">
+      <button id="next" tabindex="1">Sign in</button>
+    </div>
+  </div>
+
+  <div class="divider">
+    <h2>OR</h2>
+  </div>
+  <div class="create">
+    <p>
+      Don't have an account?
+      <a id="createAccount" tabindex="1" href="/agidweb.onmicrosoft.com/B2C_1_TestPolicyDeleteMe/api/CombinedSigninAndSignup/unified?local=signup&amp;csrf_token=YzVXWTV3N0dZRGFPRk5wMEh5bXQ0Tm9CcGpzS0w4UW9PK0M4bnJLNUFBK1JEZGdHdkVWdjN3TTN1eTRSeXZ0OW9SZEl4Z0xib0M3d2prckVnUWVsVnc9PTsyMDE3LTExLTIxVDE1OjQwOjM4LjE0MjU1Mlo7Wi9OeVg3TkFQVG1GVmNmQnhNYi9rUT09O3siT3JjaGVzdHJhdGlvblN0ZXAiOjF9&amp;tx=StateProperties=eyJUSUQiOiI0ZDFjNDc4YS05YTFjLTRlOTctODA2Ny0zMWUwMDIyNjQ0ZTYifQ&amp;p=B2C_1_TestPolicyDeleteMe">Sign up now</a>
+    </p>
+  </div>
+</div>

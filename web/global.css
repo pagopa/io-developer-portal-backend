@@ -1,0 +1,181 @@
+html,
+body {
+  height: 100%;
+}
+
+.container {
+  min-width: 30em;
+  padding: 2em 4em 2em 4em;
+  background: #011f3d;
+}
+
+@media (max-width: 1023px) {
+  .container {
+    padding: 1em;
+    min-width: 100%;
+  }
+}
+
+a {
+  color: #ffa600;
+}
+
+button {
+  font-weight: 600;
+  background: #ffa600;
+  padding: 0.6em;
+  cursor: pointer;
+}
+
+#forgotPassword {
+  font-size: 0.8em;
+}
+
+.password-label {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.password-label>label {}
+
+.password-label>a {
+  align-self: flex-end;
+  padding-bottom: 0.8em;
+}
+
+input::placeholder {
+  color: #333;
+}
+
+input[type=password],
+input[type=email],
+input[type=text] {
+  width: 100%;
+  padding: 0.8em;
+}
+
+h1 {
+  font-size: 1.6em;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.2em;
+}
+
+@media (max-width: 1023px) {
+  h1 {
+    font-size: 1.4em;
+  }
+}
+
+.intro>h2, .intro>p {
+  text-align: center;
+  color: #9ebbd8;
+  font-size: 0.8em;
+  font-weight: 400;
+  margin-bottom: 0.5em;
+  margin-top: 0.5em;
+}
+
+.entry-item {
+  padding-bottom: 2em;
+}
+
+.entry-item label {
+  display: block;
+  clear: both;
+  padding-top: 1em;
+  padding-bottom: 0.5em;
+}
+
+.divider {
+  border-top: 2px solid white;
+  margin-top: 1em;
+  padding-top: 1em;
+  text-align: center;
+}
+
+.create {
+  text-align: center;
+}
+
+.create a {
+  display: block;
+  clear: both;
+}
+
+.divider h2 {
+  padding-bottom: 0.5em;
+}
+
+body {
+  display: flex;
+  flex-wrap: wrap;
+  background-color: #004080;
+  color: white;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  font-family: "Titillium Web", sans-serif;
+}
+
+.error-page-content,
+.error {
+  color: white;
+  background-color: rgb(160, 17, 17);
+  padding: 1em;
+  margin-top: 1em;
+}
+
+[aria-hidden="true"] {
+  display: none;
+}
+
+.logo {
+  float: left;
+  width: 2em;
+  height: 2em;
+}
+
+@media (max-width: 1023px) {
+  .logo {
+    width: 1.8em;
+    height: 1.8em;
+  }
+}
+
+/************* signup */
+
+.attrEntry {
+  padding: 0.5em;
+}
+.error.itemLevel {
+  padding-bottom: 0.2em;
+}
+[data-help] {
+  display: none;
+  font-size: 0.8em;
+  padding-top: 0.2em;
+  float: right;
+}
+.buttons {
+  padding-top: 0.8em;
+}
+button[disabled] {
+  opacity: 0.5;
+  background: none;
+}
+button#cancel {
+  background: none;
+  float: right;
+  color: rgb(204, 112, 112);
+}
+#attributeVerification input[type=text],
+#attributeVerification input[type=password],
+#attributeVerification input[type=email] {
+  padding: 0.6em;
+}
+.attrEntry label {
+  display: block;
+  padding-bottom: 0.2em;
+}
