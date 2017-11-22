@@ -3,12 +3,31 @@ body {
   height: 100%;
 }
 
-.container {
-  min-width: 30em;
-  padding: 2em 4em 2em 4em;
-  background: #011f3d;
+body {
+  display: flex;
+  flex-wrap: wrap;
+  background-color: #004080;
+  color: white;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  font-family: "Titillium Web", sans-serif;
+}
+@media (max-width: 1023px) {
+  body {
+    height: auto;
+  }
 }
 
+[aria-hidden="true"] {
+  display: none;
+}
+
+.container {
+  width: 30em;
+  padding: 4em 4em 2em 4em;
+  background: #011f3d;
+}
 @media (max-width: 1023px) {
   .container {
     padding: 1em;
@@ -37,8 +56,6 @@ button {
   justify-content: space-between;
 }
 
-.password-label>label {}
-
 .password-label>a {
   align-self: flex-end;
   padding-bottom: 0.8em;
@@ -61,7 +78,6 @@ h1 {
   text-align: center;
   margin-bottom: 0.2em;
 }
-
 @media (max-width: 1023px) {
   h1 {
     font-size: 1.4em;
@@ -108,17 +124,6 @@ h1 {
   padding-bottom: 0.5em;
 }
 
-body {
-  display: flex;
-  flex-wrap: wrap;
-  background-color: #004080;
-  color: white;
-  align-items: center;
-  align-content: center;
-  justify-content: center;
-  font-family: "Titillium Web", sans-serif;
-}
-
 .error-page-content,
 .error {
   color: white;
@@ -127,16 +132,11 @@ body {
   margin-top: 1em;
 }
 
-[aria-hidden="true"] {
-  display: none;
-}
-
 .logo {
   float: left;
   width: 2em;
   height: 2em;
 }
-
 @media (max-width: 1023px) {
   .logo {
     width: 1.8em;
@@ -149,33 +149,54 @@ body {
 .attrEntry {
   padding: 0.5em;
 }
+
 .error.itemLevel {
-  padding-bottom: 0.2em;
+  margin-bottom: 0.2em;
+  padding-bottom: 1em;
+  font-size: 0.9em;
+  line-height: 1.5;
 }
+
 [data-help] {
   display: none;
   font-size: 0.8em;
   padding-top: 0.2em;
   float: right;
 }
+
 .buttons {
   padding-top: 0.8em;
 }
+
 button[disabled] {
   opacity: 0.5;
   background: none;
 }
+
 button#cancel {
   background: none;
   float: right;
   color: rgb(204, 112, 112);
 }
+
 #attributeVerification input[type=text],
 #attributeVerification input[type=password],
 #attributeVerification input[type=email] {
   padding: 0.6em;
 }
+
 .attrEntry label {
   display: block;
   padding-bottom: 0.2em;
+}
+
+/** phone 2fa ***/
+
+#verifyCode {
+  margin-right: 1em;
+}
+
+.phoneEntry > input > div {
+  margin-bottom: 1em;
+  margin-top: 1em;
 }
