@@ -152,9 +152,9 @@ to create a 'Service' and a 'Profile' tied to the developer portal accounts.
 You should receive an API-Key (in the developer portal) and an email
 with a fake fiscal code you can use to start testing the Digital Citizenship API.
 
-## Sign-in / Sign-up form style
+## ADB2C Sign-in / Sign-up form style
 
-The `web` directory in this repository contains an HTML template & styles 
+The `web` directory in this repository contains an HTML template & CSS styles 
 to customize the aspect of default ADB2C sign-in / sign-up pages.
 
 Moreover it contains a page with the privacy policy which is reachable
@@ -164,7 +164,8 @@ To set up the customization:
 
 1. deploy the HTML template & CSS to GitHub Pages running `yarn gh-pages`
 1. change the ADB2C settings from the Azure Portal blade:
-ADB2C -> Custom policies -> B2C_1_SignUpIn -> Edit -> Customize interface
-then provide the link to the customized HTML template hosted on GitHub Pages
-for `sign-in`, `sign-up`, `error` and `multifactor` pages.
+*ADB2C -> Custom policies -> B2C_1_SignUpIn -> Edit -> Customize interface*
+then provide the link (absolute URL) to the customized HTML template 
+hosted on GitHub Pages for `sign-in`, `sign-up`, `error` and `multifactor` 
+custom pages / settings.
 
