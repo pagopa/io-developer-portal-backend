@@ -17,7 +17,7 @@ body {
 
 .container {
   width: 30em;
-  padding: 4em 4em 2em 4em;
+  padding: 2em 4em;
   background: #011f3d;
 }
 @media (max-width: 1023px) {
@@ -61,7 +61,7 @@ input[type=password],
 input[type=email],
 input[type=text] {
   width: 100%;
-  padding: 0.8em;
+  padding: 0.6em;
 }
 
 h1 {
@@ -174,7 +174,7 @@ button#cancel {
 #attributeVerification input[type=text],
 #attributeVerification input[type=password],
 #attributeVerification input[type=email] {
-  padding: 0.6em;
+  padding: 0.4em;
 }
 
 .attrEntry label {
