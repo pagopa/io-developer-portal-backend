@@ -60,7 +60,7 @@ ARM_SUBSCRIPTION_ID="<Azure subscription id>"
 ARM_RESOURCE_GROUP="<apiManagementResourceGroupName>"
 ARM_APIM="<apiManagementResourceName>"
 APIM_PRODUCT_NAME="starter"
-APIM_USER_GROUPS="ApiMessageWrite,ApiInfoRead"
+APIM_USER_GROUPS="ApiMessageWrite,ApiMessageRead,ApiInfoRead"
 ```
 
 ### Step 2 - Add an Azure Active Directory B2C resource (ADB2C tenant)
@@ -116,7 +116,7 @@ and is not visibile by the API manager (which is tied to the main AD tenant).
 ### Step 6 - Create an APIm user to access Digital Citizenship API
 
 Create a Digital Citizenship API user running the `create_user.ts` script,
-it will output the API-Key (Ocp-Apim-Subscription-Key):
+it will output the API Key (Ocp-Apim-Subscription-Key):
 ```
 $ ts-node src/scripts/create_user.ts
 set ADMIN_API_KEY=b4YYX6fFFdXXc44b5MMMf1d28a4WWWc
@@ -151,3 +151,20 @@ to create a 'Service' and a 'Profile' tied to the developer portal accounts.
 
 You should receive an API-Key (in the developer portal) and an email
 with a fake fiscal code you can use to start testing the Digital Citizenship API.
+
+## ADB2C Sign-in / Sign-up form style
+
+The `web` directory in this repository contains an HTML template & CSS styles 
+to customize the aspect of default ADB2C sign-in / sign-up pages.
+
+Moreover it contains a page with the privacy policy which is reachable
+from a link placed in the sign-in entry page.
+
+To set up the customization:
+
+1. deploy the HTML template & CSS to GitHub Pages running `yarn gh-pages`
+1. change the ADB2C settings from the Azure Portal blade:
+*ADB2C -> Custom policies -> B2C_1_SignUpIn -> Edit -> Customize interface*
+then provide the link (absolute URL) to the customized HTML template 
+hosted on GitHub Pages for `sign-in`, `sign-up`, `error` and `multifactor` 
+custom pages / settings.
