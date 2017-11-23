@@ -60,7 +60,7 @@ ARM_SUBSCRIPTION_ID="<Azure subscription id>"
 ARM_RESOURCE_GROUP="<apiManagementResourceGroupName>"
 ARM_APIM="<apiManagementResourceName>"
 APIM_PRODUCT_NAME="starter"
-APIM_USER_GROUPS="ApiMessageWrite,ApiInfoRead"
+APIM_USER_GROUPS="ApiMessageWrite,ApiMessageRead,ApiInfoRead"
 ```
 
 ### Step 2 - Add an Azure Active Directory B2C resource (ADB2C tenant)
@@ -116,7 +116,7 @@ and is not visibile by the API manager (which is tied to the main AD tenant).
 ### Step 6 - Create an APIm user to access Digital Citizenship API
 
 Create a Digital Citizenship API user running the `create_user.ts` script,
-it will output the API-Key (Ocp-Apim-Subscription-Key):
+it will output the API Key (Ocp-Apim-Subscription-Key):
 ```
 $ ts-node src/scripts/create_user.ts
 set ADMIN_API_KEY=b4YYX6fFFdXXc44b5MMMf1d28a4WWWc
@@ -168,4 +168,3 @@ To set up the customization:
 then provide the link (absolute URL) to the customized HTML template 
 hosted on GitHub Pages for `sign-in`, `sign-up`, `error` and `multifactor` 
 custom pages / settings.
-
