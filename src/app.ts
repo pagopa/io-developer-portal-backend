@@ -79,6 +79,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
         profile._json
       );
       await createService(config.adminApiKey, {
+        authorized_cidrs: [],
         authorized_recipients: [fakeFiscalCode],
         department_name: profile._json.extension_Department || "",
         organization_name: profile._json.extension_Organization || "",

@@ -93,6 +93,7 @@ const createAdminUser = async (conf: typeof localConfig) => {
   }
 
   await createService(subscription.primaryKey, {
+    authorized_cidrs: [],
     authorized_recipients: [],
     department_name: "IT",
     organization_name: "AgID",
