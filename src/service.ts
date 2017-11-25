@@ -14,6 +14,7 @@ export interface IServicePayload {
   readonly organization_name: string;
   readonly service_id: string;
   readonly authorized_recipients: ReadonlyArray<string>;
+  readonly authorized_cidrs: ReadonlyArray<string>;
 }
 
 /**

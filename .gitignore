@@ -13,5 +13,5 @@ lib-cov
 coverage
 .lock-wscript
 *.js.map
-src/*.js
+src/**/*.js
 build
