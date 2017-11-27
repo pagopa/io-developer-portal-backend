@@ -37,7 +37,7 @@ export const sendMessage = (
         winston.error("sendMessage|error|" + JSON.stringify(err));
         return reject(err);
       }
-      if (res.statusCode !== 202) {
+      if (res.statusCode !== 201) {
         winston.debug("sendMessage|error|", JSON.stringify(body));
         return reject(new Error(body));
       }
