@@ -50,7 +50,9 @@ from a link placed in the sign-in entry page.
 
 To set up the customization:
 
-1. deploy the HTML template & CSS to GitHub Pages running `yarn gh-pages`
-
+1. deploy the HTML template & CSS to GitHub Pages  
+```
+yarn gh-pages
+```
 1. refer to the installation manual to customize the sign-up / sign-in forms:  
 https://github.com/teamdigitale/digital-citizenship
