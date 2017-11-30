@@ -28,120 +28,8 @@ At this point he can only send messages to his own email address, which is tied 
 
 ## Install
 
-### Prerequisites
-
-- [API management instance is up and running](https://github.com/teamdigitale/digital-citizenship);
-groups and products are already configured
-- [Digital Citizenship Functions](https://github.com/teamdigitale/digital-citizenship-functions)
-are active and related APIs are accessible through the API management
-- Environment variables are correctly setup in the App Service (web application settings);
-see the following steps
-
-### Step 1 - Set up the Web Application on Azure
-
-Deploy the code from this GitHub repository to a an Azure Web application (App service):
-https://docs.microsoft.com/en-us/azure/app-service/app-service-continuous-deployment
-
-Set up the following environment variables (application settings):
-```
-PORT=3000
-WEBSITE_NODE_DEFAULT_VERSION=6.5.0
-REPLY_URL="http://<webApplicationName>.azureweb.net/auth/openid/return"
-POST_LOGIN_URL="https://<apiDeveloperPortalUrl>/developer"
-POST_LOGOUT_URL="https://<apiDeveloperPortalUrl>"
-COOKIE_KEY="<32 characters string...>"
-COOKIE_IV="<12 characters string...>"
-```
-
-Set up the following environment variables (application settings)
-needed to subscribe users to API manager products and groups:
-```
-ARM_SUBSCRIPTION_ID="<Azure subscription id>"
-ARM_RESOURCE_GROUP="<apiManagementResourceGroupName>"
-ARM_APIM="<apiManagementResourceName>"
-APIM_PRODUCT_NAME="starter"
-APIM_USER_GROUPS="ApiMessageWrite,ApiMessageRead,ApiInfoRead"
-```
-
-### Step 2 - Add an Azure Active Directory B2C resource (ADB2C tenant)
-
-Follow the procedure described in the documentation to create a new ADB2C tenant resource:
-https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-get-started
-
-Then set up the following environment variable in the App Service:
-```
-TENANT_ID="<tenantName>.onmicrosoft.com"
-```
-
-### Step 3 - Add an Azure Active Directory B2C sign-in / sing-up policy
-
-Upload the file `policy/B2C_1_SignUpIn.xml` in the
-Azure AD2B2C portal to create a sign-in-sign-up policy:
-https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-reference-policies
-
-Then set up the following environment variable in the App Service (application settings):
-```
-POLICY_NAME="B2C_1_SignUpIn"
-```
-
-### Step 4 - Add an Application in the Azure Active Directory B2C tenant
-
-Register a new application in the ADB2C tenant:
-https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-app-registration
-
-Then set up environment variables with the application client secret (key) and id:
-```
-CLIENT_SECRET="<clientSecretKey>"
-CLIENT_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
-```
-
-This ADB2C application is needed to check the user authentication status
-(after login) and retrieve the ADB2C profile custom attributes.
-
-### Step 5 - Activate "Managed Service Identity" for this Web application 
-
-Navigate to the Azure Portal App Service blade (for the Web application deployed in step 1)
--> Managed Service Identity -> Register with Azure Active Directory -> set the value to 'On'.
-
-Navigate to the Azure Portal API management blade -> Access Control (IAM) -> Add
-the registered Web application as a "Contributor".
-
-Restart the (web) App Service.
-
-In this way we can manage developer portal users directly from the Web application
-without providing any client credential; we cannot use 'CLIENT\_ID' and 'CLIENT\_SECRET'
-obtained in step 4 as that client is registered in the ADB2C tenant
-and is not visibile by the API manager (which is tied to the main AD tenant).
-
-### Step 6 - Create an APIm user to access Digital Citizenship API
-
-Create a Digital Citizenship API user running the `create_user.ts` script,
-it will output the API Key (Ocp-Apim-Subscription-Key):
-```
-$ ts-node src/scripts/create_user.ts
-set ADMIN_API_KEY=b4YYX6fFFdXXc44b5MMMf1d28a4WWWc
-```
-
-To run the script you need to provide the following environment variables.
-
-**Note: set up these variables only locally, before running the `create_user.ts` script;
-do not set up these 3 vars in the remote App Service**:
-```
-ARM_CLIENT_ID="<client id of an Application registered in the main AD tenant>"
-ARM_CLIENT_SECRET="<client secret / key of the Application registered in the main AD tenant>"
-ARM_TENANT_ID="<AD tenant / directory id>"
-```
-
-moreover `ARM_SUBSCRIPTION_ID` must be set-up (from step 1).
-
-Finally, set up the following variables in the App Service settings:
-```
-ADMIN_API_KEY="<API-key, as obtained running the script>"
-ADMIN_API_URL="https://<apiManagerUrl>"
-```
-
-This is needed to let the Web application call the Digital Citizenship API,
-to create a 'Service' and a 'Profile' tied to the developer portal accounts.
+To install the web application refer to the installation manual here:  
+https://github.com/teamdigitale/digital-citizenship
 
 ## Usage
 
@@ -163,8 +51,6 @@ from a link placed in the sign-in entry page.
 To set up the customization:
 
 1. deploy the HTML template & CSS to GitHub Pages running `yarn gh-pages`
-1. change the ADB2C settings from the Azure Portal blade:
-*ADB2C -> Custom policies -> B2C_1_SignUpIn -> Edit -> Customize interface*
-then provide the link (absolute URL) to the customized HTML template 
-hosted on GitHub Pages for `sign-in`, `sign-up`, `error` and `multifactor` 
-custom pages / settings.
+
+1. refer to the installation manual to customize the sign-up / sign-in forms:  
+https://github.com/teamdigitale/digital-citizenship
