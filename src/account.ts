@@ -58,10 +58,10 @@ const addUserToProduct = async (
     productName
   );
   if (user && user.id && user.name && product && product.id && productName) {
-    const subscriptionId = userIdToSubscriptionId(user.name, productName);
-    // We do not skip existing subscriptions so we can activate a canceled one.
     // For some odd reason in the Azure ARM API user.name here is
     // in reality the user.id
+    const subscriptionId = userIdToSubscriptionId(user.name, productName);
+    // We do not skip existing subscriptions so we can activate a canceled one.
     return apiClient.subscription.createOrUpdate(
       config.azurermResourceGroup,
       config.azurermApim,
