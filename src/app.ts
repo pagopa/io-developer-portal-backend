@@ -54,8 +54,8 @@ process.on("unhandledRejection", e => winston.error(e));
 setupOidcStrategy(config.creds, async (userId, profile) => {
   const userData: IUserData = {
     oid: profile._json.oid,
-    firstName: profile._json.family_name,
-    lastName: profile._json.given_name,
+    firstName: profile._json.given_name,
+    lastName: profile._json.family_name,
     email: profile._json.emails[0],
     productName: config.apimProductName,
     groups: (config.apimUserGroups || "").split(",")
