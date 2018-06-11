@@ -28,7 +28,7 @@ import * as msRestAzure from "ms-rest-azure";
 
 import { IUserData, updateApimUser } from "./account";
 import { secureExpressApp } from "./express";
-import { createFakeProfile } from "./fake_profile";
+import { createFakeProfile, generateFakeFiscalCode } from "./fake_profile";
 import { sendMessage } from "./message";
 import { setupOidcStrategy } from "./oidc_strategy";
 import { createService } from "./service";
@@ -83,6 +83,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
         authorized_recipients: [fakeFiscalCode],
         department_name: profile._json.extension_Department || "",
         organization_name: profile._json.extension_Organization || "",
+        organization_fiscal_code: generateFakeFiscalCode(),
         service_id: subscription.name,
         service_name: profile._json.extension_Service || ""
       });
@@ -100,7 +101,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
       });
     }
   } catch (e) {
-    winston.error("setupOidcStrategy|error", e);
+    winston.error("setupOidcStrategy|error", JSON.stringify(e));
   }
 });
 

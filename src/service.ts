@@ -12,6 +12,7 @@ export interface IServicePayload {
   readonly service_name: string;
   readonly department_name: string;
   readonly organization_name: string;
+  readonly organization_fiscal_code: string;
   readonly service_id: string;
   readonly authorized_recipients: ReadonlyArray<string>;
   readonly authorized_cidrs: ReadonlyArray<string>;

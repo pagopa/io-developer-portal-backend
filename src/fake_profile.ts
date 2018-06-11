@@ -20,7 +20,7 @@ export interface IProfilePayload {
  * May conflict with existing test fiscal codes
  * with a low probability.
  */
-const generateFakeFiscalCode = () => {
+export const generateFakeFiscalCode = () => {
   const s = randomstring.generate({
     length: 6,
     capitalization: "uppercase",
