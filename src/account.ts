@@ -1,7 +1,7 @@
 /**
  * Methods used to add users to API manager Products and Groups.
  */
-import apiManagementClient = require("azure-arm-apimanagement");
+import { ApiManagementClient } from "azure-arm-apimanagement";
 import * as winston from "winston";
 
 import {
@@ -35,7 +35,7 @@ export const userIdToSubscriptionId = (userId: string, productName: string) =>
     .substring(0, 4)}`;
 
 const getExistingUser = async (
-  apiClient: apiManagementClient,
+  apiClient: ApiManagementClient,
   userId: string
 ) => {
   winston.debug("getExistingUser");
@@ -47,7 +47,7 @@ const getExistingUser = async (
 };
 
 const addUserToProduct = async (
-  apiClient: apiManagementClient,
+  apiClient: ApiManagementClient,
   user: UserContract,
   productName: string
 ) => {
@@ -81,7 +81,7 @@ const addUserToProduct = async (
 };
 
 const addUserToGroups = async (
-  apiClient: apiManagementClient,
+  apiClient: ApiManagementClient,
   user: UserContract,
   groups: ReadonlyArray<string>
 ) => {
@@ -122,7 +122,7 @@ const addUserToGroups = async (
 
 /**
  * Assign an existing API user to products and groups.
- * 
+ *
  * @param userId                                  the id of user
  * @param userData                                profile data (ie. email, name)
  * @param loginCreds                              client credentials (service principal)
@@ -135,7 +135,7 @@ export const updateApimUser = async (
   dangerouslySkipAuthenticationCheck = false
 ): Promise<SubscriptionContract> => {
   winston.debug("updateApimUser");
-  const apiClient = new apiManagementClient(loginCreds, config.subscriptionId);
+  const apiClient = new ApiManagementClient(loginCreds, config.subscriptionId);
   const user = await getExistingUser(apiClient, userId);
   if (
     !dangerouslySkipAuthenticationCheck &&

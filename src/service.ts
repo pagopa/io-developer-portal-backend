@@ -26,14 +26,14 @@ export const createService = (apiKey: string, service: IServicePayload) => {
   return new Promise(async (resolve, reject) => {
     const maybeService = await getService(apiKey, service.service_id);
     const options = {
-      uri: `${config.adminApiUrl}/adm/services${maybeService.isEmpty
-        ? ""
-        : "/" + service.service_id}`,
-      method: maybeService.isEmpty ? "POST" : "PUT",
-      json: service,
       headers: {
         "Ocp-Apim-Subscription-Key": apiKey
-      }
+      },
+      json: service,
+      method: maybeService.isEmpty ? "POST" : "PUT",
+      uri: `${config.adminApiUrl}/adm/services${
+        maybeService.isEmpty ? "" : "/" + service.service_id
+      }`
     };
     request(options, (err, res, body) => {
       if (err) {
@@ -56,11 +56,11 @@ export const getService = (
 ): Promise<Option<{}>> => {
   return new Promise((resolve, reject) => {
     const options = {
-      uri: `${config.adminApiUrl}/adm/services/${serviceId}`,
-      method: "GET",
       headers: {
         "Ocp-Apim-Subscription-Key": apiKey
-      }
+      },
+      method: "GET",
+      uri: `${config.adminApiUrl}/adm/services/${serviceId}`
     };
     winston.debug("getService|serviceId|" + serviceId);
     request(options, (err, res, body) => {
