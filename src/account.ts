@@ -109,7 +109,7 @@ const addUserToGroups = async (
   // sequence the promises here as calling this method
   // concurrently seems to cause some oddities assigning
   // users to groups
-  groups.reduce((prev, group) => {
+  return groups.reduce((prev, group) => {
     // For some odd reason in the Azure ARM API user.name here is
     // in reality the user.id
     return prev.then(_ => {
