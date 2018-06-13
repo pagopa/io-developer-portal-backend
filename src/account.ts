@@ -106,18 +106,22 @@ const addUserToGroups = async (
     );
     return Promise.resolve(user);
   }
-  return Promise.all(
-    groups.map(async group => {
-      // For some odd reason in the Azure ARM API user.name here is
-      // in reality the user.id
-      return await apiClient.groupUser.create(
+  // sequence the promises here as calling this method
+  // concurrently seems to cause some oddities assigning
+  // users to groups
+  groups.reduce((prev, curr) => {
+    // For some odd reason in the Azure ARM API user.name here is
+    // in reality the user.id
+    return prev.then(_ => {
+      apiClient.groupUser.create(
         config.azurermResourceGroup,
         config.azurermApim,
-        group,
+        curr,
         user.name as string
       );
-    })
-  );
+      return;
+    });
+  }, Promise.resolve());
 };
 
 /**
