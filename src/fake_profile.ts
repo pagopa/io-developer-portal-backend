@@ -13,22 +13,22 @@ export interface IProfilePayload {
 
 /**
  * Generate fake fiscal code for testing.
- * 
+ *
  * Local codes starts with [A-M]
- * so by using `Y` the generated fiscal code 
+ * so by using `Y` the generated fiscal code
  * won't conflict with any real one.
  * May conflict with existing test fiscal codes
  * with a low probability.
  */
 export const generateFakeFiscalCode = () => {
   const s = randomstring.generate({
-    length: 6,
     capitalization: "uppercase",
-    charset: "alphabetic"
+    charset: "alphabetic",
+    length: 6
   });
   const d = randomstring.generate({
-    length: 7,
-    charset: "numeric"
+    charset: "numeric",
+    length: 7
   });
   return [s, d[0], d[1], "A", d[2], d[3], "Y", d[4], d[5], d[6], "X"].join("");
 };
@@ -44,12 +44,12 @@ export const createFakeProfile = (
   return new Promise((resolve, reject) => {
     const fakeFiscalCode = generateFakeFiscalCode();
     const options = {
-      uri: `${config.adminApiUrl}/api/v1/profiles/${fakeFiscalCode}`,
-      method: "POST",
-      json: profile,
       headers: {
         "Ocp-Apim-Subscription-Key": apiKey
-      }
+      },
+      json: profile,
+      method: "POST",
+      uri: `${config.adminApiUrl}/api/v1/profiles/${fakeFiscalCode}`
     };
     winston.debug("createFakeProfile|profile|", profile, options.uri);
     request(options, (err, res, body) => {

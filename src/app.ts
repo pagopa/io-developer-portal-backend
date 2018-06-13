@@ -2,7 +2,7 @@
  * The aim of this Express Web application is to automate
  * some tasks related to users management in the Digital Citizenship
  * Azure API management developer portal resource.
- * 
+ *
  * The flow starts when the user, already logged into the developoer portal,
  * clicks on a call-to-action that links to the '/login/<userId>' endpoint.
  */
@@ -46,19 +46,19 @@ process.on("unhandledRejection", e => winston.error(e));
 /**
  * Set up passport OpenID Connect strategy that works
  * with Azure Active Directory B2C accounts.
- * 
+ *
  * Assigns logged-in user to API management products and groups,
  * then create a Service tied to the user subscription using
  * the Functions API.
  */
 setupOidcStrategy(config.creds, async (userId, profile) => {
   const userData: IUserData = {
-    oid: profile._json.oid,
-    firstName: profile._json.given_name,
-    lastName: profile._json.family_name,
     email: profile._json.emails[0],
-    productName: config.apimProductName,
-    groups: (config.apimUserGroups || "").split(",")
+    firstName: profile._json.given_name,
+    groups: (config.apimUserGroups || "").split(","),
+    lastName: profile._json.family_name,
+    oid: profile._json.oid,
+    productName: config.apimProductName
   };
   try {
     /*
@@ -82,8 +82,8 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
         authorized_cidrs: [],
         authorized_recipients: [fakeFiscalCode],
         department_name: profile._json.extension_Department || "",
-        organization_name: profile._json.extension_Organization || "",
         organization_fiscal_code: generateFakeFiscalCode(),
+        organization_name: profile._json.extension_Organization || "",
         service_id: subscription.name,
         service_name: profile._json.extension_Service || ""
       });
@@ -111,8 +111,8 @@ secureExpressApp(app);
 // Avoid stateful in-memory sessions
 app.use(
   cookieSession({
-    name: "session",
-    keys: [config.creds.cookieEncryptionKeys[0].key]
+    keys: [config.creds.cookieEncryptionKeys[0].key],
+    name: "session"
   })
 );
 
@@ -156,9 +156,9 @@ const verifier = (
     (req as any).session.userId = req.params.userId;
   }
   passport.authenticate("azuread-openidconnect", {
-    session: false,
     failureRedirect: config.apimUrl,
-    response: res
+    response: res,
+    session: false
   } as {})(req, res, next);
 };
 

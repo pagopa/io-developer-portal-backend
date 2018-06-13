@@ -25,12 +25,12 @@ export const sendMessage = (
   winston.debug("sendMessage|message|", message);
   return new Promise((resolve, reject) => {
     const options = {
-      uri: `${config.adminApiUrl}/api/v1/messages/${fakeFiscalCode}`,
-      method: "POST",
-      json: message,
       headers: {
         "Ocp-Apim-Subscription-Key": apiKey
-      }
+      },
+      json: message,
+      method: "POST",
+      uri: `${config.adminApiUrl}/api/v1/messages/${fakeFiscalCode}`
     };
     request(options, (err, res, body) => {
       if (err) {
