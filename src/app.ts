@@ -183,4 +183,4 @@ app.get("/logout", redirect(config.destroySessionUrl));
 const port = config.port || 3000;
 app.listen(port);
 
-winston.log("Listening on port ", port.toString());
+winston.info("Listening on port ", port.toString());
