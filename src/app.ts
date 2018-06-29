@@ -82,7 +82,7 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
         authorized_cidrs: [],
         authorized_recipients: [fakeFiscalCode],
         department_name: profile._json.extension_Department || "",
-        organization_fiscal_code: generateFakeFiscalCode(),
+        organization_fiscal_code: "00000000000",
         organization_name: profile._json.extension_Organization || "",
         service_id: subscription.name,
         service_name: profile._json.extension_Service || ""
