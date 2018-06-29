@@ -28,7 +28,7 @@ import * as msRestAzure from "ms-rest-azure";
 
 import { IUserData, updateApimUser } from "./account";
 import { secureExpressApp } from "./express";
-import { createFakeProfile, generateFakeFiscalCode } from "./fake_profile";
+import { createFakeProfile } from "./fake_profile";
 import { sendMessage } from "./message";
 import { setupOidcStrategy } from "./oidc_strategy";
 import { createService } from "./service";
