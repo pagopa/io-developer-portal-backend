@@ -15,3 +15,4 @@ coverage
 *.js.map
 src/**/*.js
 build
+.env
