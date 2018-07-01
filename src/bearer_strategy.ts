@@ -4,18 +4,16 @@
 
 import * as express from "express";
 import * as passport from "passport";
-import { OIDCStrategy } from "passport-azure-ad";
+import { BearerStrategy } from "passport-azure-ad";
 
-interface IProfile {
-  readonly _json: {
-    readonly oid: string;
-    readonly emails: ReadonlyArray<string>;
-    readonly family_name: string;
-    readonly given_name: string;
-    readonly extension_Organization: string;
-    readonly extension_Department: string;
-    readonly extension_Service: string;
-  };
+export interface IProfile {
+  readonly oid: string;
+  readonly emails: ReadonlyArray<string>;
+  readonly family_name: string;
+  readonly given_name: string;
+  readonly extension_Organization: string;
+  readonly extension_Department: string;
+  readonly extension_Service: string;
 }
 
 // -----------------------------------------------------------------------------
@@ -39,28 +37,21 @@ interface IProfile {
 /**
  * Calls a callback on the logged in user's profile.
  */
-export const setupOidcStrategy = (
+export const setupBearerStrategy = (
   // tslint:disable-next-line
   creds: any,
   cb: (userId: string, profile: IProfile) => Promise<void>
 ) => {
   passport.use(
-    "azuread-openidconnect",
-    new OIDCStrategy(
+    "oauth-bearer",
+    new BearerStrategy(
       creds,
       (
-        req: express.Request,
-        _: string,
-        sub: string,
+        _: express.Request,
         profile: IProfile,
         done: (err: Error | undefined, profile?: IProfile) => void
       ) => {
-        // tslint:disable-next-line
-        const userId = (req as any).session.userId;
-        if (!sub) {
-          return done(new Error("No user id found"));
-        }
-        return cb(userId, profile)
+        return cb(profile.oid, profile)
           .then(() => done(undefined, profile))
           .catch(e => done(e));
       }

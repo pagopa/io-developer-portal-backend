@@ -22,7 +22,7 @@ export interface IServicePayload {
  * RESTful call to Digital Citizenship API
  *  that creates a new Service for the current logged-in user.
  */
-export const createService = (apiKey: string, service: IServicePayload) => {
+export const upsertService = (apiKey: string, service: IServicePayload) => {
   return new Promise(async (resolve, reject) => {
     const maybeService = await getService(apiKey, service.service_id);
     const options = {

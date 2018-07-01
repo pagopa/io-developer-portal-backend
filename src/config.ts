@@ -54,9 +54,7 @@ export const creds = {
   // (1) if you want refresh_token, use 'offline_access'
   // (2) if you want access_token, use the clientID
   // scope: ["offline_access"],
-  scope: [
-    "https://agiddev.onmicrosoft.com/dev-portal-localhost/user_impersonation"
-  ],
+  scope: ["user_impersonation"],
 
   // Optional, 'error', 'warn' or 'info'
   loggingLevel: "error",
