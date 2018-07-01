@@ -53,7 +53,10 @@ export const creds = {
   // Optional. The additional scope you want besides 'openid'
   // (1) if you want refresh_token, use 'offline_access'
   // (2) if you want access_token, use the clientID
-  scope: ["offline_access"],
+  // scope: ["offline_access"],
+  scope: [
+    "https://agiddev.onmicrosoft.com/dev-portal-localhost/user_impersonation"
+  ],
 
   // Optional, 'error', 'warn' or 'info'
   loggingLevel: "error",
@@ -65,7 +68,9 @@ export const creds = {
   nonceMaxAmount: 5,
 
   // Optional. The clock skew allowed in token validation, the default value is 300 seconds.
-  clockSkew: undefined
+  clockSkew: undefined,
+
+  policyName: process.env.POLICY_NAME
 };
 
 export const policyName = process.env.POLICY_NAME;

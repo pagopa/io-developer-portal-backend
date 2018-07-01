@@ -7,7 +7,9 @@
  * clicks on a call-to-action that links to the '/login/<userId>' endpoint.
  */
 
+import * as cors from "cors";
 import * as dotenv from "dotenv";
+import * as morgan from "morgan";
 /*
  * Useful for testing the web application locally.
  * 'local.env' file does not need to exists in the
@@ -27,13 +29,14 @@ import * as cookieSession from "cookie-session";
 import * as msRestAzure from "ms-rest-azure";
 
 import { IUserData, updateApimUser } from "./account";
-import { secureExpressApp } from "./express";
+// import { secureExpressApp } from "./express";
 import { createFakeProfile } from "./fake_profile";
 import { sendMessage } from "./message";
 import { setupOidcStrategy } from "./oidc_strategy";
 import { createService } from "./service";
 
 import * as winston from "winston";
+import { setupBearerStrategy } from "./bearer_strategy";
 
 winston.configure({
   transports: [
@@ -42,6 +45,11 @@ winston.configure({
 });
 
 process.on("unhandledRejection", e => winston.error(e));
+
+setupBearerStrategy(config.creds, async (userId, profile) => {
+  winston.info("setupBearerStrategy:userid", userId);
+  winston.info("setupBearerStrategy:profile", profile);
+});
 
 /**
  * Set up passport OpenID Connect strategy that works
@@ -106,7 +114,8 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
 });
 
 const app = express();
-secureExpressApp(app);
+app.use(cors());
+// secureExpressApp(app);
 
 // Avoid stateful in-memory sessions
 app.use(
@@ -122,6 +131,7 @@ app.use(methodOverride());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
+app.use(morgan("combined"));
 
 // -----------------------------------------------------------------------------
 // Set up the route controller
@@ -177,10 +187,36 @@ app.all("/auth/openid/return", verifier, redirect(config.apimUrl));
 
 app.get("/logout", redirect(config.destroySessionUrl));
 
+/**
+ * Express middleware that check oauth token.
+ */
+const ouathVerifier = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  // tslint:disable-next-line:no-object-mutation
+  req.query.p = config.policyName;
+  if (req.params.userId) {
+    // tslint:disable-next-line:no-any no-object-mutation
+    (req as any).session.userId = req.params.userId;
+  }
+  passport.authenticate("oauth-bearer", {
+    response: res,
+    session: false
+  } as {})(req, res, next);
+};
+
+app.all(
+  "/test-auth",
+  ouathVerifier,
+  (req: express.Request, res: express.Response) => res.json(req.user)
+);
+
 //  Navigate to "http://<hostName>:" + .PORT
 // + "/login/<userId>?p=" + config.policyName
 
 const port = config.port || 3000;
 app.listen(port);
 
-winston.info("Listening on port ", port.toString());
+winston.debug("Listening on port %s", port.toString());
