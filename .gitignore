@@ -16,3 +16,4 @@ coverage
 src/**/*.js
 build
 .env
+.vscode

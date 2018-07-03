@@ -15,6 +15,7 @@ import * as dotenv from "dotenv";
  */
 dotenv.config({ path: __dirname + "/../local.env" });
 
+import * as appinsights from "applicationinsights";
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as express from "express";
@@ -32,6 +33,8 @@ import { createFakeProfile } from "./fake_profile";
 import { sendMessage } from "./message";
 import { setupOidcStrategy } from "./oidc_strategy";
 import { createService } from "./service";
+
+const telemetryClient = new appinsights.TelemetryClient();
 
 import * as winston from "winston";
 
@@ -100,7 +103,15 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
         }
       });
     }
+    telemetryClient.trackEvent({
+      name: "onboarding.success",
+      properties: {
+        id: userData.oid,
+        username: `${userData.firstName} ${userData.lastName}`
+      }
+    });
   } catch (e) {
+    telemetryClient.trackException(e);
     winston.error("setupOidcStrategy|error", JSON.stringify(e));
   }
 });
