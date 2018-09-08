@@ -74,7 +74,8 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
     const subscription = await updateApimUser(userId, userData, loginCreds);
     if (subscription && subscription.name) {
       const fakeFiscalCode = await createFakeProfile(config.adminApiKey, {
-        email: userData.email
+        email: userData.email,
+        version: 1
       });
       winston.debug(
         "setupOidcStrategy|create service| %s %s",
