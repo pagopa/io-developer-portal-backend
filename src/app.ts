@@ -112,7 +112,14 @@ setupOidcStrategy(config.creds, async (userId, profile) => {
       }
     });
   } catch (e) {
-    telemetryClient.trackException(e);
+    telemetryClient.trackEvent({
+      name: "onboarding.failure",
+      properties: {
+        id: userData.oid,
+        username: `${userData.firstName} ${userData.lastName}`
+      }
+    });
+    telemetryClient.trackException({ exception: e });
     winston.error("setupOidcStrategy|error", JSON.stringify(e));
   }
 });
