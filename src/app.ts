@@ -17,6 +17,7 @@ import * as morgan from "morgan";
  */
 dotenv.config({ path: __dirname + "/../local.env" });
 
+import * as appinsights from "applicationinsights";
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as express from "express";
@@ -33,6 +34,8 @@ import { IUserData, updateApimUser } from "./account";
 import { createFakeProfile } from "./fake_profile";
 import { sendMessage } from "./message";
 import { upsertService } from "./service";
+
+const telemetryClient = new appinsights.TelemetryClient();
 
 import * as winston from "winston";
 import { IProfile, setupBearerStrategy } from "./bearer_strategy";
@@ -67,46 +70,66 @@ async function assignUserToProducts(
     oid: profile.oid,
     productName: config.apimProductName
   };
-  /*
-     * The following call expects MSI_ENDPOINT and MSI_SECRET
-     * environment variables to be set. They don't appear
-     * in the App Service settings; you can check them
-     * using Kudu console.
-     */
-  const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-  const subscription = await updateApimUser(userId, userData, loginCreds);
-  if (!subscription || !subscription.name) {
-    return;
-  }
-  const fakeFiscalCode = await createFakeProfile(config.adminApiKey, {
-    email: userData.email
-  });
-  winston.debug(
-    "setupOidcStrategy|create service| %s %s",
-    fakeFiscalCode,
-    profile
-  );
-  await upsertService(config.adminApiKey, {
-    authorized_cidrs: [],
-    authorized_recipients: [fakeFiscalCode],
-    department_name: profile.extension_Department || "",
-    organization_fiscal_code: "00000000000",
-    organization_name: profile.extension_Organization || "",
-    service_id: subscription.name,
-    service_name: profile.extension_Service || ""
-  });
-  await sendMessage(config.adminApiKey, fakeFiscalCode, {
-    content: {
-      markdown: [
-        `Hello,`,
-        `this is a bogus fiscal code you can use to start testing the Digital Citizenship API:\n`,
-        fakeFiscalCode,
-        `\nYou can start in the developer portal here:`,
-        config.apimUrl
-      ].join("\n"),
-      subject: `Welcome ${userData.firstName} ${userData.lastName} !`
+  try {
+    /*
+       * The following call expects MSI_ENDPOINT and MSI_SECRET
+       * environment variables to be set. They don't appear
+       * in the App Service settings; you can check them
+       * using Kudu console.
+       */
+    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+    const subscription = await updateApimUser(userId, userData, loginCreds);
+    if (!subscription || !subscription.name) {
+      return;
     }
-  });
+    const fakeFiscalCode = await createFakeProfile(config.adminApiKey, {
+      email: userData.email,
+      version: 0
+    });
+    winston.debug(
+      "setupOidcStrategy|create service| %s %s",
+      fakeFiscalCode,
+      profile
+    );
+    await upsertService(config.adminApiKey, {
+      authorized_cidrs: [],
+      authorized_recipients: [fakeFiscalCode],
+      department_name: profile.extension_Department || "",
+      organization_fiscal_code: "00000000000",
+      organization_name: profile.extension_Organization || "",
+      service_id: subscription.name,
+      service_name: profile.extension_Service || ""
+    });
+    await sendMessage(config.adminApiKey, fakeFiscalCode, {
+      content: {
+        markdown: [
+          `Hello,`,
+          `this is a bogus fiscal code you can use to start testing the Digital Citizenship API:\n`,
+          fakeFiscalCode,
+          `\nYou can start in the developer portal here:`,
+          config.apimUrl
+        ].join("\n"),
+        subject: `Welcome ${userData.firstName} ${userData.lastName} !`
+      }
+    });
+    telemetryClient.trackEvent({
+      name: "onboarding.success",
+      properties: {
+        id: userData.oid,
+        username: `${userData.firstName} ${userData.lastName}`
+      }
+    });
+  } catch (e) {
+    telemetryClient.trackEvent({
+      name: "onboarding.failure",
+      properties: {
+        id: userData.oid,
+        username: `${userData.firstName} ${userData.lastName}`
+      }
+    });
+    telemetryClient.trackException({ exception: e });
+    winston.error("setupOidcStrategy|error", JSON.stringify(e));
+  }
 }
 
 const app = express();

@@ -9,6 +9,7 @@ import * as config from "./config";
 
 export interface IProfilePayload {
   readonly email: string;
+  readonly version: number;
 }
 
 /**
@@ -58,7 +59,7 @@ export const createFakeProfile = (
         return reject(err);
       }
       if (res.statusCode !== 200) {
-        winston.debug("createFakeProfile|error|", JSON.stringify(body));
+        winston.debug("createFakeProfile|error|" + JSON.stringify(body));
         return reject(new Error(body));
       }
       winston.debug("createFakeProfile|success|", body);

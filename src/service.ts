@@ -59,6 +59,7 @@ export const getService = (
       headers: {
         "Ocp-Apim-Subscription-Key": apiKey
       },
+      json: true,
       method: "GET",
       uri: `${config.adminApiUrl}/adm/services/${serviceId}`
     };
