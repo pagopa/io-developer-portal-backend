@@ -242,8 +242,11 @@ app.get(
       if (!user.id) {
         return res.status(404);
       }
-      const apimUser = await getApimUser();
-      const subscriptions = await getUserSubscriptions(apiClient, user.id);
+      const apimUser = await getApimUser(apiClient, req.user.emails[0]);
+      if (!apimUser || !apimUser.id) {
+        return res.status(404);
+      }
+      const subscriptions = await getUserSubscriptions(apiClient, apimUser.id);
       winston.debug("subscriptions", subscriptions);
       return res.json(subscriptions);
     } catch (e) {
