@@ -21,15 +21,8 @@ export interface IUserData extends UserCreateParameters {
 }
 
 export async function newApiClient(): Promise<ApiManagementClient> {
-  try {
-    winston.debug("newApiClient");
-    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-    winston.debug("loginCreds", loginCreds);
-    return new ApiManagementClient(loginCreds, config.subscriptionId);
-  } catch (e) {
-    winston.error("newApiClient " + JSON.stringify(e));
-    throw e;
-  }
+  const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+  return new ApiManagementClient(loginCreds, config.subscriptionId);
 }
 
 export const getUserSubscription = async (
@@ -56,6 +49,22 @@ export const getUserSubscriptions = async (
     config.azurermApim,
     userId
   );
+};
+
+export const getApimUser = async (
+  apiClient: ApiManagementClient,
+  email: string
+) => {
+  winston.debug("getApimUser");
+  const results = await apiClient.user.listByService(
+    config.azurermResourceGroup,
+    config.azurermApim,
+    { filter: "email eq " + email }
+  );
+  if (!results || results.length === 0) {
+    return undefined;
+  }
+  return results[0];
 };
 
 export const getExistingUser = async (

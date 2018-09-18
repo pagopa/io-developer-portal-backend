@@ -30,6 +30,7 @@ import cookieSession = require("cookie-session");
 import {
   addUserSubscriptionToProduct,
   addUserToGroups,
+  getApimUser,
   getExistingUser,
   getUserSubscription,
   getUserSubscriptions,
@@ -208,8 +209,18 @@ app.get("/logout", (req: express.Request, res: express.Response) => {
   res.json("OK");
 });
 
-app.get("/user", ouathVerifier, (req: express.Request, res: express.Response) =>
-  res.json(req.user)
+app.get(
+  "/user",
+  ouathVerifier,
+  async (req: express.Request, res: express.Response) => {
+    if (!req.user || !req.user.oid) {
+      winston.info("unauthorized");
+      return res.status(401);
+    }
+    const apiClient = await newApiClient();
+    const apimUser = await getApimUser(apiClient, req.user.oid);
+    return res.json({ reqUser: req.user, apimUser });
+  }
 );
 
 /**
@@ -224,15 +235,14 @@ app.get(
       return res.status(401);
     }
     try {
-      winston.debug("get api client");
       const apiClient = await newApiClient();
       // get the subscription of the logged in user
-      winston.debug("get existing user");
       const user = await getExistingUser(apiClient, req.user.oid);
       winston.debug("apim user", user);
       if (!user.id) {
         return res.status(404);
       }
+      const apimUser = await getApimUser();
       const subscriptions = await getUserSubscriptions(apiClient, user.id);
       winston.debug("subscriptions", subscriptions);
       return res.json(subscriptions);
@@ -258,7 +268,6 @@ app.post(
     }
     try {
       const apiClient = await newApiClient();
-      winston.debug("get existing user");
       const user = await getExistingUser(apiClient, req.user.oid);
       // Any authenticated user can subscribe
       // to the Digital Citizenship APIs
