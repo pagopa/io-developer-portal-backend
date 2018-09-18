@@ -28,14 +28,14 @@ import * as config from "./config";
 import cookieSession = require("cookie-session");
 
 import {
-  addUserSubscriptionToProduct,
   addUserToGroups,
   getApimUser,
   getExistingUser,
   getUserSubscription,
   getUserSubscriptions,
   IUserData,
-  newApiClient
+  newApiClient,
+  upsertSubscription
 } from "./account";
 // import { secureExpressApp } from "./express";
 import { createFakeProfile } from "./fake_profile";
@@ -100,7 +100,7 @@ async function subscribeApimUser(
     await addUserToGroups(apiClient, user, userData.groups);
 
     // creates a new subscription every time !
-    const subscription = await addUserSubscriptionToProduct(
+    const subscription = await upsertSubscription(
       apiClient,
       user,
       config.apimProductName
@@ -277,6 +277,43 @@ app.post(
       }
       // TODO: check this cast
       await subscribeApimUser(apiClient, req.user as IProfile);
+      return user;
+    } catch (e) {
+      winston.error("POST subscriptions error", JSON.stringify(e));
+    }
+    return res.status(500);
+  }
+);
+
+/**
+ * Update an existing subscription
+ * belonging to the logged in user.
+ */
+app.put(
+  "/subscriptions/:subscriptionId",
+  ouathVerifier,
+  async (req: express.Request, res: express.Response) => {
+    if (!req.user || !req.user.oid) {
+      winston.info("unauthorized");
+      return res.status(401);
+    }
+    try {
+      const apiClient = await newApiClient();
+      const user = await getApimUser(apiClient, req.user.emails[0]);
+      // Any authenticated user can subscribe
+      // to the Digital Citizenship APIs
+      if (!user) {
+        return res.status(401);
+      }
+      const subscription = await getUserSubscription(
+        apiClient,
+        config.subscriptionId
+      );
+      // TODO: check user.id vs user.name here
+      if (subscription.userId !== user.id) {
+        return res.status(401);
+      }
+      // TODO: update existing subscription
       return user;
     } catch (e) {
       winston.error("POST subscriptions error", JSON.stringify(e));
