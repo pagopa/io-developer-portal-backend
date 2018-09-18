@@ -54,7 +54,7 @@ winston.configure({
   ]
 });
 
-process.on("unhandledRejection", e => winston.error(e));
+process.on("unhandledRejection", e => winston.error(JSON.stringify(e)));
 
 /**
  * Setup an authentication strategy (oauth) for express endpoints.
