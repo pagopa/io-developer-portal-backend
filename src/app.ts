@@ -27,15 +27,14 @@ import * as config from "./config";
 
 import cookieSession = require("cookie-session");
 
-import * as msRestAzure from "ms-rest-azure";
-
 import {
   addUserSubscriptionToProduct,
   addUserToGroups,
   getExistingUser,
   getUserSubscription,
   getUserSubscriptions,
-  IUserData
+  IUserData,
+  newApiClient
 } from "./account";
 // import { secureExpressApp } from "./express";
 import { createFakeProfile } from "./fake_profile";
@@ -186,13 +185,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(morgan("combined"));
 
-// if (
-//   (!user.identities ||
-//     !user.identities[0] ||
-//     user.identities[0].provider !== "AadB2C" ||
-//     user.identities[0].id !== userData.oid)
-// )
-
 /**
  * Express middleware that check oauth token.
  */
@@ -231,11 +223,7 @@ app.get(
     if (!req.user || !req.user.oid) {
       return res.status(401);
     }
-    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-    const apiClient = new ApiManagementClient(
-      loginCreds,
-      config.subscriptionId
-    );
+    const apiClient = await newApiClient();
     // get the subscription of the logged in user
     return res.json(await getUserSubscriptions(apiClient, req.user.oid));
   }
@@ -253,11 +241,7 @@ app.post(
     if (!req.user || !req.user.oid) {
       return res.status(401);
     }
-    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-    const apiClient = new ApiManagementClient(
-      loginCreds,
-      config.subscriptionId
-    );
+    const apiClient = await newApiClient();
     const user = await getExistingUser(apiClient, req.user.oid);
     // Any authenticated user can subscribe
     // to the Digital Citizenship APIs
@@ -282,11 +266,7 @@ app.get(
     }
     // Authenticates this request against the logged in user
     // checking that serviceId = subscriptionId
-    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-    const apiClient = new ApiManagementClient(
-      loginCreds,
-      config.subscriptionId
-    );
+    const apiClient = await newApiClient();
     const subscription = await getUserSubscription(
       apiClient,
       req.params.serviceId
@@ -312,11 +292,7 @@ app.post(
     }
     // Authenticates this request against the logged in user
     // checking that serviceId = subscriptionId
-    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-    const apiClient = new ApiManagementClient(
-      loginCreds,
-      config.subscriptionId
-    );
+    const apiClient = await newApiClient();
     const subscription = await getUserSubscription(
       apiClient,
       req.params.serviceId

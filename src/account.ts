@@ -2,6 +2,7 @@
  * Methods used to add users to API manager Products and Groups.
  */
 import { ApiManagementClient } from "azure-arm-apimanagement";
+import * as msRestAzure from "ms-rest-azure";
 import * as winston from "winston";
 
 import {
@@ -17,6 +18,11 @@ export interface IUserData extends UserCreateParameters {
   readonly oid: string;
   readonly productName: string;
   readonly groups: ReadonlyArray<string>;
+}
+
+export async function newApiClient(): Promise<ApiManagementClient> {
+  const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+  return new ApiManagementClient(loginCreds, config.subscriptionId);
 }
 
 export const getUserSubscription = async (
