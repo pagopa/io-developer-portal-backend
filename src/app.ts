@@ -29,14 +29,15 @@ import cookieSession = require("cookie-session");
 
 import * as msRestAzure from "ms-rest-azure";
 
-import { IUserData, updateApimUser } from "./account";
+import { getUserSubscriptions, IUserData, updateApimUser } from "./account";
 // import { secureExpressApp } from "./express";
 import { createFakeProfile } from "./fake_profile";
 import { sendMessage } from "./message";
-import { upsertService } from "./service";
+import { getService, upsertService } from "./service";
 
 const telemetryClient = new appinsights.TelemetryClient();
 
+import ApiManagementClient from "azure-arm-apimanagement";
 import * as winston from "winston";
 import { IProfile, setupBearerStrategy } from "./bearer_strategy";
 
@@ -48,7 +49,7 @@ winston.configure({
 
 process.on("unhandledRejection", e => winston.error(e));
 
-setupBearerStrategy(config.creds, async (userId, profile) => {
+setupBearerStrategy(passport, config.creds, async (userId, profile) => {
   winston.info("setupBearerStrategy:userid", userId);
   winston.info("setupBearerStrategy:profile", profile);
 });
@@ -58,10 +59,7 @@ setupBearerStrategy(config.creds, async (userId, profile) => {
  * then create a Service tied to the user subscription using
  * the Functions API.
  */
-async function assignUserToProducts(
-  userId: string,
-  profile: IProfile
-): Promise<void> {
+async function assignUserToProducts(profile: IProfile): Promise<void> {
   const userData: IUserData = {
     email: profile.emails[0],
     firstName: profile.given_name,
@@ -78,7 +76,16 @@ async function assignUserToProducts(
        * using Kudu console.
        */
     const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-    const subscription = await updateApimUser(userId, userData, loginCreds);
+    const apiClient = new ApiManagementClient(
+      loginCreds,
+      config.subscriptionId
+    );
+
+    const subscription = await updateApimUser(
+      apiClient,
+      userData.oid,
+      userData
+    );
     if (!subscription || !subscription.name) {
       return;
     }
@@ -167,22 +174,46 @@ const ouathVerifier = (
   res: express.Response,
   next: express.NextFunction
 ) => {
-  // tslint:disable-next-line:no-object-mutation
-  req.query.p = config.policyName;
-  if (req.params.userId) {
-    // tslint:disable-next-line:no-any no-object-mutation
-    (req as any).session.userId = req.params.userId;
-  }
   passport.authenticate("oauth-bearer", {
     response: res,
     session: false
-  } as {})(req, res, next);
+  } as {})(
+    // adds policyName in case none is provided
+    { ...req, query: { ...req.query, p: config.policyName } },
+    res,
+    next
+  );
 };
 
-app.all(
-  "/test-auth",
+app.get("/user", ouathVerifier, (req: express.Request, res: express.Response) =>
+  res.json(req.user)
+);
+
+app.get(
+  "/subscriptions",
   ouathVerifier,
-  (req: express.Request, res: express.Response) => res.json(req.user)
+  async (req: express.Request, res: express.Response) => {
+    if (req.user) {
+      const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+      const apiClient = new ApiManagementClient(
+        loginCreds,
+        config.subscriptionId
+      );
+      res.json(await getUserSubscriptions(apiClient, req.user.id));
+    }
+  }
+);
+
+app.get(
+  "/service/:serviceId",
+  ouathVerifier,
+  async (req: express.Request, res: express.Response) => {
+    if (req.user) {
+      // TODO: authenticate this request against logged in user
+      // ie. use api key from user subscription = serviceId
+      res.json(await getService(config.adminApiKey, req.params.serviceId));
+    }
+  }
 );
 
 app.post(
@@ -190,7 +221,9 @@ app.post(
   ouathVerifier,
   async (req: express.Request, res: express.Response) => {
     if (req.user) {
-      await assignUserToProducts(req.user.idToken.oid, req.user.idToken);
+      // TODO: authenticate this request against logged in user
+      // ie. use api key from user subscription = serviceId
+      await assignUserToProducts(req.user.idToken);
     }
     res.json("OK");
   }

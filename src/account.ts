@@ -10,10 +10,9 @@ import {
   UserCreateParameters
 } from "azure-arm-apimanagement/lib/models";
 
-import * as msRest from "ms-rest";
 import * as config from "./config";
 
-import * as crypto from "crypto";
+import * as cuid from "cuid";
 
 export interface IUserData extends UserCreateParameters {
   readonly oid: string;
@@ -21,18 +20,19 @@ export interface IUserData extends UserCreateParameters {
   readonly groups: ReadonlyArray<string>;
 }
 
-/**
- *  Assigns a deterministic / predicatable id to the user's subscription.
- *  Useful in case we want to retrieve it later.
- */
-export const userIdToSubscriptionId = (userId: string, productName: string) =>
-  // do not use dashes here as it does not play well
-  // together with the version field of the Service entity
-  `${userId}${crypto
-    .createHash("md5")
-    .update(productName)
-    .digest("hex")
-    .substring(0, 4)}`;
+export const getUserSubscriptions = async (
+  apiClient: ApiManagementClient,
+  userId: string
+) => {
+  winston.debug("getUserSubscriptions");
+  // TODO: this list is paginated with a next-link
+  // by now we get only the first result page
+  return apiClient.userSubscription.list(
+    config.azurermResourceGroup,
+    config.azurermApim,
+    userId
+  );
+};
 
 const getExistingUser = async (
   apiClient: ApiManagementClient,
@@ -58,10 +58,11 @@ const addUserToProduct = async (
     productName
   );
   if (user && user.id && user.name && product && product.id && productName) {
-    // For some odd reason in the Azure ARM API user.name here is
-    // in reality the user.id
-    const subscriptionId = userIdToSubscriptionId(user.name, productName);
-    // We do not skip existing subscriptions so we can activate a canceled one.
+    const subscriptionId = cuid();
+    // For some odd reason in the Azure ARM API
+    // user.name here is actually the user.id.
+    // We do not skip existing subscriptions
+    // so we can activate a canceled one.
     return apiClient.subscription.createOrUpdate(
       config.azurermResourceGroup,
       config.azurermApim,
@@ -132,13 +133,12 @@ const addUserToGroups = async (
  * @param dangerouslySkipAuthenticationCheck      useful in case you want to call the method locally
  */
 export const updateApimUser = async (
+  apiClient: ApiManagementClient,
   userId: string,
   userData: IUserData,
-  loginCreds: msRest.ServiceClientCredentials,
   dangerouslySkipAuthenticationCheck = false
 ): Promise<SubscriptionContract> => {
   winston.debug("updateApimUser");
-  const apiClient = new ApiManagementClient(loginCreds, config.subscriptionId);
   const user = await getExistingUser(apiClient, userId);
   if (
     !dangerouslySkipAuthenticationCheck &&

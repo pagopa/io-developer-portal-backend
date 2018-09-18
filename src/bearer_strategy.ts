@@ -38,11 +38,12 @@ export interface IProfile {
  * Calls a callback on the logged in user's profile.
  */
 export const setupBearerStrategy = (
-  // tslint:disable-next-line
+  passportInstance: typeof passport,
+  // tslint:disable-next-line:no-any
   creds: any,
   cb: (userId: string, profile: IProfile) => Promise<void>
 ) => {
-  passport.use(
+  passportInstance.use(
     "oauth-bearer",
     new BearerStrategy(
       creds,

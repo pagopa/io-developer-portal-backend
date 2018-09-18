@@ -519,6 +519,10 @@ cors@^2.8.4:
     object-assign "^4"
     vary "^1"
 
+cuid@^2.1.4:
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/cuid/-/cuid-2.1.4.tgz#e1178eb92a05ef9364b29a9942feed36d3604cdd"
+
 dashdash@^1.12.0:
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/dashdash/-/dashdash-1.14.1.tgz#853cfa0f7cbe2fed5de20326b8dd581035f6e2f0"
