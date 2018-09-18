@@ -59,7 +59,7 @@ export const getApimUser = async (
   const results = await apiClient.user.listByService(
     config.azurermResourceGroup,
     config.azurermApim,
-    { filter: "email eq " + email }
+    { filter: "email eq '" + email + "'" }
   );
   if (!results || results.length === 0) {
     return undefined;
