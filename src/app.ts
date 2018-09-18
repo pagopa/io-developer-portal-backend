@@ -47,6 +47,7 @@ const telemetryClient = new appinsights.TelemetryClient();
 import ApiManagementClient from "azure-arm-apimanagement";
 import * as winston from "winston";
 import { IProfile, setupBearerStrategy } from "./bearer_strategy";
+import { secureExpressApp } from "./express";
 
 winston.configure({
   transports: [
@@ -56,7 +57,13 @@ winston.configure({
 
 process.on("unhandledRejection", e => winston.error(e));
 
+/**
+ * Setup an authentication strategy (oauth) for express endpoints.
+ */
 setupBearerStrategy(passport, config.creds, async (userId, profile) => {
+  // executed when the user is logged in
+  // userId === profile.oid
+  // req.user === profile
   winston.info("setupBearerStrategy:userid", userId);
   winston.info("setupBearerStrategy:profile", profile);
 });
@@ -93,7 +100,7 @@ async function subscribeApimUser(
     // idempotent
     await addUserToGroups(apiClient, user, userData.groups);
 
-    // not idempotent: creates a new subscription every time !
+    // creates a new subscription every time !
     const subscription = await addUserSubscriptionToProduct(
       apiClient,
       user,
@@ -110,12 +117,12 @@ async function subscribeApimUser(
     });
 
     winston.debug(
-      "setupOidcStrategy|create service| %s %s",
+      "subscribeApimUser|create service| %s %s",
       fakeFiscalCode,
       profile
     );
 
-    // idempotent
+    // creates a new service every time !
     await upsertService(config.adminApiKey, {
       authorized_cidrs: [],
       authorized_recipients: [fakeFiscalCode],
@@ -154,13 +161,14 @@ async function subscribeApimUser(
       }
     });
     telemetryClient.trackException({ exception: e });
-    winston.error("setupOidcStrategy|error", JSON.stringify(e));
+    winston.error("subscribeApimUser|error", JSON.stringify(e));
   }
 }
 
 const app = express();
+
 app.use(cors());
-// secureExpressApp(app);
+secureExpressApp(app);
 
 // Avoid stateful in-memory sessions
 app.use(
@@ -314,9 +322,10 @@ app.post(
       req.params.serviceId
     );
     if (subscription && subscription.userId === req.user.oid) {
-      // TODO: upsert service data
+      const ret = await upsertService(config.adminApiKey, req.body);
+      return res.json(ret);
     }
-    return res.json("TODO");
+    return res.status(401);
   }
 );
 
