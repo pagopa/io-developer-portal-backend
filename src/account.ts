@@ -64,6 +64,7 @@ export const getApimUser = async (
   if (!results || results.length === 0) {
     return undefined;
   }
+  // return first matching user
   return results[0];
 };
 
