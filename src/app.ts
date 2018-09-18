@@ -225,7 +225,9 @@ app.get(
     }
     const apiClient = await newApiClient();
     // get the subscription of the logged in user
-    return res.json(await getUserSubscriptions(apiClient, req.user.oid));
+    const subscriptions = await getUserSubscriptions(apiClient, req.user.oid);
+    winston.debug("subscriptions", subscriptions);
+    return res.json(subscriptions);
   }
 );
 
