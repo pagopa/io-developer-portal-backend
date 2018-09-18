@@ -237,7 +237,7 @@ app.get(
       winston.debug("subscriptions", subscriptions);
       return res.json(subscriptions);
     } catch (e) {
-      winston.error("GET subscriptions error", JSON.stringify(e));
+      winston.error("GET subscriptions error:" + JSON.stringify(e));
     }
     return res.status(500);
   }
@@ -269,7 +269,7 @@ app.post(
       await subscribeApimUser(apiClient, req.user as IProfile);
       return user;
     } catch (e) {
-      winston.error("GET subscriptions error", JSON.stringify(e));
+      winston.error("POST subscriptions error", JSON.stringify(e));
     }
     return res.status(500);
   }
