@@ -249,16 +249,21 @@ app.post(
       winston.info("unauthorized");
       return res.status(401);
     }
-    const apiClient = await newApiClient();
-    const user = await getExistingUser(apiClient, req.user.oid);
-    // Any authenticated user can subscribe
-    // to the Digital Citizenship APIs
-    if (!user) {
-      return res.status(401);
+    try {
+      const apiClient = await newApiClient();
+      const user = await getExistingUser(apiClient, req.user.oid);
+      // Any authenticated user can subscribe
+      // to the Digital Citizenship APIs
+      if (!user) {
+        return res.status(401);
+      }
+      // TODO: check this cast
+      await subscribeApimUser(apiClient, req.user as IProfile);
+      return user;
+    } catch (e) {
+      winston.error(e);
     }
-    // TODO: check this cast
-    await subscribeApimUser(apiClient, req.user as IProfile);
-    return user;
+    return res.status(500);
   }
 );
 
