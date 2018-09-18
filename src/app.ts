@@ -224,7 +224,12 @@ app.get(
     }
     const apiClient = await newApiClient();
     // get the subscription of the logged in user
-    const subscriptions = await getUserSubscriptions(apiClient, req.user.oid);
+    const user = await getExistingUser(apiClient, req.user.oid);
+    winston.debug("apim user", user);
+    if (!user.id) {
+      return res.status(404);
+    }
+    const subscriptions = await getUserSubscriptions(apiClient, user.id);
     winston.debug("subscriptions", subscriptions);
     return res.json(subscriptions);
   }
