@@ -174,15 +174,13 @@ const ouathVerifier = (
   res: express.Response,
   next: express.NextFunction
 ) => {
+  // adds policyName in case none is provided
+  // tslint:disable-next-line:no-object-mutation
+  req.query.p = config.policyName;
   passport.authenticate("oauth-bearer", {
     response: res,
     session: false
-  } as {})(
-    // adds policyName in case none is provided
-    { ...req, query: { ...req.query, p: config.policyName } },
-    res,
-    next
-  );
+  } as {})(req, res, next);
 };
 
 app.get("/user", ouathVerifier, (req: express.Request, res: express.Response) =>

@@ -61,7 +61,7 @@ export const setupBearerStrategy = (
           })
           .catch(e => {
             // tslint:disable
-            winston.error("error during authentication: %s", JSON.stringify(e));
+            winston.error("error during authentication", JSON.stringify(e));
             return done(e);
           });
       }
