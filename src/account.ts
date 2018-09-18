@@ -61,6 +61,7 @@ export const getApimUser = async (
     config.azurermApim,
     { filter: "email eq '" + email + "'" }
   );
+  winston.debug("apimUsers found", results);
   if (!results || results.length === 0) {
     return undefined;
   }
