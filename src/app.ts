@@ -218,7 +218,7 @@ app.get(
       return res.status(401);
     }
     const apiClient = await newApiClient();
-    const apimUser = await getApimUser(apiClient, req.user.oid);
+    const apimUser = await getApimUser(apiClient, req.user.emails[0]);
     return res.json({ reqUser: req.user, apimUser });
   }
 );
