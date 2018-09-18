@@ -63,8 +63,7 @@ setupBearerStrategy(passport, config.creds, async (userId, profile) => {
   // executed when the user is logged in
   // userId === profile.oid
   // req.user === profile
-  winston.info("setupBearerStrategy:userid", userId);
-  winston.info("setupBearerStrategy:profile", profile);
+  winston.info("setupBearerStrategy", userId === profile.oid);
 });
 
 /**
