@@ -261,7 +261,7 @@ app.post(
       await subscribeApimUser(apiClient, req.user as IProfile);
       return user;
     } catch (e) {
-      winston.error(e);
+      winston.error("GET subscriptions error", JSON.stringify(e));
     }
     return res.status(500);
   }
