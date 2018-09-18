@@ -29,7 +29,14 @@ import cookieSession = require("cookie-session");
 
 import * as msRestAzure from "ms-rest-azure";
 
-import { getUserSubscriptions, IUserData, updateApimUser } from "./account";
+import {
+  addUserSubscriptionToProduct,
+  addUserToGroups,
+  getExistingUser,
+  getUserSubscription,
+  getUserSubscriptions,
+  IUserData
+} from "./account";
 // import { secureExpressApp } from "./express";
 import { createFakeProfile } from "./fake_profile";
 import { sendMessage } from "./message";
@@ -55,12 +62,11 @@ setupBearerStrategy(passport, config.creds, async (userId, profile) => {
 });
 
 /**
- * Assigns logged-in user to API management products and groups,
- * then create a Service tied to the user subscription using
- * the Functions API.
+ * Convert a profileobtained from oauth authentication
+ * to the user data needed to perform API operations.
  */
-async function assignUserToProducts(profile: IProfile): Promise<void> {
-  const userData: IUserData = {
+function toUserData(profile: IProfile): IUserData {
+  return {
     email: profile.emails[0],
     firstName: profile.given_name,
     groups: (config.apimUserGroups || "").split(","),
@@ -68,36 +74,48 @@ async function assignUserToProducts(profile: IProfile): Promise<void> {
     oid: profile.oid,
     productName: config.apimProductName
   };
+}
+
+/**
+ * Assigns logged-in user to API management products and groups,
+ * then create a Service tied to the user subscription using
+ * the Functions API.
+ */
+async function subscribeApimUser(
+  apiClient: ApiManagementClient,
+  profile: IProfile
+): Promise<void> {
+  const userData = toUserData(profile);
   try {
-    /*
-       * The following call expects MSI_ENDPOINT and MSI_SECRET
-       * environment variables to be set. They don't appear
-       * in the App Service settings; you can check them
-       * using Kudu console.
-       */
-    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-    const apiClient = new ApiManagementClient(
-      loginCreds,
-      config.subscriptionId
+    // user must already exists (created at login)
+    const user = await getExistingUser(apiClient, userData.oid);
+
+    // idempotent
+    await addUserToGroups(apiClient, user, userData.groups);
+
+    // not idempotent: creates a new subscription every time !
+    const subscription = await addUserSubscriptionToProduct(
+      apiClient,
+      user,
+      config.apimProductName
     );
 
-    const subscription = await updateApimUser(
-      apiClient,
-      userData.oid,
-      userData
-    );
     if (!subscription || !subscription.name) {
       return;
     }
+
     const fakeFiscalCode = await createFakeProfile(config.adminApiKey, {
       email: userData.email,
       version: 0
     });
+
     winston.debug(
       "setupOidcStrategy|create service| %s %s",
       fakeFiscalCode,
       profile
     );
+
+    // idempotent
     await upsertService(config.adminApiKey, {
       authorized_cidrs: [],
       authorized_recipients: [fakeFiscalCode],
@@ -107,6 +125,7 @@ async function assignUserToProducts(profile: IProfile): Promise<void> {
       service_id: subscription.name,
       service_name: profile.extension_Service || ""
     });
+
     await sendMessage(config.adminApiKey, fakeFiscalCode, {
       content: {
         markdown: [
@@ -159,12 +178,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(morgan("combined"));
 
-app.get("/info", (_: express.Request, res: express.Response) => res.json("OK"));
-
-app.get("/logout", (req: express.Request, res: express.Response) => {
-  req.logout();
-  res.json("OK");
-});
+// if (
+//   (!user.identities ||
+//     !user.identities[0] ||
+//     user.identities[0].provider !== "AadB2C" ||
+//     user.identities[0].id !== userData.oid)
+// )
 
 /**
  * Express middleware that check oauth token.
@@ -183,47 +202,121 @@ const ouathVerifier = (
   } as {})(req, res, next);
 };
 
+app.get("/info", (_: express.Request, res: express.Response) => res.json("OK"));
+
+app.get("/logout", (req: express.Request, res: express.Response) => {
+  req.logout();
+  res.json("OK");
+});
+
 app.get("/user", ouathVerifier, (req: express.Request, res: express.Response) =>
   res.json(req.user)
 );
 
+/**
+ * List all subscriptions for the logged in user
+ */
 app.get(
   "/subscriptions",
   ouathVerifier,
   async (req: express.Request, res: express.Response) => {
-    if (req.user) {
-      const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-      const apiClient = new ApiManagementClient(
-        loginCreds,
-        config.subscriptionId
-      );
-      res.json(await getUserSubscriptions(apiClient, req.user.id));
+    if (!req.user || !req.user.oid) {
+      return res.status(401);
     }
+    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+    const apiClient = new ApiManagementClient(
+      loginCreds,
+      config.subscriptionId
+    );
+    // get the subscription of the logged in user
+    return res.json(await getUserSubscriptions(apiClient, req.user.oid));
   }
 );
 
-app.get(
-  "/service/:serviceId",
-  ouathVerifier,
-  async (req: express.Request, res: express.Response) => {
-    if (req.user) {
-      // TODO: authenticate this request against logged in user
-      // ie. use api key from user subscription = serviceId
-      res.json(await getService(config.adminApiKey, req.params.serviceId));
-    }
-  }
-);
-
+/**
+ * Subscribe the logged in user to a configured product.
+ * Is it possible to create multiple subscriptions
+ * for the same user / product tuple.
+ */
 app.post(
-  "/service",
+  "/subscriptions",
   ouathVerifier,
   async (req: express.Request, res: express.Response) => {
-    if (req.user) {
-      // TODO: authenticate this request against logged in user
-      // ie. use api key from user subscription = serviceId
-      await assignUserToProducts(req.user.idToken);
+    if (!req.user || !req.user.oid) {
+      return res.status(401);
     }
-    res.json("OK");
+    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+    const apiClient = new ApiManagementClient(
+      loginCreds,
+      config.subscriptionId
+    );
+    const user = await getExistingUser(apiClient, req.user.oid);
+    // Any authenticated user can subscribe
+    // to the Digital Citizenship APIs
+    if (!user) {
+      return res.status(401);
+    }
+    // TODO: check this cast
+    await subscribeApimUser(apiClient, req.user as IProfile);
+    return user;
+  }
+);
+
+/**
+ * Get service data for a specific serviceId.
+ */
+app.get(
+  "/services/:serviceId",
+  ouathVerifier,
+  async (req: express.Request, res: express.Response) => {
+    if (!req.user || !req.user.oid) {
+      return res.status(401);
+    }
+    // Authenticates this request against the logged in user
+    // checking that serviceId = subscriptionId
+    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+    const apiClient = new ApiManagementClient(
+      loginCreds,
+      config.subscriptionId
+    );
+    const subscription = await getUserSubscription(
+      apiClient,
+      req.params.serviceId
+    );
+    if (subscription && subscription.userId === req.user.oid) {
+      return res.json(
+        await getService(config.adminApiKey, req.params.serviceId)
+      );
+    }
+    return res.status(401);
+  }
+);
+
+/**
+ * Upsert service data for/with a specific serviceId.
+ */
+app.post(
+  "/services/:serviceId",
+  ouathVerifier,
+  async (req: express.Request, res: express.Response) => {
+    if (!req.user || !req.user.oid) {
+      return res.status(401);
+    }
+    // Authenticates this request against the logged in user
+    // checking that serviceId = subscriptionId
+    const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+    const apiClient = new ApiManagementClient(
+      loginCreds,
+      config.subscriptionId
+    );
+    const subscription = await getUserSubscription(
+      apiClient,
+      req.params.serviceId
+    );
+    if (subscription && subscription.userId === req.user.oid) {
+      // TODO: upsert service data
+    }
+    return res.json("TODO");
   }
 );
 

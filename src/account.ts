@@ -5,7 +5,6 @@ import { ApiManagementClient } from "azure-arm-apimanagement";
 import * as winston from "winston";
 
 import {
-  SubscriptionContract,
   UserContract,
   UserCreateParameters
 } from "azure-arm-apimanagement/lib/models";
@@ -19,6 +18,18 @@ export interface IUserData extends UserCreateParameters {
   readonly productName: string;
   readonly groups: ReadonlyArray<string>;
 }
+
+export const getUserSubscription = async (
+  apiClient: ApiManagementClient,
+  subscriptionId: string
+) => {
+  winston.debug("getUserSubscription");
+  return apiClient.subscription.get(
+    config.azurermResourceGroup,
+    config.azurermApim,
+    subscriptionId
+  );
+};
 
 export const getUserSubscriptions = async (
   apiClient: ApiManagementClient,
@@ -34,7 +45,7 @@ export const getUserSubscriptions = async (
   );
 };
 
-const getExistingUser = async (
+export const getExistingUser = async (
   apiClient: ApiManagementClient,
   userId: string
 ) => {
@@ -46,7 +57,7 @@ const getExistingUser = async (
   );
 };
 
-const addUserToProduct = async (
+export const addUserSubscriptionToProduct = async (
   apiClient: ApiManagementClient,
   user: UserContract,
   productName: string
@@ -81,7 +92,7 @@ const addUserToProduct = async (
   }
 };
 
-const addUserToGroups = async (
+export const addUserToGroups = async (
   apiClient: ApiManagementClient,
   user: UserContract,
   groups: ReadonlyArray<string>
@@ -122,33 +133,4 @@ const addUserToGroups = async (
       );
     });
   }, Promise.resolve({} as UserContract));
-};
-
-/**
- * Assign an existing API user to products and groups.
- *
- * @param userId                                  the id of user
- * @param userData                                profile data (ie. email, name)
- * @param loginCreds                              client credentials (service principal)
- * @param dangerouslySkipAuthenticationCheck      useful in case you want to call the method locally
- */
-export const updateApimUser = async (
-  apiClient: ApiManagementClient,
-  userId: string,
-  userData: IUserData,
-  dangerouslySkipAuthenticationCheck = false
-): Promise<SubscriptionContract> => {
-  winston.debug("updateApimUser");
-  const user = await getExistingUser(apiClient, userId);
-  if (
-    !dangerouslySkipAuthenticationCheck &&
-    (!user.identities ||
-      !user.identities[0] ||
-      user.identities[0].provider !== "AadB2C" ||
-      user.identities[0].id !== userData.oid)
-  ) {
-    throw new Error("updateApimUser|profile.oid != user.id");
-  }
-  await addUserToGroups(apiClient, user, userData.groups);
-  return addUserToProduct(apiClient, user, userData.productName);
 };
