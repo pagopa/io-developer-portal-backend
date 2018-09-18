@@ -223,16 +223,23 @@ app.get(
       winston.info("unauthorized");
       return res.status(401);
     }
-    const apiClient = await newApiClient();
-    // get the subscription of the logged in user
-    const user = await getExistingUser(apiClient, req.user.oid);
-    winston.debug("apim user", user);
-    if (!user.id) {
-      return res.status(404);
+    try {
+      winston.debug("get api client");
+      const apiClient = await newApiClient();
+      // get the subscription of the logged in user
+      winston.debug("get existing user");
+      const user = await getExistingUser(apiClient, req.user.oid);
+      winston.debug("apim user", user);
+      if (!user.id) {
+        return res.status(404);
+      }
+      const subscriptions = await getUserSubscriptions(apiClient, user.id);
+      winston.debug("subscriptions", subscriptions);
+      return res.json(subscriptions);
+    } catch (e) {
+      winston.error("GET subscriptions error", JSON.stringify(e));
     }
-    const subscriptions = await getUserSubscriptions(apiClient, user.id);
-    winston.debug("subscriptions", subscriptions);
-    return res.json(subscriptions);
+    return res.status(500);
   }
 );
 
@@ -251,6 +258,7 @@ app.post(
     }
     try {
       const apiClient = await newApiClient();
+      winston.debug("get existing user");
       const user = await getExistingUser(apiClient, req.user.oid);
       // Any authenticated user can subscribe
       // to the Digital Citizenship APIs
