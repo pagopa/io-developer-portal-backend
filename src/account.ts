@@ -22,6 +22,7 @@ export interface IUserData extends UserCreateParameters {
 
 export async function newApiClient(): Promise<ApiManagementClient> {
   const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+  winston.debug("loginCreds", loginCreds);
   return new ApiManagementClient(loginCreds, config.subscriptionId);
 }
 

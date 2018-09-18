@@ -220,6 +220,7 @@ app.get(
   ouathVerifier,
   async (req: express.Request, res: express.Response) => {
     if (!req.user || !req.user.oid) {
+      winston.info("unauthorized");
       return res.status(401);
     }
     const apiClient = await newApiClient();
@@ -245,6 +246,7 @@ app.post(
   ouathVerifier,
   async (req: express.Request, res: express.Response) => {
     if (!req.user || !req.user.oid) {
+      winston.info("unauthorized");
       return res.status(401);
     }
     const apiClient = await newApiClient();
@@ -268,6 +270,7 @@ app.get(
   ouathVerifier,
   async (req: express.Request, res: express.Response) => {
     if (!req.user || !req.user.oid) {
+      winston.info("unauthorized");
       return res.status(401);
     }
     // Authenticates this request against the logged in user
@@ -294,6 +297,7 @@ app.post(
   ouathVerifier,
   async (req: express.Request, res: express.Response) => {
     if (!req.user || !req.user.oid) {
+      winston.info("unauthorized");
       return res.status(401);
     }
     // Authenticates this request against the logged in user
