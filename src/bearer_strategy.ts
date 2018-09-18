@@ -4,6 +4,8 @@
 
 import * as express from "express";
 import * as passport from "passport";
+import * as winston from "winston";
+
 import { BearerStrategy } from "passport-azure-ad";
 
 export interface IProfile {
@@ -53,8 +55,15 @@ export const setupBearerStrategy = (
         done: (err: Error | undefined, profile?: IProfile) => void
       ) => {
         return cb(profile.oid, profile)
-          .then(() => done(undefined, profile))
-          .catch(e => done(e));
+          .then(() => {
+            winston.debug("user authenticated", profile);
+            return done(undefined, profile);
+          })
+          .catch(e => {
+            // tslint:disable
+            winston.error("error during authentication: %s", JSON.stringify(e));
+            return done(e);
+          });
       }
     )
   );
