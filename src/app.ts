@@ -28,14 +28,14 @@ import * as config from "./config";
 import cookieSession = require("cookie-session");
 
 import {
+  addUserSubscriptionToProduct,
   addUserToGroups,
   getApimUser,
   getExistingUser,
   getUserSubscription,
   getUserSubscriptions,
   IUserData,
-  newApiClient,
-  upsertSubscription
+  newApiClient
 } from "./account";
 // import { secureExpressApp } from "./express";
 import { createFakeProfile } from "./fake_profile";
@@ -100,7 +100,7 @@ async function subscribeApimUser(
     await addUserToGroups(apiClient, user, userData.groups);
 
     // creates a new subscription every time !
-    const subscription = await upsertSubscription(
+    const subscription = await addUserSubscriptionToProduct(
       apiClient,
       user,
       config.apimProductName
@@ -333,19 +333,23 @@ app.get(
       winston.info("unauthorized");
       return res.status(401);
     }
-    // Authenticates this request against the logged in user
-    // checking that serviceId = subscriptionId
-    const apiClient = await newApiClient();
-    const subscription = await getUserSubscription(
-      apiClient,
-      req.params.serviceId
-    );
-    if (subscription && subscription.userId === req.user.oid) {
-      return res.json(
-        await getService(config.adminApiKey, req.params.serviceId)
+    try {
+      // Authenticates this request against the logged in user
+      // checking that serviceId = subscriptionId
+      const apiClient = await newApiClient();
+      const subscription = await getUserSubscription(
+        apiClient,
+        req.params.serviceId
       );
+      if (subscription && subscription.userId === req.user.oid) {
+        return res.json(
+          await getService(config.adminApiKey, req.params.serviceId)
+        );
+      }
+    } catch (e) {
+      winston.error("GET service error", JSON.stringify(e));
     }
-    return res.status(401);
+    return res.status(500);
   }
 );
 
