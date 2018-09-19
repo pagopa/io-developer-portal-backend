@@ -43,7 +43,7 @@ export const upsertService = (apiKey: string, service: IServicePayload) => {
         return reject(new Error(body));
       } else {
         winston.debug("createService|success|", body);
-        resolve({ res, body });
+        return resolve({ res, body });
       }
     });
   });
@@ -73,13 +73,13 @@ export const getService = (
         return reject(err);
       } else if (res.statusCode === 404) {
         winston.debug("getService|not found");
-        return undefined;
+        return resolve(undefined);
       } else if (res.statusCode !== 200) {
         winston.debug("getService|error|" + JSON.stringify(body));
         return reject(new Error(body));
       } else {
         winston.debug("getService|success|" + JSON.stringify(body));
-        resolve(body);
+        return resolve(body);
       }
     });
   });
