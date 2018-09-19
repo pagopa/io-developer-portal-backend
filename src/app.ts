@@ -164,7 +164,7 @@ async function subscribeApimUser(
       }
     });
     telemetryClient.trackException({ exception: e });
-    winston.error("subscribeApimUser|error", JSON.stringify(e));
+    winston.error("subscribeApimUser|error|" + JSON.stringify(e));
   }
   return undefined;
 }
