@@ -22,16 +22,16 @@ export interface IServicePayload {
  */
 export const upsertService = (apiKey: string, service: IServicePayload) => {
   return new Promise(async (resolve, reject) => {
-    const maybeService = await getService(apiKey, service.service_id);
-    winston.debug("upsertService|getService", JSON.stringify(maybeService));
+    const oldService = await getService(apiKey, service.service_id);
+    winston.debug("upsertService|getService", JSON.stringify(oldService));
     const options = {
       headers: {
         "Ocp-Apim-Subscription-Key": apiKey
       },
       json: service,
-      method: maybeService.isEmpty ? "POST" : "PUT",
+      method: oldService ? "PUT" : "POST",
       uri: `${config.adminApiUrl}/adm/services${
-        maybeService.isEmpty ? "" : "/" + service.service_id
+        oldService ? "/" + service.service_id : ""
       }`
     };
     request(options, (err, res, body) => {
