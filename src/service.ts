@@ -72,6 +72,7 @@ export const getService = (
         winston.error("getService|error|" + JSON.stringify(err));
         return reject(err);
       } else if (res.statusCode === 404) {
+        winston.debug("getService|not found");
         return undefined;
       } else if (res.statusCode !== 200) {
         winston.debug("getService|error|" + JSON.stringify(body));
