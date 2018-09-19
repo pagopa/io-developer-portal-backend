@@ -338,15 +338,17 @@ app.get(
       // Authenticates this request against the logged in user
       // checking that serviceId = subscriptionId
       const apiClient = await newApiClient();
-      const subscription = await getUserSubscription(
-        apiClient,
-        req.params.serviceId
-      );
 
       const apimUser = await getApimUser(apiClient, req.user.emails[0]);
       if (!apimUser || !apimUser.name) {
         return res.status(404);
       }
+
+      const subscription = await getUserSubscription(
+        apiClient,
+        req.params.serviceId
+      );
+
       winston.info(
         "GET SERVICE " +
           JSON.stringify(subscription) +
@@ -355,9 +357,11 @@ app.get(
       );
       // check apimUser.id vs apimUser.name
       if (subscription && subscription.userId === apimUser.id) {
-        return res.json(
-          await getService(config.adminApiKey, req.params.serviceId)
+        const service = await getService(
+          config.adminApiKey,
+          req.params.serviceId
         );
+        return service ? res.json(service) : res.status(404);
       }
     } catch (e) {
       winston.error("GET service error", JSON.stringify(e));

@@ -6,8 +6,6 @@ import * as request from "request";
 import * as winston from "winston";
 import * as config from "./config";
 
-import { none, Option, some } from "ts-option";
-
 export interface IServicePayload {
   readonly service_name: string;
   readonly department_name: string;
@@ -53,7 +51,8 @@ export const upsertService = (apiKey: string, service: IServicePayload) => {
 export const getService = (
   apiKey: string,
   serviceId: string
-): Promise<Option<{}>> => {
+  // tslint:disable-next-line:no-any
+): Promise<any | undefined> => {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
@@ -69,13 +68,13 @@ export const getService = (
         winston.error("getService|error|" + JSON.stringify(err));
         return reject(err);
       } else if (res.statusCode === 404) {
-        return resolve(none);
+        return undefined;
       } else if (res.statusCode !== 200) {
         winston.debug("getService|error|", JSON.stringify(body));
         return reject(new Error(body));
       } else {
         winston.debug("getService|success|", body);
-        resolve(some(body));
+        resolve(body);
       }
     });
   });
