@@ -31,7 +31,6 @@ import {
   addUserSubscriptionToProduct,
   addUserToGroups,
   getApimUser,
-  getExistingUser,
   getUserSubscription,
   getUserSubscriptions,
   IUserData,
@@ -96,8 +95,13 @@ async function subscribeApimUser(
   try {
     // user must already exists (created at login)
 
-    winston.debug("subscribeApimUser|getExistingUser");
-    const user = await getExistingUser(apiClient, userData.oid);
+    winston.debug("subscribeApimUser|getApimUser");
+    const user = await getApimUser(apiClient, userData.email);
+
+    if (!user) {
+      winston.error("subscribeApimUser|getApimUser|no user found");
+      return undefined;
+    }
 
     // idempotent
     winston.debug("subscribeApimUser|addUserToGroups");
@@ -112,6 +116,7 @@ async function subscribeApimUser(
     );
 
     if (!subscription || !subscription.name) {
+      winston.error("subscribeApimUser|getApimUser|no subscription found");
       return undefined;
     }
 
