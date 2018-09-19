@@ -269,6 +269,7 @@ app.post(
     }
     try {
       const apiClient = await newApiClient();
+      // TODO: FIX this (we need apim user from email)
       const user = await getExistingUser(apiClient, req.user.oid);
       // Any authenticated user can subscribe
       // to the Digital Citizenship APIs
@@ -341,15 +342,28 @@ app.get(
         apiClient,
         req.params.serviceId
       );
-      if (subscription && subscription.userId === req.user.oid) {
+
+      const apimUser = await getApimUser(apiClient, req.user.emails[0]);
+      if (!apimUser || !apimUser.name) {
+        return res.status(404);
+      }
+      winston.info(
+        "GET SERVICE " +
+          JSON.stringify(subscription) +
+          " " +
+          JSON.stringify(apimUser)
+      );
+      // check apimUser.id vs apimUser.name
+      if (subscription && subscription.userId === apimUser.id) {
         return res.json(
           await getService(config.adminApiKey, req.params.serviceId)
         );
       }
     } catch (e) {
       winston.error("GET service error", JSON.stringify(e));
+      return res.status(500);
     }
-    return res.status(500);
+    return res.status(401);
   }
 );
 
