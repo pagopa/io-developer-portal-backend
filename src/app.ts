@@ -99,8 +99,7 @@ async function subscribeApimUser(
     const user = await getApimUser(apiClient, userData.email);
 
     if (!user) {
-      winston.error("subscribeApimUser|getApimUser|no user found");
-      return undefined;
+      throw new Error("subscribeApimUser|getApimUser|no user found");
     }
 
     // idempotent
@@ -116,8 +115,7 @@ async function subscribeApimUser(
     );
 
     if (!subscription || !subscription.name) {
-      winston.error("subscribeApimUser|getApimUser|no subscription found");
-      return undefined;
+      throw new Error("subscribeApimUser|getApimUser|no subscription found");
     }
 
     winston.debug("subscribeApimUser|createFakeProfile");
