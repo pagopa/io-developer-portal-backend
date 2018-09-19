@@ -23,6 +23,7 @@ export interface IServicePayload {
 export const upsertService = (apiKey: string, service: IServicePayload) => {
   return new Promise(async (resolve, reject) => {
     const maybeService = await getService(apiKey, service.service_id);
+    winston.debug("upsertService|getService", JSON.stringify(maybeService));
     const options = {
       headers: {
         "Ocp-Apim-Subscription-Key": apiKey
@@ -64,16 +65,19 @@ export const getService = (
     };
     winston.debug("getService|serviceId|" + serviceId);
     request(options, (err, res, body) => {
+      winston.debug(
+        "getService|response|" + JSON.stringify(err) + JSON.stringify(body)
+      );
       if (err) {
         winston.error("getService|error|" + JSON.stringify(err));
         return reject(err);
       } else if (res.statusCode === 404) {
         return undefined;
       } else if (res.statusCode !== 200) {
-        winston.debug("getService|error|", JSON.stringify(body));
+        winston.debug("getService|error|" + JSON.stringify(body));
         return reject(new Error(body));
       } else {
-        winston.debug("getService|success|", body);
+        winston.debug("getService|success|" + JSON.stringify(body));
         resolve(body);
       }
     });

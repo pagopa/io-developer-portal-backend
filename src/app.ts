@@ -124,11 +124,7 @@ async function subscribeApimUser(
       version: 0
     });
 
-    winston.debug(
-      "subscribeApimUser|create service| %s %s",
-      fakeFiscalCode,
-      profile
-    );
+    winston.debug("subscribeApimUser|upsertService");
 
     // creates a new service every time !
     await upsertService(config.adminApiKey, {
