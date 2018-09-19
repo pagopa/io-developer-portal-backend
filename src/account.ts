@@ -12,7 +12,7 @@ import {
 
 import * as config from "./config";
 
-import * as cuid from "cuid";
+import { ulid } from "ulid";
 
 export interface IUserData extends UserCreateParameters {
   readonly oid: string;
@@ -93,7 +93,7 @@ export const addUserSubscriptionToProduct = async (
     productName
   );
   if (user && user.id && user.name && product && product.id && productName) {
-    const subscriptionId = cuid();
+    const subscriptionId = ulid();
     // For some odd reason in the Azure ARM API
     // user.name here is actually the user.id.
     // We do not skip existing subscriptions
