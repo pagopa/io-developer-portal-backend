@@ -95,12 +95,16 @@ async function subscribeApimUser(
   const userData = toUserData(profile);
   try {
     // user must already exists (created at login)
+
+    winston.debug("subscribeApimUser|getExistingUser");
     const user = await getExistingUser(apiClient, userData.oid);
 
     // idempotent
+    winston.debug("subscribeApimUser|addUserToGroups");
     await addUserToGroups(apiClient, user, userData.groups);
 
     // creates a new subscription every time !
+    winston.debug("subscribeApimUser|addUserSubscriptionToProduct");
     const subscription = await addUserSubscriptionToProduct(
       apiClient,
       user,
@@ -111,6 +115,7 @@ async function subscribeApimUser(
       return undefined;
     }
 
+    winston.debug("subscribeApimUser|createFakeProfile");
     const fakeFiscalCode = await createFakeProfile(config.adminApiKey, {
       email: userData.email,
       version: 0
@@ -133,6 +138,7 @@ async function subscribeApimUser(
       service_name: profile.extension_Service || ""
     });
 
+    winston.debug("subscribeApimUser|sendMessage");
     await sendMessage(config.adminApiKey, fakeFiscalCode, {
       content: {
         markdown: [
