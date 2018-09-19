@@ -45,6 +45,7 @@ import { getService, upsertService } from "./service";
 const telemetryClient = new appinsights.TelemetryClient();
 
 import ApiManagementClient from "azure-arm-apimanagement";
+import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 import * as winston from "winston";
 import { IProfile, setupBearerStrategy } from "./bearer_strategy";
 import { secureExpressApp } from "./express";
@@ -90,7 +91,7 @@ function toUserData(profile: IProfile): IUserData {
 async function subscribeApimUser(
   apiClient: ApiManagementClient,
   profile: IProfile
-): Promise<void> {
+): Promise<SubscriptionContract | undefined> {
   const userData = toUserData(profile);
   try {
     // user must already exists (created at login)
@@ -107,7 +108,7 @@ async function subscribeApimUser(
     );
 
     if (!subscription || !subscription.name) {
-      return;
+      return undefined;
     }
 
     const fakeFiscalCode = await createFakeProfile(config.adminApiKey, {
@@ -144,6 +145,7 @@ async function subscribeApimUser(
         subject: `Welcome ${userData.firstName} ${userData.lastName} !`
       }
     });
+
     telemetryClient.trackEvent({
       name: "onboarding.success",
       properties: {
@@ -151,6 +153,8 @@ async function subscribeApimUser(
         username: `${userData.firstName} ${userData.lastName}`
       }
     });
+
+    return subscription;
   } catch (e) {
     telemetryClient.trackEvent({
       name: "onboarding.failure",
@@ -162,6 +166,7 @@ async function subscribeApimUser(
     telemetryClient.trackException({ exception: e });
     winston.error("subscribeApimUser|error", JSON.stringify(e));
   }
+  return undefined;
 }
 
 const app = express();
@@ -245,7 +250,6 @@ app.get(
         apiClient,
         apimUser.name
       );
-      winston.debug("subscriptions", subscriptions);
       return res.json(subscriptions);
     } catch (e) {
       winston.error("GET subscriptions error:" + JSON.stringify(e));
@@ -269,16 +273,18 @@ app.post(
     }
     try {
       const apiClient = await newApiClient();
-      // TODO: FIX this (we need apim user from email)
-      const user = await getExistingUser(apiClient, req.user.oid);
+      const user = await getApimUser(apiClient, req.user.emails[0]);
       // Any authenticated user can subscribe
       // to the Digital Citizenship APIs
       if (!user) {
         return res.status(401);
       }
       // TODO: check this cast
-      await subscribeApimUser(apiClient, req.user as IProfile);
-      return user;
+      const subscription = await subscribeApimUser(
+        apiClient,
+        req.user as IProfile
+      );
+      return subscription;
     } catch (e) {
       winston.error("POST subscriptions error", JSON.stringify(e));
     }
