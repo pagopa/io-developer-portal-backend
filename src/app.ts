@@ -289,7 +289,7 @@ app.post(
         apiClient,
         req.user as IProfile
       );
-      return subscription;
+      return res.json(subscription);
     } catch (e) {
       winston.error("POST subscriptions error", JSON.stringify(e));
     }
