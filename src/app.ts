@@ -322,7 +322,7 @@ app.put(
         apiClient,
         req.params.subscriptionId
       );
-      if (!subscription || !subscription.id) {
+      if (!subscription || !subscription.name) {
         return res.status(404);
       }
 
@@ -334,9 +334,9 @@ app.put(
 
       const updatedSubscription =
         req.params.keyType === "secondary_key"
-          ? await regenerateSecondaryKey(apiClient, subscription.id)
+          ? await regenerateSecondaryKey(apiClient, subscription.name)
           : req.params.keyType === "primary_key"
-            ? await regeneratePrimaryKey(apiClient, subscription.id)
+            ? await regeneratePrimaryKey(apiClient, subscription.name)
             : undefined;
 
       if (!updatedSubscription) {
