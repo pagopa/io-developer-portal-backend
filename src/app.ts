@@ -343,7 +343,7 @@ app.put(
         return res.status(500);
       }
 
-      return updatedSubscription;
+      return res.json(updatedSubscription);
     } catch (e) {
       winston.error("PUT subscription/key error" + JSON.stringify(e));
     }
