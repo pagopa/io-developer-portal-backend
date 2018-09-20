@@ -320,7 +320,7 @@ app.put(
 
       const subscription = await getUserSubscription(
         apiClient,
-        config.subscriptionId
+        req.params.subscriptionId
       );
       if (!subscription || !subscription.id) {
         return res.status(404);
@@ -345,7 +345,7 @@ app.put(
 
       return updatedSubscription;
     } catch (e) {
-      winston.error("PUT subscription/key error", JSON.stringify(e));
+      winston.error("PUT subscription/key error" + JSON.stringify(e));
     }
     return res.status(500);
   }
