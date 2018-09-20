@@ -48,10 +48,12 @@ const telemetryClient = new appinsights.TelemetryClient();
 import ApiManagementClient from "azure-arm-apimanagement";
 import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 import * as winston from "winston";
+import { format } from "winston";
 import { IProfile, setupBearerStrategy } from "./bearer_strategy";
 import { secureExpressApp } from "./express";
 
 winston.configure({
+  format: format.combine(format.splat(), format.simple()),
   transports: [
     new winston.transports.Console({ level: config.logLevel || "info" })
   ]
@@ -327,7 +329,11 @@ app.put(
       }
 
       // TODO: check user.id vs user.name here
-      winston.debug("check user subscription", subscription.userId, user.id);
+      winston.debug(
+        "check user subscription %s %s",
+        subscription.userId,
+        user.id
+      );
       if (subscription.userId !== user.id) {
         return res.status(401);
       }
