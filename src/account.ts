@@ -51,6 +51,32 @@ export const getUserSubscriptions = async (
   );
 };
 
+export const regeneratePrimaryKey = async (
+  apiClient: ApiManagementClient,
+  subscriptionId: string
+) => {
+  winston.debug("regeneratePrimaryKey");
+  await apiClient.subscription.regeneratePrimaryKey(
+    config.azurermResourceGroup,
+    config.azurermApim,
+    subscriptionId
+  );
+  return getUserSubscription(apiClient, subscriptionId);
+};
+
+export const regenerateSecondaryKey = async (
+  apiClient: ApiManagementClient,
+  subscriptionId: string
+) => {
+  winston.debug("regenerateSecondaryKey");
+  await apiClient.subscription.regenerateSecondaryKey(
+    config.azurermResourceGroup,
+    config.azurermApim,
+    subscriptionId
+  );
+  return getUserSubscription(apiClient, subscriptionId);
+};
+
 export const getApimUser = async (
   apiClient: ApiManagementClient,
   email: string

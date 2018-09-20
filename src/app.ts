@@ -34,7 +34,9 @@ import {
   getUserSubscription,
   getUserSubscriptions,
   IUserData,
-  newApiClient
+  newApiClient,
+  regeneratePrimaryKey,
+  regenerateSecondaryKey
 } from "./account";
 // import { secureExpressApp } from "./express";
 import { createFakeProfile } from "./fake_profile";
@@ -284,7 +286,6 @@ app.post(
       if (!user) {
         return res.status(401);
       }
-      // TODO: check this cast
       const subscription = await subscribeApimUser(
         apiClient,
         req.user as IProfile
@@ -298,11 +299,11 @@ app.post(
 );
 
 /**
- * Update an existing subscription
+ * Regenerate keys for an existing subscription
  * belonging to the logged in user.
  */
 app.put(
-  "/subscriptions/:subscriptionId",
+  "/subscriptions/:subscriptionId/:keyType",
   ouathVerifier,
   async (req: express.Request, res: express.Response) => {
     if (!req.user || !req.user.oid) {
@@ -311,24 +312,40 @@ app.put(
     }
     try {
       const apiClient = await newApiClient();
+
       const user = await getApimUser(apiClient, req.user.emails[0]);
-      // Any authenticated user can subscribe
-      // to the Digital Citizenship APIs
       if (!user) {
         return res.status(401);
       }
+
       const subscription = await getUserSubscription(
         apiClient,
         config.subscriptionId
       );
+      if (!subscription || !subscription.id) {
+        return res.status(404);
+      }
+
       // TODO: check user.id vs user.name here
+      winston.debug("check user subscription", subscription.userId, user.id);
       if (subscription.userId !== user.id) {
         return res.status(401);
       }
-      // TODO: update existing subscription
-      return user;
+
+      const updatedSubscription =
+        req.params.keyType === "secondary_key"
+          ? await regenerateSecondaryKey(apiClient, subscription.id)
+          : req.params.keyType === "primary_key"
+            ? await regeneratePrimaryKey(apiClient, subscription.id)
+            : undefined;
+
+      if (!updatedSubscription) {
+        return res.status(500);
+      }
+
+      return updatedSubscription;
     } catch (e) {
-      winston.error("POST subscriptions error", JSON.stringify(e));
+      winston.error("PUT subscription/key error", JSON.stringify(e));
     }
     return res.status(500);
   }
@@ -385,7 +402,7 @@ app.get(
 /**
  * Upsert service data for/with a specific serviceId.
  */
-app.post(
+app.put(
   "/services/:serviceId",
   ouathVerifier,
   async (req: express.Request, res: express.Response) => {
