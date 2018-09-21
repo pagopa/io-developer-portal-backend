@@ -4,7 +4,7 @@
 
 import * as express from "express";
 import * as passport from "passport";
-import * as winston from "winston";
+import { logger } from "./logger";
 
 import { BearerStrategy } from "passport-azure-ad";
 
@@ -56,11 +56,11 @@ export const setupBearerStrategy = (
       ) => {
         return cb(profile.oid, profile)
           .then(() => {
-            winston.debug("user authenticated", profile);
+            logger.debug("user authenticated %s", profile);
             return done(undefined, profile);
           })
           .catch(e => {
-            winston.error("error during authentication", JSON.stringify(e));
+            logger.error("error during authentication %s", JSON.stringify(e));
             return done(e);
           });
       }

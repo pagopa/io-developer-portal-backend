@@ -7,9 +7,15 @@
  * clicks on a call-to-action that links to the '/login/<userId>' endpoint.
  */
 
+import * as bodyParser from "body-parser";
+import * as cookieParser from "cookie-parser";
 import * as cors from "cors";
 import * as dotenv from "dotenv";
+import * as express from "express";
 import * as morgan from "morgan";
+import * as passport from "passport";
+
+import cookieSession = require("cookie-session");
 /*
  * Useful for testing the web application locally.
  * 'local.env' file does not need to exists in the
@@ -17,49 +23,38 @@ import * as morgan from "morgan";
  */
 dotenv.config({ path: __dirname + "/../local.env" });
 
-import * as appinsights from "applicationinsights";
-import * as bodyParser from "body-parser";
-import * as cookieParser from "cookie-parser";
-import * as express from "express";
-import * as methodOverride from "method-override";
-import * as passport from "passport";
+import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
+
 import * as config from "./config";
 
-import cookieSession = require("cookie-session");
-
 import {
-  addUserSubscriptionToProduct,
-  addUserToGroups,
   getApimUser,
   getUserSubscription,
   getUserSubscriptions,
-  IUserData,
   newApiClient,
   regeneratePrimaryKey,
   regenerateSecondaryKey
-} from "./account";
-// import { secureExpressApp } from "./express";
-import { createFakeProfile } from "./fake_profile";
-import { sendMessage } from "./message";
-import { getService, upsertService } from "./service";
+} from "./apim_operations";
 
-const telemetryClient = new appinsights.TelemetryClient();
+import { toExpressHandler } from "italia-ts-commons/lib/express";
 
-import ApiManagementClient from "azure-arm-apimanagement";
-import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
-import * as winston from "winston";
-import { format } from "winston";
+import { isNone, none } from "fp-ts/lib/Option";
+import {
+  IResponseErrorInternal,
+  IResponseSuccessJson,
+  ResponseErrorForbiddenNotAuthorized,
+  ResponseErrorInternal,
+  ResponseErrorNotFound,
+  ResponseSuccessJson
+} from "italia-ts-commons/lib/responses";
 import { IProfile, setupBearerStrategy } from "./bearer_strategy";
 import { secureExpressApp } from "./express";
+import { subscribeApimUser } from "./new_subscription";
+import { getService, upsertService } from "./service";
 
-winston.configure({
-  format: format.combine(format.splat(), format.simple()),
-  transports: [
-    new winston.transports.Console({ level: config.logLevel || "info" })
-  ]
-});
+import { logger } from "./logger";
 
-process.on("unhandledRejection", e => winston.error(JSON.stringify(e)));
+process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
 /**
  * Setup an authentication strategy (oauth) for express endpoints.
@@ -68,120 +63,17 @@ setupBearerStrategy(passport, config.creds, async (userId, profile) => {
   // executed when the user is logged in
   // userId === profile.oid
   // req.user === profile
-  winston.info("setupBearerStrategy", userId === profile.oid);
+  logger.debug("setupBearerStrategy %s %s", userId, profile);
 });
 
-/**
- * Convert a profileobtained from oauth authentication
- * to the user data needed to perform API operations.
- */
-function toUserData(profile: IProfile): IUserData {
-  return {
-    email: profile.emails[0],
-    firstName: profile.given_name,
-    groups: (config.apimUserGroups || "").split(","),
-    lastName: profile.family_name,
-    oid: profile.oid,
-    productName: config.apimProductName
-  };
-}
-
-/**
- * Assigns logged-in user to API management products and groups,
- * then create a Service tied to the user subscription using
- * the Functions API.
- */
-async function subscribeApimUser(
-  apiClient: ApiManagementClient,
-  profile: IProfile
-): Promise<SubscriptionContract | undefined> {
-  const userData = toUserData(profile);
-  try {
-    // user must already exists (created at login)
-
-    winston.debug("subscribeApimUser|getApimUser");
-    const user = await getApimUser(apiClient, userData.email);
-
-    if (!user) {
-      throw new Error("subscribeApimUser|getApimUser|no user found");
-    }
-
-    // idempotent
-    winston.debug("subscribeApimUser|addUserToGroups");
-    await addUserToGroups(apiClient, user, userData.groups);
-
-    // creates a new subscription every time !
-    winston.debug("subscribeApimUser|addUserSubscriptionToProduct");
-    const subscription = await addUserSubscriptionToProduct(
-      apiClient,
-      user,
-      config.apimProductName
-    );
-
-    if (!subscription || !subscription.name) {
-      throw new Error("subscribeApimUser|getApimUser|no subscription found");
-    }
-
-    winston.debug("subscribeApimUser|createFakeProfile");
-    const fakeFiscalCode = await createFakeProfile(config.adminApiKey, {
-      email: userData.email,
-      version: 0
-    });
-
-    winston.debug("subscribeApimUser|upsertService");
-
-    // creates a new service every time !
-    await upsertService(config.adminApiKey, {
-      authorized_cidrs: [],
-      authorized_recipients: [fakeFiscalCode],
-      department_name: profile.extension_Department || "",
-      organization_fiscal_code: "00000000000",
-      organization_name: profile.extension_Organization || "",
-      service_id: subscription.name,
-      service_name: profile.extension_Service || ""
-    });
-
-    winston.debug("subscribeApimUser|sendMessage");
-    await sendMessage(config.adminApiKey, fakeFiscalCode, {
-      content: {
-        markdown: [
-          `Hello,`,
-          `this is a bogus fiscal code you can use to start testing the Digital Citizenship API:\n`,
-          fakeFiscalCode,
-          `\nYou can start in the developer portal here:`,
-          config.apimUrl
-        ].join("\n"),
-        subject: `Welcome ${userData.firstName} ${userData.lastName} !`
-      }
-    });
-
-    telemetryClient.trackEvent({
-      name: "onboarding.success",
-      properties: {
-        id: userData.oid,
-        username: `${userData.firstName} ${userData.lastName}`
-      }
-    });
-
-    return subscription;
-  } catch (e) {
-    telemetryClient.trackEvent({
-      name: "onboarding.failure",
-      properties: {
-        id: userData.oid,
-        username: `${userData.firstName} ${userData.lastName}`
-      }
-    });
-    telemetryClient.trackException({ exception: e });
-    winston.error("subscribeApimUser|error|" + JSON.stringify(e));
-  }
-  return undefined;
-}
-
 const app = express();
+secureExpressApp(app);
 
 app.use(cors());
-secureExpressApp(app);
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(passport.initialize());
+app.use(morgan("combined"));
 
 // Avoid stateful in-memory sessions
 app.use(
@@ -190,14 +82,6 @@ app.use(
     name: "session"
   })
 );
-
-// app.use(express.logger());
-
-app.use(methodOverride());
-app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(passport.initialize());
-app.use(morgan("combined"));
 
 /**
  * Express middleware that check oauth token.
@@ -216,26 +100,10 @@ const ouathVerifier = (
   } as {})(req, res, next);
 };
 
-app.get("/info", (_: express.Request, res: express.Response) => res.json("OK"));
-
 app.get("/logout", (req: express.Request, res: express.Response) => {
   req.logout();
   res.json("OK");
 });
-
-app.get(
-  "/user",
-  ouathVerifier,
-  async (req: express.Request, res: express.Response) => {
-    if (!req.user || !req.user.oid) {
-      winston.info("unauthorized");
-      return res.status(401);
-    }
-    const apiClient = await newApiClient();
-    const apimUser = await getApimUser(apiClient, req.user.emails[0]);
-    return res.json({ reqUser: req.user, apimUser });
-  }
-);
 
 /**
  * List all subscriptions for the logged in user
@@ -243,28 +111,20 @@ app.get(
 app.get(
   "/subscriptions",
   ouathVerifier,
-  async (req: express.Request, res: express.Response) => {
+  toExpressHandler(async req => {
     if (!req.user || !req.user.oid) {
-      winston.info("unauthorized");
-      return res.status(401);
+      return ResponseErrorForbiddenNotAuthorized;
     }
-    try {
-      const apiClient = await newApiClient();
-      // get the subscription of the logged in user
-      const apimUser = await getApimUser(apiClient, req.user.emails[0]);
-      if (!apimUser || !apimUser.name) {
-        return res.status(404);
-      }
-      const subscriptions = await getUserSubscriptions(
-        apiClient,
-        apimUser.name
-      );
-      return res.json(subscriptions);
-    } catch (e) {
-      winston.error("GET subscriptions error:" + JSON.stringify(e));
+    const apiClient = await newApiClient();
+    // get the subscription of the logged in user
+    const maybeApimUser = await getApimUser(apiClient, req.user.emails[0]);
+    if (isNone(maybeApimUser)) {
+      return ResponseErrorForbiddenNotAuthorized;
     }
-    return res.status(500);
-  }
+    const apimUser = maybeApimUser.value;
+    const subscriptions = await getUserSubscriptions(apiClient, apimUser.name);
+    return ResponseSuccessJson(subscriptions);
+  })
 );
 
 /**
@@ -275,29 +135,30 @@ app.get(
 app.post(
   "/subscriptions",
   ouathVerifier,
-  async (req: express.Request, res: express.Response) => {
+  toExpressHandler(async req => {
     if (!req.user || !req.user.oid) {
-      winston.info("unauthorized");
-      return res.status(401);
+      return ResponseErrorForbiddenNotAuthorized;
     }
-    try {
-      const apiClient = await newApiClient();
-      const user = await getApimUser(apiClient, req.user.emails[0]);
-      // Any authenticated user can subscribe
-      // to the Digital Citizenship APIs
-      if (!user) {
-        return res.status(401);
-      }
-      const subscription = await subscribeApimUser(
-        apiClient,
-        req.user as IProfile
-      );
-      return res.json(subscription);
-    } catch (e) {
-      winston.error("POST subscriptions error", JSON.stringify(e));
+    const apiClient = await newApiClient();
+
+    // Any authenticated user can subscribe
+    // to the Digital Citizenship APIs
+    const user = await getApimUser(apiClient, req.user.emails[0]);
+    if (isNone(user)) {
+      return ResponseErrorForbiddenNotAuthorized;
     }
-    return res.status(500);
-  }
+
+    const subscriptionOrError = await subscribeApimUser(
+      apiClient,
+      req.user as IProfile
+    );
+    return subscriptionOrError.fold<
+      IResponseErrorInternal | IResponseSuccessJson<SubscriptionContract>
+    >(
+      err => ResponseErrorInternal("Cannot get subscription: " + err),
+      ResponseSuccessJson
+    );
+  })
 );
 
 /**
@@ -307,54 +168,45 @@ app.post(
 app.put(
   "/subscriptions/:subscriptionId/:keyType",
   ouathVerifier,
-  async (req: express.Request, res: express.Response) => {
+  toExpressHandler(async req => {
     if (!req.user || !req.user.oid) {
-      winston.info("unauthorized");
-      return res.status(401);
+      return ResponseErrorForbiddenNotAuthorized;
     }
-    try {
-      const apiClient = await newApiClient();
+    const apiClient = await newApiClient();
 
-      const user = await getApimUser(apiClient, req.user.emails[0]);
-      if (!user) {
-        return res.status(401);
-      }
-
-      const subscription = await getUserSubscription(
-        apiClient,
-        req.params.subscriptionId
-      );
-      if (!subscription || !subscription.name) {
-        return res.status(404);
-      }
-
-      // TODO: check user.id vs user.name here
-      winston.debug(
-        "check user subscription %s %s",
-        subscription.userId,
-        user.id
-      );
-      if (subscription.userId !== user.id) {
-        return res.status(401);
-      }
-
-      const updatedSubscription =
-        req.params.keyType === "secondary_key"
-          ? await regenerateSecondaryKey(apiClient, subscription.name)
-          : req.params.keyType === "primary_key"
-            ? await regeneratePrimaryKey(apiClient, subscription.name)
-            : undefined;
-
-      if (!updatedSubscription) {
-        return res.status(500);
-      }
-
-      return res.json(updatedSubscription);
-    } catch (e) {
-      winston.error("PUT subscription/key error" + JSON.stringify(e));
+    const maybeUser = await getApimUser(apiClient, req.user.emails[0]);
+    if (isNone(maybeUser)) {
+      return ResponseErrorForbiddenNotAuthorized;
     }
-    return res.status(500);
-  }
+    const user = maybeUser.value;
+
+    const maybeSubscription = await getUserSubscription(
+      apiClient,
+      req.params.subscriptionId,
+      user.id
+    );
+    if (isNone(maybeSubscription)) {
+      return ResponseErrorNotFound(
+        "Subscription not found",
+        "Cannot find a subscription for the logged in user"
+      );
+    }
+    const subscription = maybeSubscription.value;
+
+    const maybeUpdatedSubscription =
+      req.params.keyType === "secondary_key"
+        ? await regenerateSecondaryKey(apiClient, subscription.name, user.id)
+        : req.params.keyType === "primary_key"
+          ? await regeneratePrimaryKey(apiClient, subscription.name, user.id)
+          : none;
+
+    return maybeUpdatedSubscription.fold<
+      IResponseErrorInternal | IResponseSuccessJson<SubscriptionContract>
+    >(
+      ResponseErrorInternal("Cannot update subscription to renew key"),
+      ResponseSuccessJson
+    );
+  })
 );
 
 /**
@@ -363,46 +215,43 @@ app.put(
 app.get(
   "/services/:serviceId",
   ouathVerifier,
-  async (req: express.Request, res: express.Response) => {
+  toExpressHandler(async req => {
     if (!req.user || !req.user.oid) {
-      winston.info("unauthorized");
-      return res.status(401);
+      return ResponseErrorForbiddenNotAuthorized;
     }
-    try {
-      // Authenticates this request against the logged in user
-      // checking that serviceId = subscriptionId
-      const apiClient = await newApiClient();
+    const apiClient = await newApiClient();
 
-      const apimUser = await getApimUser(apiClient, req.user.emails[0]);
-      if (!apimUser || !apimUser.name) {
-        return res.status(404);
-      }
-
-      const subscription = await getUserSubscription(
-        apiClient,
-        req.params.serviceId
+    const maybeApimUser = await getApimUser(apiClient, req.user.emails[0]);
+    if (isNone(maybeApimUser)) {
+      return ResponseErrorNotFound(
+        "API user not found",
+        "Cannot find a user in the API management with the provided email address"
       );
-
-      winston.info(
-        "GET SERVICE " +
-          JSON.stringify(subscription) +
-          " " +
-          JSON.stringify(apimUser)
-      );
-      // check apimUser.id vs apimUser.name
-      if (subscription && subscription.userId === apimUser.id) {
-        const service = await getService(
-          config.adminApiKey,
-          req.params.serviceId
-        );
-        return service ? res.json(service) : res.status(404);
-      }
-    } catch (e) {
-      winston.error("GET service error", JSON.stringify(e));
-      return res.status(500);
     }
-    return res.status(401);
-  }
+    const apimUser = maybeApimUser.value;
+
+    // Authenticates this request against the logged in user
+    // checking that serviceId = subscriptionId
+    const maybeSubscription = await getUserSubscription(
+      apiClient,
+      req.params.serviceId,
+      apimUser.id
+    );
+    if (isNone(maybeSubscription)) {
+      return ResponseErrorInternal("Cannot get user subscription");
+    }
+
+    const service = await getService(config.adminApiKey, req.params.serviceId);
+
+    if (!service) {
+      return ResponseErrorNotFound(
+        "Cannot get service",
+        "Cannot get existing service"
+      );
+    }
+
+    return ResponseSuccessJson(service);
+  })
 );
 
 /**
@@ -411,24 +260,38 @@ app.get(
 app.put(
   "/services/:serviceId",
   ouathVerifier,
-  async (req: express.Request, res: express.Response) => {
+  toExpressHandler(async req => {
     if (!req.user || !req.user.oid) {
-      winston.info("unauthorized");
-      return res.status(401);
+      return ResponseErrorForbiddenNotAuthorized;
     }
-    // Authenticates this request against the logged in user
-    // checking that serviceId = subscriptionId
     const apiClient = await newApiClient();
-    const subscription = await getUserSubscription(
-      apiClient,
-      req.params.serviceId
-    );
-    if (subscription && subscription.userId === req.user.oid) {
-      const ret = await upsertService(config.adminApiKey, req.body);
-      return res.json(ret);
+
+    const maybeApimUser = await getApimUser(apiClient, req.user.emails[0]);
+    if (isNone(maybeApimUser)) {
+      return ResponseErrorNotFound(
+        "API user not found",
+        "Cannot find a user in the API management with the provided email address"
+      );
     }
-    return res.status(401);
-  }
+    const apimUser = maybeApimUser.value;
+
+    // Authenticates this request against the logged in user
+    // checking that he owns a subscription with the provided serviceId
+    const maybeSubscription = await getUserSubscription(
+      apiClient,
+      req.params.serviceId,
+      apimUser.id
+    );
+    if (isNone(maybeSubscription)) {
+      return ResponseErrorNotFound(
+        "Subscription not found",
+        "Cannot get a subscription for the logged in user"
+      );
+    }
+
+    const service = await upsertService(config.adminApiKey, req.body);
+    return ResponseSuccessJson(service);
+  })
 );
 
 //  Navigate to "http://<hostName>:" + .PORT
@@ -437,4 +300,4 @@ app.put(
 const port = config.port || 3000;
 app.listen(port);
 
-winston.debug("Listening on port %s", port.toString());
+logger.debug("Listening on port %s", port.toString());

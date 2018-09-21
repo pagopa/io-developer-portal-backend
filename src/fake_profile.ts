@@ -4,8 +4,8 @@
  */
 import * as randomstring from "randomstring";
 import * as request from "request";
-import * as winston from "winston";
 import * as config from "./config";
+import { logger } from "./logger";
 
 export interface IProfilePayload {
   readonly email: string;
@@ -52,17 +52,17 @@ export const createFakeProfile = (
       method: "POST",
       uri: `${config.adminApiUrl}/api/v1/profiles/${fakeFiscalCode}`
     };
-    winston.debug("createFakeProfile|profile|", profile, options.uri);
+    logger.debug("createFakeProfile|profile|", profile, options.uri);
     request(options, (err, res, body) => {
       if (err) {
-        winston.error("createFakeProfile|error|" + JSON.stringify(err));
+        logger.error("createFakeProfile|error|" + JSON.stringify(err));
         return reject(err);
       }
       if (res.statusCode !== 200) {
-        winston.debug("createFakeProfile|error|" + JSON.stringify(body));
+        logger.debug("createFakeProfile|error|" + JSON.stringify(body));
         return reject(new Error(body));
       }
-      winston.debug("createFakeProfile|success|", body);
+      logger.debug("createFakeProfile|success|", body);
       resolve(fakeFiscalCode);
     });
   });

@@ -1,10 +1,6 @@
-/**
- * Creates a new Fake Profile (CF)
- * using Digital Citizenship API.
- */
 import * as request from "request";
-import * as winston from "winston";
 import * as config from "./config";
+import { logger } from "./logger";
 
 export interface IMessagePayload {
   readonly content: {
@@ -22,7 +18,7 @@ export const sendMessage = (
   fakeFiscalCode: string,
   message: IMessagePayload
 ) => {
-  winston.debug("sendMessage|message|", message);
+  logger.debug("sendMessage|message|", message);
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
@@ -34,14 +30,14 @@ export const sendMessage = (
     };
     request(options, (err, res, body) => {
       if (err) {
-        winston.error("sendMessage|error|" + JSON.stringify(err));
+        logger.error("sendMessage|error|" + JSON.stringify(err));
         return reject(err);
       }
       if (res.statusCode !== 201) {
-        winston.debug("sendMessage|error|", JSON.stringify(body));
+        logger.debug("sendMessage|error|", JSON.stringify(body));
         return reject(new Error(body));
       }
-      winston.debug("sendMessage|success|", body);
+      logger.debug("sendMessage|success|", body);
       resolve({ res, body });
     });
   });
