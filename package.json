@@ -8,7 +8,6 @@
     "start": "node build/app",
     "build:tsc": "tsc --outDir build",
     "build": "npm-run-all -s generate:api-models build:tsc",
-    "postinstall": "npm-run-all build",
     "generate:api-models:public": "gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/digital-citizenship-functions/master/api/public_api_v1.yaml --no-strict --out-dir src/api",
     "generate:api-models:admin": "gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/digital-citizenship-functions/master/api/admin_api.yaml --no-strict --out-dir src/api",
     "generate:api-models": "npm-run-all -s generate:api-models:*"

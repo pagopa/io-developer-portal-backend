@@ -14,7 +14,6 @@ coverage
 .lock-wscript
 *.js.map
 src/**/*.js
-build
 .env
 .vscode
 src/api/*
