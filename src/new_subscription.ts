@@ -3,8 +3,8 @@
  *
  * 1. Subscribes the user to the configured API management product
  * 2. Adds the user to the configured API management groups
- * 3. Creates a new Service linked to the new subscription
- * 4. Creates a new Profile with a fake fiscal number
+ * 3. Creates a new Profile with a fake fiscal number
+ * 4. Creates a new Service linked to the new subscription
  */
 import ApiManagementClient from "azure-arm-apimanagement";
 
