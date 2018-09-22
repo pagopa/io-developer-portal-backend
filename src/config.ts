@@ -1,3 +1,6 @@
+/**
+ * Globals and OAuth configuration for the Active Directory B2C tenant / application.
+ */
 export const creds = {
   // Required. It must be tenant-specific endpoint, common endpoint
   // is not supported to use B2C feature.

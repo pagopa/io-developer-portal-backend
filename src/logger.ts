@@ -1,3 +1,6 @@
+/**
+ * Winston logger shared configuration.
+ */
 import * as logform from "logform";
 import { createLogger, format, transports } from "winston";
 import * as config from "./config";

@@ -1,7 +1,6 @@
 /*
  *  OpenID Connect strategy for passport / express.
  */
-
 import * as express from "express";
 import * as t from "io-ts";
 import * as passport from "passport";
@@ -10,6 +9,10 @@ import { logger } from "./logger";
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { BearerStrategy } from "passport-azure-ad";
 
+/**
+ * Format of the Active directory B2C user data.
+ * See the ADB2C tenant configuration for custom attributes (extensions).
+ */
 export const AdUser = t.interface({
   emails: t.array(EmailString),
   extension_Department: t.string,

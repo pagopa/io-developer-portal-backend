@@ -1,5 +1,9 @@
 /**
- * Methods used to add users to API manager Products and Groups.
+ * Methods used to
+ * - add users to Azure API management Products and Groups
+ * - manage subscriptions and subscriptions keys
+ *
+ * See https://docs.microsoft.com/en-us/rest/api/apimanagement/
  */
 import { ApiManagementClient } from "azure-arm-apimanagement";
 import * as msRestAzure from "ms-rest-azure";

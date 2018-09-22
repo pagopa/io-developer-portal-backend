@@ -3,10 +3,7 @@
  * some tasks related to users management in the Digital Citizenship
  * Azure API management developer portal resource.
  *
- * The flow starts when the user, already logged into the developoer portal,
- * clicks on a call-to-action that links to the '/login/<userId>' endpoint.
  */
-
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as cors from "cors";
@@ -125,6 +122,8 @@ app.get("/logout", (req: express.Request, res: express.Response) => {
   res.json("OK");
 });
 
+////////////////////////////////////////////
+
 async function getSubscriptions(
   apiClient: ApiManagementClient,
   authenticatedUser: AdUser
@@ -157,6 +156,8 @@ app.get(
     )(getSubscriptions)
   )
 );
+
+////////////////////////////////////////////
 
 async function postSubscriptions(
   apiClient: ApiManagementClient,
@@ -197,6 +198,8 @@ app.post(
     )(postSubscriptions)
   )
 );
+
+////////////////////////////////////////////
 
 async function putSubscriptionKey(
   apiClient: ApiManagementClient,
@@ -259,6 +262,8 @@ app.put(
     )(putSubscriptionKey)
   )
 );
+
+////////////////////////////////////////////
 
 async function getService(
   apiClient: ApiManagementClient,
@@ -324,6 +329,8 @@ app.get(
   )
 );
 
+////////////////////////////////////////////
+
 async function putService(
   apiClient: ApiManagementClient,
   authenticatedUser: AdUser,
@@ -361,6 +368,8 @@ async function putService(
     );
   }
 
+  // TODO: get the old service then filter only
+  // authorized fields and merge the changes
   const errorOrService = parseResponse<ServicePublic>(
     await notificationApiClient.updateService({
       service: servicePayload,
@@ -392,8 +401,7 @@ app.put(
   )
 );
 
-//  Navigate to "http://<hostName>:" + .PORT
-// + "/login/<userId>?p=" + config.policyName
+////////////////////////////////////////////
 
 const port = config.port || 3000;
 app.listen(port);

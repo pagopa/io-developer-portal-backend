@@ -1,3 +1,6 @@
+/**
+ * Middlewares used by the express application.
+ */
 import * as t from "io-ts";
 
 import ApiManagementClient from "azure-arm-apimanagement";
@@ -6,6 +9,7 @@ import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
 import { ResponseErrorFromValidationErrors } from "italia-ts-commons/lib/responses";
 import { newApiClient } from "./apim_operations";
 import { AdUser } from "./bearer_strategy";
+import { logger } from "./logger";
 
 export function getUserFromRequestMiddleware(): IRequestMiddleware<
   "IResponseErrorValidation",
@@ -14,6 +18,10 @@ export function getUserFromRequestMiddleware(): IRequestMiddleware<
   return request =>
     new Promise(resolve => {
       const validation = AdUser.decode(request.user);
+      logger.debug(
+        "Trying to get authenticated user: %s",
+        JSON.stringify(request.user)
+      );
       const result = validation.mapLeft(
         ResponseErrorFromValidationErrors(AdUser)
       );

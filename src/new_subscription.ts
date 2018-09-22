@@ -1,3 +1,11 @@
+/**
+ * Procedure to create a new subscription beloging to the logged in user:
+ *
+ * 1. Subscribes the user to the configured API management product
+ * 2. Adds the user to the configured API management groups
+ * 3. Creates a new Service linked to the new subscription
+ * 4. Creates a new Profile with a fake fiscal number
+ */
 import ApiManagementClient from "azure-arm-apimanagement";
 
 import { AdUser } from "./bearer_strategy";

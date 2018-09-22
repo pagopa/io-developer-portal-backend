@@ -1,3 +1,6 @@
+/**
+ * Methods used to secure the express application.
+ */
 import * as express from "express";
 import * as helmet from "helmet";
 import * as csp from "helmet-csp";

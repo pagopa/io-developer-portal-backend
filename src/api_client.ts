@@ -1,3 +1,8 @@
+/**
+ * REST client for Notification / Preference APIs.
+ * See spec here: https://teamdigitale.github.io/digital-citizenship/api/public.html
+ */
+
 import * as t from "io-ts";
 
 // A basic response type that also include 401
