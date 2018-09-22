@@ -17,16 +17,41 @@ import { isNone } from "fp-ts/lib/Option";
 
 import * as config from "./config";
 
-import { createFakeProfile } from "./fake_profile";
-
-import { upsertService } from "./service";
-
-import { sendMessage } from "./message";
-
 import * as appinsights from "applicationinsights";
+import { EmailString, FiscalCode } from "italia-ts-commons/lib/strings";
+import randomstring = require("randomstring");
+import { CreatedMessageWithContent } from "./api/CreatedMessageWithContent";
+import { APIClient, parseResponse } from "./api_client";
 import { logger } from "./logger";
 
+import { readableReport } from "italia-ts-commons/lib/reporters";
+import { ExtendedProfile } from "./api/ExtendedProfile";
+import { Service } from "./api/Service";
+import { ServicePublic } from "./api/ServicePublic";
+
 const telemetryClient = new appinsights.TelemetryClient();
+
+const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
+
+/**
+ * Generate a fake fiscal code.
+ * Avoids collisions with real ones as we use
+ * a literal "Y" for the location field.
+ */
+function generateFakeFiscalCode(): FiscalCode {
+  const s = randomstring.generate({
+    capitalization: "uppercase",
+    charset: "alphabetic",
+    length: 6
+  });
+  const d = randomstring.generate({
+    charset: "numeric",
+    length: 7
+  });
+  return [s, d[0], d[1], "A", d[2], d[3], "Y", d[4], d[5], d[6], "X"].join(
+    ""
+  ) as FiscalCode;
+}
 
 /**
  * Convert a profile obtained from oauth authentication
@@ -50,9 +75,9 @@ function toUserData(profile: IProfile): IUserData {
  */
 export async function subscribeApimUser(
   apiClient: ApiManagementClient,
-  profile: IProfile
+  adUser: IProfile
 ): Promise<Either<Error, SubscriptionContract>> {
-  const userData = toUserData(profile);
+  const userData = toUserData(adUser);
   try {
     // user must already exists (is created at login)
     logger.debug("subscribeApimUser|getApimUser");
@@ -90,26 +115,55 @@ export async function subscribeApimUser(
     }
 
     logger.debug("subscribeApimUser|createFakeProfile");
-    const fakeFiscalCode = await createFakeProfile(config.adminApiKey, {
-      email: userData.email,
+    const fakeFiscalCode = generateFakeFiscalCode();
+
+    const errorOrProfile = ExtendedProfile.decode({
+      email: userData.email as EmailString,
       version: 0
     });
+    if (isLeft(errorOrProfile)) {
+      return left(new Error(readableReport(errorOrProfile.value)));
+    }
+    const profile = errorOrProfile.value;
+
+    const errorOrProfileResponse = parseResponse<ExtendedProfile>(
+      await notificationApiClient.createOrUpdateProfile({
+        fiscalCode: fakeFiscalCode,
+        newProfile: profile
+      })
+    );
+
+    if (isLeft(errorOrProfileResponse)) {
+      return left(new Error(errorOrProfileResponse.value.message));
+    }
 
     logger.debug("subscribeApimUser|upsertService");
 
-    // creates a new service every time !
-    await upsertService(config.adminApiKey, {
+    const errorOrService = Service.decode({
       authorized_cidrs: [],
       authorized_recipients: [fakeFiscalCode],
-      department_name: profile.extension_Department || "",
+      department_name: adUser.extension_Department || "department",
       organization_fiscal_code: "00000000000",
-      organization_name: profile.extension_Organization || "",
+      organization_name: adUser.extension_Organization || "organization",
       service_id: subscription.name,
-      service_name: profile.extension_Service || ""
+      service_name: adUser.extension_Service || "service"
     });
+    if (isLeft(errorOrService)) {
+      return left(new Error(readableReport(errorOrService.value)));
+    }
+    const service = errorOrService.value;
 
-    logger.debug("subscribeApimUser|sendMessage");
-    await sendMessage(config.adminApiKey, fakeFiscalCode, {
+    // creates a new service every time !
+    const errorOrServiceResponse = parseResponse<ServicePublic>(
+      await notificationApiClient.createService({
+        service
+      })
+    );
+    if (isLeft(errorOrServiceResponse)) {
+      return left(new Error(errorOrServiceResponse.value.message));
+    }
+
+    const errorOrMessage = CreatedMessageWithContent.decode({
       content: {
         markdown: [
           `Hello,`,
@@ -121,6 +175,22 @@ export async function subscribeApimUser(
         subject: `Welcome ${userData.firstName} ${userData.lastName} !`
       }
     });
+    if (isLeft(errorOrMessage)) {
+      return left(new Error(readableReport(errorOrMessage.value)));
+    }
+    const message = errorOrMessage.value;
+
+    logger.debug("subscribeApimUser|sendMessage");
+
+    const errorOrMessageResponse = parseResponse<CreatedMessageWithContent>(
+      await notificationApiClient.sendMessage({
+        fiscalCode: fakeFiscalCode,
+        message
+      })
+    );
+    if (isLeft(errorOrMessageResponse)) {
+      return left(new Error(errorOrMessageResponse.value.message));
+    }
 
     telemetryClient.trackEvent({
       name: "onboarding.success",

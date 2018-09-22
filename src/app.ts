@@ -50,8 +50,9 @@ import {
 import { IProfile, setupBearerStrategy } from "./bearer_strategy";
 import { secureExpressApp } from "./express";
 import { subscribeApimUser } from "./new_subscription";
-import { getService, upsertService } from "./service";
 
+import { ServicePublic } from "./api/ServicePublic";
+import { APIClient, parseResponse } from "./api_client";
 import { logger } from "./logger";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
@@ -65,6 +66,8 @@ setupBearerStrategy(passport, config.creds, async (userId, profile) => {
   // req.user === profile
   logger.debug("setupBearerStrategy %s %s", userId, profile);
 });
+
+const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 
 const app = express();
 secureExpressApp(app);
@@ -241,7 +244,9 @@ app.get(
       return ResponseErrorInternal("Cannot get user subscription");
     }
 
-    const service = await getService(config.adminApiKey, req.params.serviceId);
+    const service = await notificationApiClient.getService({
+      id: req.params.serviceId
+    });
 
     if (!service) {
       return ResponseErrorNotFound(
@@ -255,7 +260,7 @@ app.get(
 );
 
 /**
- * Upsert service data for/with a specific serviceId.
+ * Update service data for/with a specific serviceId.
  */
 app.put(
   "/services/:serviceId",
@@ -289,8 +294,19 @@ app.put(
       );
     }
 
-    const service = await upsertService(config.adminApiKey, req.body);
-    return ResponseSuccessJson(service);
+    const errorOrService = parseResponse<ServicePublic>(
+      await notificationApiClient.updateService({
+        service: req.body,
+        serviceId: req.params.serviceId
+      })
+    );
+
+    return errorOrService.fold<
+      IResponseErrorInternal | IResponseSuccessJson<ServicePublic>
+    >(
+      errs => ResponseErrorInternal("Error updating service: " + errs.message),
+      ResponseSuccessJson
+    );
   })
 );
 
