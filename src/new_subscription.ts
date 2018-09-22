@@ -1,6 +1,6 @@
 import ApiManagementClient from "azure-arm-apimanagement";
 
-import { IProfile } from "./bearer_strategy";
+import { AdUser } from "./bearer_strategy";
 
 import { Either, isLeft, left, right } from "fp-ts/lib/Either";
 
@@ -57,7 +57,7 @@ function generateFakeFiscalCode(): FiscalCode {
  * Convert a profile obtained from oauth authentication
  * to the user data needed to perform API operations.
  */
-function toUserData(profile: IProfile): IUserData {
+function toUserData(profile: AdUser): IUserData {
   return {
     email: profile.emails[0],
     firstName: profile.given_name,
@@ -75,7 +75,7 @@ function toUserData(profile: IProfile): IUserData {
  */
 export async function subscribeApimUser(
   apiClient: ApiManagementClient,
-  adUser: IProfile
+  adUser: AdUser
 ): Promise<Either<Error, SubscriptionContract>> {
   const userData = toUserData(adUser);
   try {

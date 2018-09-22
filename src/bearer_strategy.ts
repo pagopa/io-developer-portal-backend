@@ -3,20 +3,24 @@
  */
 
 import * as express from "express";
+import * as t from "io-ts";
 import * as passport from "passport";
 import { logger } from "./logger";
 
+import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { BearerStrategy } from "passport-azure-ad";
 
-export interface IProfile {
-  readonly oid: string;
-  readonly emails: ReadonlyArray<string>;
-  readonly family_name: string;
-  readonly given_name: string;
-  readonly extension_Organization: string;
-  readonly extension_Department: string;
-  readonly extension_Service: string;
-}
+export const AdUser = t.interface({
+  emails: t.array(EmailString),
+  extension_Department: t.string,
+  extension_Organization: t.string,
+  extension_Service: t.string,
+  family_name: t.string,
+  given_name: t.string,
+  oid: NonEmptyString
+});
+
+export type AdUser = t.TypeOf<typeof AdUser>;
 
 // -----------------------------------------------------------------------------
 // Use the OIDCStrategy within Passport.
@@ -43,7 +47,7 @@ export const setupBearerStrategy = (
   passportInstance: typeof passport,
   // tslint:disable-next-line:no-any
   creds: any,
-  cb: (userId: string, profile: IProfile) => Promise<void>
+  cb: (userId: string, profile: AdUser) => Promise<void>
 ) => {
   passportInstance.use(
     "oauth-bearer",
@@ -51,8 +55,8 @@ export const setupBearerStrategy = (
       creds,
       (
         _: express.Request,
-        profile: IProfile,
-        done: (err: Error | undefined, profile?: IProfile) => void
+        profile: AdUser,
+        done: (err: Error | undefined, profile?: AdUser) => void
       ) => {
         return cb(profile.oid, profile)
           .then(() => {
