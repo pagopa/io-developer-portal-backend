@@ -27,12 +27,14 @@ function getToken(loginCreds) {
 }
 function loginToApim(tokenCreds) {
     return __awaiter(this, void 0, void 0, function* () {
-        const tokenExpireTime = tokenCreds
-            ? new Date(tokenCreds.token.expiresOn).getTime()
-            : 0;
-        const isTokenExpired = tokenExpireTime >= Date.now();
+        // we cannot use tokenCreds.token.expiresOn
+        // because of a bug in ms-rest-library
+        // see https://github.com/Azure/azure-sdk-for-node/pull/3679
+        const isTokenExpired = tokenCreds
+            ? tokenCreds.expiresOn >= Date.now()
+            : false;
         logger_1.logger.debug("token %s", JSON.stringify(tokenCreds ? tokenCreds.token : "n/a"));
-        logger_1.logger.debug("loginToApim() token expire: %s (%d) now:%d expired=%s", tokenCreds ? tokenCreds.token.expiresOn : "n/a", tokenExpireTime, Date.now(), isTokenExpired);
+        logger_1.logger.debug("loginToApim() token expires in %d seconds. expired=%s", tokenCreds ? tokenCreds.expiresOn - Date.now() : 0, isTokenExpired);
         // return old credentials in case the token is not expired
         if (tokenCreds && !isTokenExpired) {
             return tokenCreds;
@@ -42,6 +44,8 @@ function loginToApim(tokenCreds) {
         const token = yield getToken(loginCreds);
         logger_1.logger.debug("loginToApim(): token:%s", JSON.stringify(token));
         return {
+            // cache token for 1 hour
+            expiresOn: Date.now() + 3600 * 1000,
             loginCreds,
             token
         };

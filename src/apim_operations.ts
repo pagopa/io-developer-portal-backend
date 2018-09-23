@@ -31,6 +31,7 @@ export interface IUserData extends UserCreateParameters {
 export interface ITokenAndCredentials {
   readonly token: msRestAzure.TokenResponse;
   readonly loginCreds: msRestAzure.MSIAppServiceTokenCredentials;
+  readonly expiresOn: number;
 }
 
 function getToken(
@@ -50,10 +51,12 @@ function getToken(
 export async function loginToApim(
   tokenCreds?: ITokenAndCredentials
 ): Promise<ITokenAndCredentials> {
-  const tokenExpireTime = tokenCreds
-    ? new Date(tokenCreds.token.expiresOn).getTime()
-    : 0;
-  const isTokenExpired = tokenExpireTime >= Date.now();
+  // we cannot use tokenCreds.token.expiresOn
+  // because of a bug in ms-rest-library
+  // see https://github.com/Azure/azure-sdk-for-node/pull/3679
+  const isTokenExpired = tokenCreds
+    ? tokenCreds.expiresOn >= Date.now()
+    : false;
 
   logger.debug(
     "token %s",
@@ -61,10 +64,8 @@ export async function loginToApim(
   );
 
   logger.debug(
-    "loginToApim() token expire: %s (%d) now:%d expired=%s",
-    tokenCreds ? tokenCreds.token.expiresOn : "n/a",
-    tokenExpireTime,
-    Date.now(),
+    "loginToApim() token expires in %d seconds. expired=%s",
+    tokenCreds ? tokenCreds.expiresOn - Date.now() : 0,
     isTokenExpired
   );
 
@@ -81,6 +82,8 @@ export async function loginToApim(
   logger.debug("loginToApim(): token:%s", JSON.stringify(token));
 
   return {
+    // cache token for 1 hour
+    expiresOn: Date.now() + 3600 * 1000,
     loginCreds,
     token
   };
