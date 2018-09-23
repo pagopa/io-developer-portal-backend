@@ -33,16 +33,15 @@ function loginToApim(tokenCreds) {
         const isTokenExpired = tokenCreds
             ? tokenCreds.expiresOn <= Date.now()
             : false;
-        logger_1.logger.debug("token %s", JSON.stringify(tokenCreds ? tokenCreds.token : "n/a"));
         logger_1.logger.debug("loginToApim() token expires in %d seconds. expired=%s", tokenCreds ? tokenCreds.expiresOn - Date.now() : 0, isTokenExpired);
         // return old credentials in case the token is not expired
         if (tokenCreds && !isTokenExpired) {
+            logger_1.logger.debug("loginToApim(): get cached token");
             return tokenCreds;
         }
         logger_1.logger.debug("loginToApim(): login with MSI");
         const loginCreds = yield msRestAzure.loginWithAppServiceMSI();
         const token = yield getToken(loginCreds);
-        logger_1.logger.debug("loginToApim(): token:%s", JSON.stringify(token));
         return {
             // cache token for 1 hour
             expiresOn: Date.now() + 3600 * 1000,
