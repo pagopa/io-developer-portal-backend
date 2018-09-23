@@ -31,7 +31,8 @@ function loginToApim(tokenCreds) {
             ? new Date(tokenCreds.token.expiresOn).getTime()
             : 0;
         const isTokenExpired = tokenExpireTime >= Date.now();
-        logger_1.logger.debug("loginToApim() token expire: %s (%d) now:%d expired=%d", tokenCreds ? tokenCreds.token.expiresOn : "n/a", tokenExpireTime, Date.now(), isTokenExpired);
+        logger_1.logger.debug("token %s", JSON.stringify(tokenCreds ? tokenCreds.token : "n/a"));
+        logger_1.logger.debug("loginToApim() token expire: %s (%d) now:%d expired=%s", tokenCreds ? tokenCreds.token.expiresOn : "n/a", tokenExpireTime, Date.now(), isTokenExpired);
         // return old credentials in case the token is not expired
         if (tokenCreds && !isTokenExpired) {
             return tokenCreds;
