@@ -8,31 +8,43 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Methods used to
- * - add users to Azure API management Products and Groups
- * - manage subscriptions and subscriptions keys
- *
- * See https://docs.microsoft.com/en-us/rest/api/apimanagement/
- */
-const azure_arm_apimanagement_1 = require("azure-arm-apimanagement");
 const msRestAzure = require("ms-rest-azure");
 const logger_1 = require("./logger");
 const config = require("./config");
 const Either_1 = require("fp-ts/lib/Either");
 const Option_1 = require("fp-ts/lib/Option");
 const ulid_1 = require("ulid");
-// TODO: this should be memoized and use the same token untile expires
-function newApiClient() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const loginCreds = yield msRestAzure.loginWithAppServiceMSI();
+function getToken(loginCreds) {
+    return new Promise((resolve, reject) => {
         loginCreds.getToken((err, tok) => {
-            logger_1.logger.debug("token %s %s", err.message, tok);
+            if (err) {
+                logger_1.logger.debug("getToken() error: %s", err.message);
+                return reject(err);
+            }
+            resolve(tok);
         });
-        return new azure_arm_apimanagement_1.ApiManagementClient(loginCreds, config.subscriptionId);
     });
 }
-exports.newApiClient = newApiClient;
+function loginToApim(tokenCreds) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const tokenExpireTime = tokenCreds
+            ? new Date(tokenCreds.token.expiresOn).getTime()
+            : 0;
+        const isTokenExpired = tokenExpireTime >= Date.now();
+        logger_1.logger.debug("loginToApim() token expire: %s (%d) now:%d expired=%d", tokenCreds ? tokenCreds.token.expiresOn : "n/a", tokenExpireTime, Date.now(), isTokenExpired);
+        // return old credentials in case the token is not expired
+        if (tokenCreds && !isTokenExpired) {
+            return tokenCreds;
+        }
+        const loginCreds = yield msRestAzure.loginWithAppServiceMSI();
+        const token = yield getToken(loginCreds);
+        return {
+            loginCreds,
+            token
+        };
+    });
+}
+exports.loginToApim = loginToApim;
 function getUserSubscription(apiClient, subscriptionId, userId) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("getUserSubscription");

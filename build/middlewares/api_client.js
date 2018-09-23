@@ -8,12 +8,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Middleware that get a new Azure API management client
+ * authenticated using MSI.
+ */
+const azure_arm_apimanagement_1 = require("azure-arm-apimanagement");
 const Either_1 = require("fp-ts/lib/Either");
 const apim_operations_1 = require("../apim_operations");
+const config = require("../config");
+// tslint:disable-next-line
+let tokenCreds;
 // TODO: this must be cached until the token expire
 // actually we get a new token for every request !
 function getApiClientMiddleware() {
-    return (_) => __awaiter(this, void 0, void 0, function* () { return Either_1.right(yield apim_operations_1.newApiClient()); });
+    return (_) => __awaiter(this, void 0, void 0, function* () {
+        tokenCreds = yield apim_operations_1.loginToApim(tokenCreds);
+        return Either_1.right(new azure_arm_apimanagement_1.default(tokenCreds.loginCreds, config.subscriptionId));
+    });
 }
 exports.getApiClientMiddleware = getApiClientMiddleware;
 //# sourceMappingURL=api_client.js.map

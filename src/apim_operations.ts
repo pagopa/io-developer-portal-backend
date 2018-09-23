@@ -28,13 +28,54 @@ export interface IUserData extends UserCreateParameters {
   readonly groups: ReadonlyArray<string>;
 }
 
-// TODO: this should be memoized and use the same token untile expires
-export async function newApiClient(): Promise<ApiManagementClient> {
-  const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-  loginCreds.getToken((err, tok) => {
-    logger.debug("token %s %s", err.message, tok);
+export interface ITokenAndCredentials {
+  readonly token: msRestAzure.TokenResponse;
+  readonly loginCreds: msRestAzure.MSIAppServiceTokenCredentials;
+}
+
+function getToken(
+  loginCreds: msRestAzure.MSIAppServiceTokenCredentials
+): Promise<msRestAzure.TokenResponse> {
+  return new Promise((resolve, reject) => {
+    loginCreds.getToken((err, tok) => {
+      if (err) {
+        logger.debug("getToken() error: %s", err.message);
+        return reject(err);
+      }
+      resolve(tok);
+    });
   });
-  return new ApiManagementClient(loginCreds, config.subscriptionId);
+}
+
+export async function loginToApim(
+  tokenCreds?: ITokenAndCredentials
+): Promise<ITokenAndCredentials> {
+  const tokenExpireTime = tokenCreds
+    ? new Date(tokenCreds.token.expiresOn).getTime()
+    : 0;
+  const isTokenExpired = tokenExpireTime >= Date.now();
+
+  logger.debug(
+    "loginToApim() token expire: %s (%d) now:%d expired=%d",
+    tokenCreds ? tokenCreds.token.expiresOn : "n/a",
+    tokenExpireTime,
+    Date.now(),
+    isTokenExpired
+  );
+
+  // return old credentials in case the token is not expired
+  if (tokenCreds && !isTokenExpired) {
+    return tokenCreds;
+  }
+
+  const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+
+  const token = await getToken(loginCreds);
+
+  return {
+    loginCreds,
+    token
+  };
 }
 
 export async function getUserSubscription(
