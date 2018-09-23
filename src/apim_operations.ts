@@ -158,6 +158,10 @@ export async function regenerateSecondaryKey(
   return getUserSubscription(apiClient, subscriptionId, userId);
 }
 
+/**
+ * Poor man APIm in-memory user cache.
+ * TODO: make this a real cache (ie. redis)
+ */
 // tslint:disable-next-line
 let apimUserCache: {
   // tslint:disable-next-line

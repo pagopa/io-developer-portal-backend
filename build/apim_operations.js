@@ -96,11 +96,26 @@ function regenerateSecondaryKey(apiClient, subscriptionId, userId) {
 }
 exports.regenerateSecondaryKey = regenerateSecondaryKey;
 /**
+ * Poor man APIm in-memory user cache.
+ * TODO: make this a real cache (ie. redis)
+ */
+// tslint:disable-next-line
+let apimUserCache = {};
+/**
+ * Resets user cache every hour
+ */
+setInterval(() => (apimUserCache = {}), 3600 * 1000);
+/**
  * Return the corresponding API management user
  * given the Active Directory B2C user's email.
  */
 function getApimUser(apiClient, email) {
     return __awaiter(this, void 0, void 0, function* () {
+        const cachedUser = Object.assign({}, apimUserCache[email]);
+        if (cachedUser) {
+            logger_1.logger.debug("apimUsers found in cache (%s)", JSON.stringify(cachedUser));
+            return Option_1.some(cachedUser);
+        }
         logger_1.logger.debug("getApimUser");
         const results = yield apiClient.user.listByService(config.azurermResourceGroup, config.azurermApim, { filter: "email eq '" + email + "'" });
         logger_1.logger.debug("apimUsers found", results);
@@ -111,8 +126,11 @@ function getApimUser(apiClient, email) {
         if (!user.id || !user.name) {
             return Option_1.none;
         }
+        const apimUser = Object.assign({ id: user.id, name: user.name }, user);
+        // tslint:disable-next-line
+        apimUserCache[email] = apimUser;
         // return first matching user
-        return Option_1.some(Object.assign({ id: user.id, name: user.name }, user));
+        return Option_1.some(apimUser);
     });
 }
 exports.getApimUser = getApimUser;
