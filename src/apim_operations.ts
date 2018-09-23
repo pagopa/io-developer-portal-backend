@@ -172,12 +172,12 @@ let apimUserCache: {
 } = {};
 
 /**
- * Resets user cache every hour
+ * Resets user cache.
  */
 setInterval(() => {
   logger.debug("emptying user cache");
   apimUserCache = {};
-}, 3600 * 1000);
+}, 600 * 1000);
 
 /**
  * Return the corresponding API management user
@@ -189,7 +189,9 @@ export async function getApimUser(
 ): Promise<
   Option<UserContract & { readonly id: string; readonly name: string }>
 > {
-  const cachedUser = { ...apimUserCache[email] };
+  const cachedUser = apimUserCache[email]
+    ? { ...apimUserCache[email] }
+    : undefined;
   if (cachedUser) {
     logger.debug(
       "apimUsers found in cache %s (%s)",

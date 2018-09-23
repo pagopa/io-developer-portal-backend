@@ -102,19 +102,20 @@ exports.regenerateSecondaryKey = regenerateSecondaryKey;
 // tslint:disable-next-line
 let apimUserCache = {};
 /**
- * Resets user cache every hour
+ * Resets user cache.
  */
 setInterval(() => {
     logger_1.logger.debug("emptying user cache");
     apimUserCache = {};
-}, 3600 * 1000);
+}, 600 * 1000);
 /**
  * Return the corresponding API management user
  * given the Active Directory B2C user's email.
  */
 function getApimUser(apiClient, email) {
     return __awaiter(this, void 0, void 0, function* () {
-        const cachedUser = Object.assign({}, apimUserCache[email]);
+        const cachedUser = apimUserCache[email]
+            ? Object.assign({}, apimUserCache[email]) : undefined;
         if (cachedUser) {
             logger_1.logger.debug("apimUsers found in cache %s (%s)", apimUserCache[email], JSON.stringify(cachedUser));
             return Option_1.some(cachedUser);
