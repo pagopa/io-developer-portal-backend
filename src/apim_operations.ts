@@ -31,6 +31,9 @@ export interface IUserData extends UserCreateParameters {
 // TODO: this should be memoized and use the same token untile expires
 export async function newApiClient(): Promise<ApiManagementClient> {
   const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+  loginCreds.getToken((err, tok) => {
+    logger.debug("token %s %s", err.message, tok);
+  });
   return new ApiManagementClient(loginCreds, config.subscriptionId);
 }
 

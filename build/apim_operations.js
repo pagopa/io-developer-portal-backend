@@ -26,6 +26,9 @@ const ulid_1 = require("ulid");
 function newApiClient() {
     return __awaiter(this, void 0, void 0, function* () {
         const loginCreds = yield msRestAzure.loginWithAppServiceMSI();
+        loginCreds.getToken((err, tok) => {
+            logger_1.logger.debug("token %s %s", err.message, tok);
+        });
         return new azure_arm_apimanagement_1.ApiManagementClient(loginCreds, config.subscriptionId);
     });
 }
