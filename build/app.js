@@ -49,7 +49,7 @@ bearer_strategy_1.setupBearerStrategy(passport, config.creds, (userId, profile) 
     // executed when the user is logged in
     // userId === profile.oid
     // req.user === profile
-    logger_1.logger.debug("setupBearerStrategy %s %s", userId, profile);
+    logger_1.logger.debug("setupBearerStrategy %s %s", userId, JSON.stringify(profile));
 }));
 const app = express();
 express_1.secureExpressApp(app);

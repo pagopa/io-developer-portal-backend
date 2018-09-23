@@ -51,7 +51,7 @@ setupBearerStrategy(passport, config.creds, async (userId, profile) => {
   // executed when the user is logged in
   // userId === profile.oid
   // req.user === profile
-  logger.debug("setupBearerStrategy %s %s", userId, profile);
+  logger.debug("setupBearerStrategy %s %s", userId, JSON.stringify(profile));
 });
 
 const app = express();

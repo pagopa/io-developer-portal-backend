@@ -51,16 +51,13 @@ function getToken(
 export async function loginToApim(
   tokenCreds?: ITokenAndCredentials
 ): Promise<ITokenAndCredentials> {
-  // we cannot use tokenCreds.token.expiresOn
-  // because of a bug in ms-rest-library
-  // see https://github.com/Azure/azure-sdk-for-node/pull/3679
   const isTokenExpired = tokenCreds
     ? tokenCreds.expiresOn <= Date.now()
     : false;
 
   logger.debug(
     "loginToApim() token expires in %d seconds. expired=%s",
-    tokenCreds ? tokenCreds.expiresOn - Date.now() : 0,
+    tokenCreds ? Math.round(tokenCreds.expiresOn - Date.now() / 1000) : 0,
     isTokenExpired
   );
 
@@ -77,6 +74,9 @@ export async function loginToApim(
 
   return {
     // cache token for 1 hour
+    // we cannot use tokenCreds.token.expiresOn
+    // because of a bug in ms-rest-library
+    // see https://github.com/Azure/azure-sdk-for-node/pull/3679
     expiresOn: Date.now() + 3600 * 1000,
     loginCreds,
     token
