@@ -158,6 +158,20 @@ export async function regenerateSecondaryKey(
   return getUserSubscription(apiClient, subscriptionId, userId);
 }
 
+// tslint:disable-next-line
+let apimUserCache: {
+  // tslint:disable-next-line
+  [k: string]: UserContract & {
+    readonly id: string;
+    readonly name: string;
+  };
+} = {};
+
+/**
+ * Resets user cache every hour
+ */
+setInterval(() => (apimUserCache = {}), 3600 * 1000);
+
 /**
  * Return the corresponding API management user
  * given the Active Directory B2C user's email.
@@ -168,6 +182,12 @@ export async function getApimUser(
 ): Promise<
   Option<UserContract & { readonly id: string; readonly name: string }>
 > {
+  const cachedUser = { ...apimUserCache[email] };
+  if (cachedUser) {
+    logger.debug("apimUsers found in cache (%s)", JSON.stringify(cachedUser));
+    return some(cachedUser);
+  }
+
   logger.debug("getApimUser");
   const results = await apiClient.user.listByService(
     config.azurermResourceGroup,
@@ -182,8 +202,11 @@ export async function getApimUser(
   if (!user.id || !user.name) {
     return none;
   }
+  const apimUser = { id: user.id, name: user.name, ...user };
+  // tslint:disable-next-line
+  apimUserCache[email] = apimUser;
   // return first matching user
-  return some({ id: user.id, name: user.name, ...user });
+  return some(apimUser);
 }
 
 export async function addUserSubscriptionToProduct(
