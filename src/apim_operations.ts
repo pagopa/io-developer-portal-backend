@@ -174,7 +174,10 @@ let apimUserCache: {
 /**
  * Resets user cache every hour
  */
-setInterval(() => (apimUserCache = {}), 3600 * 1000);
+setInterval(() => {
+  logger.debug("emptying user cache");
+  apimUserCache = {};
+}, 3600 * 1000);
 
 /**
  * Return the corresponding API management user
@@ -188,7 +191,11 @@ export async function getApimUser(
 > {
   const cachedUser = { ...apimUserCache[email] };
   if (cachedUser) {
-    logger.debug("apimUsers found in cache (%s)", JSON.stringify(cachedUser));
+    logger.debug(
+      "apimUsers found in cache %s (%s)",
+      apimUserCache[email],
+      JSON.stringify(cachedUser)
+    );
     return some(cachedUser);
   }
 
@@ -208,7 +215,8 @@ export async function getApimUser(
   }
   const apimUser = { id: user.id, name: user.name, ...user };
   // tslint:disable-next-line
-  apimUserCache[email] = apimUser;
+  apimUserCache[email] = { ...apimUser };
+  logger.debug("put user in cache %s", JSON.stringify(apimUserCache[email]));
   // return first matching user
   return some(apimUser);
 }

@@ -104,7 +104,10 @@ let apimUserCache = {};
 /**
  * Resets user cache every hour
  */
-setInterval(() => (apimUserCache = {}), 3600 * 1000);
+setInterval(() => {
+    logger_1.logger.debug("emptying user cache");
+    apimUserCache = {};
+}, 3600 * 1000);
 /**
  * Return the corresponding API management user
  * given the Active Directory B2C user's email.
@@ -113,7 +116,7 @@ function getApimUser(apiClient, email) {
     return __awaiter(this, void 0, void 0, function* () {
         const cachedUser = Object.assign({}, apimUserCache[email]);
         if (cachedUser) {
-            logger_1.logger.debug("apimUsers found in cache (%s)", JSON.stringify(cachedUser));
+            logger_1.logger.debug("apimUsers found in cache %s (%s)", apimUserCache[email], JSON.stringify(cachedUser));
             return Option_1.some(cachedUser);
         }
         logger_1.logger.debug("getApimUser");
@@ -128,7 +131,8 @@ function getApimUser(apiClient, email) {
         }
         const apimUser = Object.assign({ id: user.id, name: user.name }, user);
         // tslint:disable-next-line
-        apimUserCache[email] = apimUser;
+        apimUserCache[email] = Object.assign({}, apimUser);
+        logger_1.logger.debug("put user in cache %s", JSON.stringify(apimUserCache[email]));
         // return first matching user
         return Option_1.some(apimUser);
     });
