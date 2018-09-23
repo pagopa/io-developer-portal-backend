@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const msRestAzure = require("ms-rest-azure");
 const logger_1 = require("./logger");
+const memoizee = require("memoizee");
 const config = require("./config");
 const Either_1 = require("fp-ts/lib/Either");
 const Option_1 = require("fp-ts/lib/Option");
@@ -51,7 +52,7 @@ function loginToApim(tokenCreds) {
     });
 }
 exports.loginToApim = loginToApim;
-function getUserSubscription(apiClient, subscriptionId, userId) {
+function getUserSubscription__(apiClient, subscriptionId, userId) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("getUserSubscription");
         const subscription = yield apiClient.subscription.get(config.azurermResourceGroup, config.azurermApim, subscriptionId);
@@ -61,7 +62,10 @@ function getUserSubscription(apiClient, subscriptionId, userId) {
         return Option_1.some(Object.assign({ name: subscription.name }, subscription));
     });
 }
-exports.getUserSubscription = getUserSubscription;
+exports.getUserSubscription = memoizee(getUserSubscription__, {
+    max: 100,
+    maxAge: 3600
+});
 function getUserSubscriptions(apiClient, userId) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("getUserSubscriptions");
@@ -74,52 +78,33 @@ exports.getUserSubscriptions = getUserSubscriptions;
 function regeneratePrimaryKey(apiClient, subscriptionId, userId) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("regeneratePrimaryKey");
-        const maybeSubscription = yield getUserSubscription(apiClient, subscriptionId, userId);
+        const maybeSubscription = yield exports.getUserSubscription(apiClient, subscriptionId, userId);
         if (Option_1.isNone(maybeSubscription)) {
             return Option_1.none;
         }
         yield apiClient.subscription.regeneratePrimaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
-        return getUserSubscription(apiClient, subscriptionId, userId);
+        return exports.getUserSubscription(apiClient, subscriptionId, userId);
     });
 }
 exports.regeneratePrimaryKey = regeneratePrimaryKey;
 function regenerateSecondaryKey(apiClient, subscriptionId, userId) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("regenerateSecondaryKey");
-        const maybeSubscription = yield getUserSubscription(apiClient, subscriptionId, userId);
+        const maybeSubscription = yield exports.getUserSubscription(apiClient, subscriptionId, userId);
         if (Option_1.isNone(maybeSubscription)) {
             return Option_1.none;
         }
         yield apiClient.subscription.regenerateSecondaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
-        return getUserSubscription(apiClient, subscriptionId, userId);
+        return exports.getUserSubscription(apiClient, subscriptionId, userId);
     });
 }
 exports.regenerateSecondaryKey = regenerateSecondaryKey;
 /**
- * Poor man APIm in-memory user cache.
- * TODO: make this a real cache (ie. redis)
- */
-// tslint:disable-next-line
-let apimUserCache = {};
-/**
- * Resets user cache.
- */
-setInterval(() => {
-    logger_1.logger.debug("emptying user cache");
-    apimUserCache = {};
-}, 600 * 1000);
-/**
  * Return the corresponding API management user
  * given the Active Directory B2C user's email.
  */
-function getApimUser(apiClient, email) {
+function getApimUser__(apiClient, email) {
     return __awaiter(this, void 0, void 0, function* () {
-        const cachedUser = apimUserCache[email]
-            ? Object.assign({}, apimUserCache[email]) : undefined;
-        if (cachedUser) {
-            logger_1.logger.debug("apimUsers found in cache %s (%s)", apimUserCache[email], JSON.stringify(cachedUser));
-            return Option_1.some(cachedUser);
-        }
         logger_1.logger.debug("getApimUser");
         const results = yield apiClient.user.listByService(config.azurermResourceGroup, config.azurermApim, { filter: "email eq '" + email + "'" });
         logger_1.logger.debug("apimUsers found", results);
@@ -131,14 +116,14 @@ function getApimUser(apiClient, email) {
             return Option_1.none;
         }
         const apimUser = Object.assign({ id: user.id, name: user.name }, user);
-        // tslint:disable-next-line
-        apimUserCache[email] = Object.assign({}, apimUser);
-        logger_1.logger.debug("put user in cache %s", JSON.stringify(apimUserCache[email]));
         // return first matching user
         return Option_1.some(apimUser);
     });
 }
-exports.getApimUser = getApimUser;
+exports.getApimUser = memoizee(getApimUser__, {
+    max: 100,
+    maxAge: 3600
+});
 function addUserSubscriptionToProduct(apiClient, userId, productName) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("addUserToProduct");

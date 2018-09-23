@@ -16,6 +16,8 @@ import {
   UserCreateParameters
 } from "azure-arm-apimanagement/lib/models";
 
+import * as memoizee from "memoizee";
+
 import * as config from "./config";
 
 import { Either, left, right } from "fp-ts/lib/Either";
@@ -83,7 +85,7 @@ export async function loginToApim(
   };
 }
 
-export async function getUserSubscription(
+async function getUserSubscription__(
   apiClient: ApiManagementClient,
   subscriptionId: string,
   userId: string
@@ -99,6 +101,10 @@ export async function getUserSubscription(
   }
   return some({ name: subscription.name, ...subscription });
 }
+export const getUserSubscription = memoizee(getUserSubscription__, {
+  max: 100,
+  maxAge: 3600
+});
 
 export async function getUserSubscriptions(
   apiClient: ApiManagementClient,
@@ -159,48 +165,15 @@ export async function regenerateSecondaryKey(
 }
 
 /**
- * Poor man APIm in-memory user cache.
- * TODO: make this a real cache (ie. redis)
- */
-// tslint:disable-next-line
-let apimUserCache: {
-  // tslint:disable-next-line
-  [k: string]: UserContract & {
-    readonly id: string;
-    readonly name: string;
-  };
-} = {};
-
-/**
- * Resets user cache.
- */
-setInterval(() => {
-  logger.debug("emptying user cache");
-  apimUserCache = {};
-}, 600 * 1000);
-
-/**
  * Return the corresponding API management user
  * given the Active Directory B2C user's email.
  */
-export async function getApimUser(
+async function getApimUser__(
   apiClient: ApiManagementClient,
   email: string
 ): Promise<
   Option<UserContract & { readonly id: string; readonly name: string }>
 > {
-  const cachedUser = apimUserCache[email]
-    ? { ...apimUserCache[email] }
-    : undefined;
-  if (cachedUser) {
-    logger.debug(
-      "apimUsers found in cache %s (%s)",
-      apimUserCache[email],
-      JSON.stringify(cachedUser)
-    );
-    return some(cachedUser);
-  }
-
   logger.debug("getApimUser");
   const results = await apiClient.user.listByService(
     config.azurermResourceGroup,
@@ -216,12 +189,14 @@ export async function getApimUser(
     return none;
   }
   const apimUser = { id: user.id, name: user.name, ...user };
-  // tslint:disable-next-line
-  apimUserCache[email] = { ...apimUser };
-  logger.debug("put user in cache %s", JSON.stringify(apimUserCache[email]));
   // return first matching user
   return some(apimUser);
 }
+
+export const getApimUser = memoizee(getApimUser__, {
+  max: 100,
+  maxAge: 3600
+});
 
 export async function addUserSubscriptionToProduct(
   apiClient: ApiManagementClient,
