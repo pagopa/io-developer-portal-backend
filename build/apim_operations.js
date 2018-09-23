@@ -31,7 +31,7 @@ function loginToApim(tokenCreds) {
         // because of a bug in ms-rest-library
         // see https://github.com/Azure/azure-sdk-for-node/pull/3679
         const isTokenExpired = tokenCreds
-            ? tokenCreds.expiresOn >= Date.now()
+            ? tokenCreds.expiresOn <= Date.now()
             : false;
         logger_1.logger.debug("token %s", JSON.stringify(tokenCreds ? tokenCreds.token : "n/a"));
         logger_1.logger.debug("loginToApim() token expires in %d seconds. expired=%s", tokenCreds ? tokenCreds.expiresOn - Date.now() : 0, isTokenExpired);
