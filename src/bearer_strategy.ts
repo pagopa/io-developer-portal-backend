@@ -63,7 +63,7 @@ export const setupBearerStrategy = (
       ) => {
         return cb(profile.oid, profile)
           .then(() => {
-            logger.debug("user authenticated %s", profile);
+            logger.debug("user authenticated %s", JSON.stringify(profile));
             return done(undefined, profile);
           })
           .catch(e => {

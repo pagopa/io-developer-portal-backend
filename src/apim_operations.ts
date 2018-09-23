@@ -73,8 +73,12 @@ export async function loginToApim(
     return tokenCreds;
   }
 
+  logger.debug("loginToApim(): login with MSI");
+
   const loginCreds = await msRestAzure.loginWithAppServiceMSI();
   const token = await getToken(loginCreds);
+
+  logger.debug("loginToApim(): token:%s", JSON.stringify(token));
 
   return {
     loginCreds,
