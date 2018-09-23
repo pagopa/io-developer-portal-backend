@@ -56,7 +56,12 @@ export async function loginToApim(
   const isTokenExpired = tokenExpireTime >= Date.now();
 
   logger.debug(
-    "loginToApim() token expire: %s (%d) now:%d expired=%d",
+    "token %s",
+    JSON.stringify(tokenCreds ? tokenCreds.token : "n/a")
+  );
+
+  logger.debug(
+    "loginToApim() token expire: %s (%d) now:%d expired=%s",
     tokenCreds ? tokenCreds.token.expiresOn : "n/a",
     tokenExpireTime,
     Date.now(),
@@ -69,7 +74,6 @@ export async function loginToApim(
   }
 
   const loginCreds = await msRestAzure.loginWithAppServiceMSI();
-
   const token = await getToken(loginCreds);
 
   return {
