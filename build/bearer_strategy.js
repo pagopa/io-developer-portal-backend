@@ -43,7 +43,7 @@ creds, cb) => {
     passportInstance.use("oauth-bearer", new passport_azure_ad_1.BearerStrategy(creds, (_, profile, done) => {
         return cb(profile.oid, profile)
             .then(() => {
-            logger_1.logger.debug("user authenticated %s", profile);
+            logger_1.logger.debug("user authenticated %s", JSON.stringify(profile));
             return done(undefined, profile);
         })
             .catch(e => {

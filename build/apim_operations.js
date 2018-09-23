@@ -37,8 +37,10 @@ function loginToApim(tokenCreds) {
         if (tokenCreds && !isTokenExpired) {
             return tokenCreds;
         }
+        logger_1.logger.debug("loginToApim(): login with MSI");
         const loginCreds = yield msRestAzure.loginWithAppServiceMSI();
         const token = yield getToken(loginCreds);
+        logger_1.logger.debug("loginToApim(): token:%s", JSON.stringify(token));
         return {
             loginCreds,
             token
