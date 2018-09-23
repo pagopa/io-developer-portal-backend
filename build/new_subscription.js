@@ -92,7 +92,7 @@ function subscribeApimUser(apiClient, adUser) {
                 return Either_1.left(new Error(reporters_1.readableReport(errorOrProfile.value)));
             }
             const profile = errorOrProfile.value;
-            const errorOrProfileResponse = api_client_1.parseResponse(yield notificationApiClient.createOrUpdateProfile({
+            const errorOrProfileResponse = api_client_1.toEither(yield notificationApiClient.createOrUpdateProfile({
                 fiscalCode: fakeFiscalCode,
                 newProfile: profile
             }));
@@ -114,7 +114,7 @@ function subscribeApimUser(apiClient, adUser) {
             }
             const service = errorOrService.value;
             // creates a new service every time !
-            const errorOrServiceResponse = api_client_1.parseResponse(yield notificationApiClient.createService({
+            const errorOrServiceResponse = api_client_1.toEither(yield notificationApiClient.createService({
                 service
             }));
             if (Either_1.isLeft(errorOrServiceResponse)) {
@@ -137,7 +137,7 @@ function subscribeApimUser(apiClient, adUser) {
             }
             const message = errorOrMessage.value;
             logger_1.logger.debug("subscribeApimUser|sendMessage");
-            const errorOrMessageResponse = api_client_1.parseResponse(yield notificationApiClient.sendMessage({
+            const errorOrMessageResponse = api_client_1.toEither(yield notificationApiClient.sendMessage({
                 fiscalCode: fakeFiscalCode,
                 message
             }));

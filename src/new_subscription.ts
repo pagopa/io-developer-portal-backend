@@ -29,13 +29,12 @@ import * as appinsights from "applicationinsights";
 import { EmailString, FiscalCode } from "italia-ts-commons/lib/strings";
 import randomstring = require("randomstring");
 import { CreatedMessageWithContent } from "./api/CreatedMessageWithContent";
-import { APIClient, parseResponse } from "./api_client";
+import { APIClient, toEither } from "./api_client";
 import { logger } from "./logger";
 
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { ExtendedProfile } from "./api/ExtendedProfile";
 import { Service } from "./api/Service";
-import { ServicePublic } from "./api/ServicePublic";
 
 const telemetryClient = new appinsights.TelemetryClient();
 
@@ -134,7 +133,7 @@ export async function subscribeApimUser(
     }
     const profile = errorOrProfile.value;
 
-    const errorOrProfileResponse = parseResponse<ExtendedProfile>(
+    const errorOrProfileResponse = toEither(
       await notificationApiClient.createOrUpdateProfile({
         fiscalCode: fakeFiscalCode,
         newProfile: profile
@@ -162,7 +161,7 @@ export async function subscribeApimUser(
     const service = errorOrService.value;
 
     // creates a new service every time !
-    const errorOrServiceResponse = parseResponse<ServicePublic>(
+    const errorOrServiceResponse = toEither(
       await notificationApiClient.createService({
         service
       })
@@ -190,7 +189,7 @@ export async function subscribeApimUser(
 
     logger.debug("subscribeApimUser|sendMessage");
 
-    const errorOrMessageResponse = parseResponse<CreatedMessageWithContent>(
+    const errorOrMessageResponse = toEither(
       await notificationApiClient.sendMessage({
         fiscalCode: fakeFiscalCode,
         message

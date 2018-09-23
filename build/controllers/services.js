@@ -31,7 +31,7 @@ function getService(apiClient, authenticatedUser, serviceId) {
         if (Option_1.isNone(maybeSubscription)) {
             return responses_1.ResponseErrorInternal("Cannot get user subscription");
         }
-        const errorOrServiceResponse = api_client_1.parseResponse(yield notificationApiClient.getService({
+        const errorOrServiceResponse = api_client_1.toEither(yield notificationApiClient.getService({
             id: serviceId
         }));
         if (Either_1.isLeft(errorOrServiceResponse)) {
@@ -59,7 +59,7 @@ function putService(apiClient, authenticatedUser, serviceId, servicePayload) {
         }
         // TODO: get the old service then filter only
         // authorized fields and merge the changes
-        const errorOrService = api_client_1.parseResponse(yield notificationApiClient.updateService({
+        const errorOrService = api_client_1.toEither(yield notificationApiClient.updateService({
             service: servicePayload,
             serviceId
         }));

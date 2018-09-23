@@ -13,7 +13,7 @@ import {
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { Service } from "../api/Service";
 import { ServicePublic } from "../api/ServicePublic";
-import { APIClient, parseResponse } from "../api_client";
+import { APIClient, toEither } from "../api_client";
 import { getApimUser, getUserSubscription } from "../apim_operations";
 import { AdUser } from "../bearer_strategy";
 import * as config from "../config";
@@ -56,7 +56,7 @@ export async function getService(
     return ResponseErrorInternal("Cannot get user subscription");
   }
 
-  const errorOrServiceResponse = parseResponse<ServicePublic>(
+  const errorOrServiceResponse = toEither<ServicePublic>(
     await notificationApiClient.getService({
       id: serviceId
     })
@@ -114,7 +114,7 @@ export async function putService(
 
   // TODO: get the old service then filter only
   // authorized fields and merge the changes
-  const errorOrService = parseResponse<ServicePublic>(
+  const errorOrService = toEither(
     await notificationApiClient.updateService({
       service: servicePayload,
       serviceId

@@ -83,7 +83,7 @@ fetchApi = node_fetch_1.default) {
     };
 }
 exports.APIClient = APIClient;
-function parseResponse(res) {
+function toEither(res) {
     if (!res) {
         return Either_1.left(new Error("Response is empty"));
     }
@@ -94,5 +94,5 @@ function parseResponse(res) {
         return Either_1.left(new Error("Error parsing response: " + res.status));
     }
 }
-exports.parseResponse = parseResponse;
+exports.toEither = toEither;
 //# sourceMappingURL=api_client.js.map

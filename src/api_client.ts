@@ -186,14 +186,14 @@ export function APIClient(
   };
 }
 
-export function parseResponse<T>(
-  res: IResponseType<number, T | Error> | undefined
+export function toEither<T>(
+  res: BasicResponseTypeWith401<T> | undefined
 ): Either<Error, T> {
   if (!res) {
     return left(new Error("Response is empty"));
   }
   if (res.status === 200) {
-    return right(res.value as T);
+    return right(res.value);
   } else {
     return left(new Error("Error parsing response: " + res.status));
   }
