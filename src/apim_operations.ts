@@ -168,7 +168,7 @@ export const regeneratePrimaryKey = (
     return regenerateKey__(apiClient, subscriptionId, userId, "primary");
   } catch (e) {
     logger.error("regeneratePrimaryKey %s", e.message);
-    return undefined;
+    return none;
   }
 };
 
@@ -177,9 +177,14 @@ export const regenerateSecondaryKey = (
   subscriptionId: string,
   userId: string
 ) => {
-  // tslint:disable-next-line:no-any
-  (memoizee as any).delete("getUserSubscription", {}, subscriptionId, userId);
-  return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
+  try {
+    // tslint:disable-next-line:no-any
+    (memoizee as any).delete("getUserSubscription", {}, subscriptionId, userId);
+    return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
+  } catch (e) {
+    logger.error("regenerateSecondaryKey %s", e.message);
+    return none;
+  }
 };
 
 /**

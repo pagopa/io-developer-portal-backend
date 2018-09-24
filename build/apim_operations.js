@@ -104,13 +104,19 @@ exports.regeneratePrimaryKey = (apiClient, subscriptionId, userId) => {
     }
     catch (e) {
         logger_1.logger.error("regeneratePrimaryKey %s", e.message);
-        return undefined;
+        return Option_1.none;
     }
 };
 exports.regenerateSecondaryKey = (apiClient, subscriptionId, userId) => {
-    // tslint:disable-next-line:no-any
-    memoizee.delete("getUserSubscription", {}, subscriptionId, userId);
-    return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
+    try {
+        // tslint:disable-next-line:no-any
+        memoizee.delete("getUserSubscription", {}, subscriptionId, userId);
+        return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
+    }
+    catch (e) {
+        logger_1.logger.error("regenerateSecondaryKey %s", e.message);
+        return Option_1.none;
+    }
 };
 /**
  * Return the corresponding API management user
