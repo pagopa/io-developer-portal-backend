@@ -147,7 +147,7 @@ async function regenerateKey__(
       );
       break;
     case "secondary":
-      await apiClient.subscription.regeneratePrimaryKey(
+      await apiClient.subscription.regenerateSecondaryKey(
         config.azurermResourceGroup,
         config.azurermApim,
         subscriptionId
@@ -162,9 +162,14 @@ export const regeneratePrimaryKey = (
   subscriptionId: string,
   userId: string
 ) => {
-  // tslint:disable-next-line:no-any
-  (memoizee as any).delete("getUserSubscription", {}, subscriptionId, userId);
-  return regenerateKey__(apiClient, subscriptionId, userId, "primary");
+  try {
+    // tslint:disable-next-line:no-any
+    (memoizee as any).delete("getUserSubscription", {}, subscriptionId, userId);
+    return regenerateKey__(apiClient, subscriptionId, userId, "primary");
+  } catch (e) {
+    logger.error("regeneratePrimaryKey %s", e.message);
+    return undefined;
+  }
 };
 
 export const regenerateSecondaryKey = (

@@ -90,16 +90,22 @@ function regenerateKey__(apiClient, subscriptionId, userId, keyType) {
                 yield apiClient.subscription.regeneratePrimaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
                 break;
             case "secondary":
-                yield apiClient.subscription.regeneratePrimaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
+                yield apiClient.subscription.regenerateSecondaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
                 break;
         }
         return getUserSubscription__(apiClient, subscriptionId, userId);
     });
 }
 exports.regeneratePrimaryKey = (apiClient, subscriptionId, userId) => {
-    // tslint:disable-next-line:no-any
-    memoizee.delete("getUserSubscription", {}, subscriptionId, userId);
-    return regenerateKey__(apiClient, subscriptionId, userId, "primary");
+    try {
+        // tslint:disable-next-line:no-any
+        memoizee.delete("getUserSubscription", {}, subscriptionId, userId);
+        return regenerateKey__(apiClient, subscriptionId, userId, "primary");
+    }
+    catch (e) {
+        logger_1.logger.error("regeneratePrimaryKey %s", e.message);
+        return undefined;
+    }
 };
 exports.regenerateSecondaryKey = (apiClient, subscriptionId, userId) => {
     // tslint:disable-next-line:no-any
