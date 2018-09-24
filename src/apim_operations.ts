@@ -103,7 +103,7 @@ async function getUserSubscription__(
 }
 export const getUserSubscription = memoizee(getUserSubscription__, {
   max: 100,
-  maxAge: 3600,
+  maxAge: 3600000,
   profileName: "getUserSubscription"
 });
 
@@ -196,7 +196,7 @@ async function getApimUser__(
 
 export const getApimUser = memoizee(getApimUser__, {
   max: 100,
-  maxAge: 3600,
+  maxAge: 3600000,
   profileName: "getApimUser"
 });
 

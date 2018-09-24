@@ -64,7 +64,7 @@ function getUserSubscription__(apiClient, subscriptionId, userId) {
 }
 exports.getUserSubscription = memoizee(getUserSubscription__, {
     max: 100,
-    maxAge: 3600,
+    maxAge: 3600000,
     profileName: "getUserSubscription"
 });
 function getUserSubscriptions(apiClient, userId) {
@@ -123,7 +123,7 @@ function getApimUser__(apiClient, email) {
 }
 exports.getApimUser = memoizee(getApimUser__, {
     max: 100,
-    maxAge: 3600,
+    maxAge: 3600000,
     profileName: "getApimUser"
 });
 function addUserSubscriptionToProduct(apiClient, userId, productName) {
