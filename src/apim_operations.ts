@@ -23,6 +23,7 @@ import * as config from "./config";
 import { Either, left, right } from "fp-ts/lib/Either";
 import { isNone, none, Option, some } from "fp-ts/lib/Option";
 import { ulid } from "ulid";
+import { getSubscriptions } from "./controllers/subscriptions";
 
 export interface IUserData extends UserCreateParameters {
   readonly oid: string;
@@ -164,7 +165,8 @@ export const regeneratePrimaryKey = (
 ) => {
   try {
     // tslint:disable-next-line:no-any
-    (memoizee as any).delete("getUserSubscription", {}, subscriptionId, userId);
+    (getUserSubscription as any).delete({}, subscriptionId, userId);
+    logger.debug("pruning cache %s", JSON.stringify(getUserSubscription));
     return regenerateKey__(apiClient, subscriptionId, userId, "primary");
   } catch (e) {
     logger.error("regeneratePrimaryKey %s", e.message);
@@ -179,7 +181,8 @@ export const regenerateSecondaryKey = (
 ) => {
   try {
     // tslint:disable-next-line:no-any
-    (memoizee as any).delete("getUserSubscription", {}, subscriptionId, userId);
+    (getUserSubscription as any).delete({}, subscriptionId, userId);
+    logger.debug("pruning cache %s", JSON.stringify(getUserSubscription));
     return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
   } catch (e) {
     logger.error("regenerateSecondaryKey %s", e.message);

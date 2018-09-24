@@ -99,7 +99,8 @@ function regenerateKey__(apiClient, subscriptionId, userId, keyType) {
 exports.regeneratePrimaryKey = (apiClient, subscriptionId, userId) => {
     try {
         // tslint:disable-next-line:no-any
-        memoizee.delete("getUserSubscription", {}, subscriptionId, userId);
+        exports.getUserSubscription.delete({}, subscriptionId, userId);
+        logger_1.logger.debug("pruning cache %s", JSON.stringify(exports.getUserSubscription));
         return regenerateKey__(apiClient, subscriptionId, userId, "primary");
     }
     catch (e) {
@@ -110,7 +111,8 @@ exports.regeneratePrimaryKey = (apiClient, subscriptionId, userId) => {
 exports.regenerateSecondaryKey = (apiClient, subscriptionId, userId) => {
     try {
         // tslint:disable-next-line:no-any
-        memoizee.delete("getUserSubscription", {}, subscriptionId, userId);
+        exports.getUserSubscription.delete({}, subscriptionId, userId);
+        logger_1.logger.debug("pruning cache %s", JSON.stringify(exports.getUserSubscription));
         return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
     }
     catch (e) {
