@@ -104,7 +104,9 @@ async function getUserSubscription__(
 export const getUserSubscription = memoizee(getUserSubscription__, {
   max: 100,
   maxAge: 3600000,
-  profileName: "getUserSubscription"
+  normalizer: args => args[1] + ":" + args[2],
+  profileName: "getUserSubscription",
+  promise: true
 });
 
 export async function getUserSubscriptions(
@@ -197,7 +199,9 @@ async function getApimUser__(
 export const getApimUser = memoizee(getApimUser__, {
   max: 100,
   maxAge: 3600000,
-  profileName: "getApimUser"
+  normalizer: args => args[1],
+  profileName: "getApimUser",
+  promise: true
 });
 
 export async function addUserSubscriptionToProduct(
