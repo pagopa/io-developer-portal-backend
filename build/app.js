@@ -33,6 +33,7 @@ const request_middleware_1 = require("italia-ts-commons/lib/request_middleware")
 const strings_1 = require("italia-ts-commons/lib/strings");
 const Service_1 = require("./api/Service");
 const bearer_strategy_1 = require("./bearer_strategy");
+const cache_1 = require("./cache");
 const services_1 = require("./controllers/services");
 const subscriptions_1 = require("./controllers/subscriptions");
 const express_1 = require("./express");
@@ -42,6 +43,7 @@ const extract_payload_1 = require("./middlewares/extract_payload");
 const required_param_1 = require("./middlewares/required_param");
 const user_1 = require("./middlewares/user");
 process.on("unhandledRejection", e => logger_1.logger.error(JSON.stringify(e)));
+cache_1.initCacheStats();
 /**
  * Setup an authentication strategy (oauth) for express endpoints.
  */

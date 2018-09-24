@@ -29,6 +29,7 @@ import {
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { Service } from "./api/Service";
 import { setupBearerStrategy } from "./bearer_strategy";
+import { initCacheStats } from "./cache";
 import { getService, putService } from "./controllers/services";
 import {
   getSubscriptions,
@@ -43,6 +44,8 @@ import { RequiredParamMiddleware } from "./middlewares/required_param";
 import { getUserFromRequestMiddleware } from "./middlewares/user";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
+
+initCacheStats();
 
 /**
  * Setup an authentication strategy (oauth) for express endpoints.
