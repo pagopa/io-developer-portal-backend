@@ -123,13 +123,14 @@ export async function getUserSubscriptions(
   );
 }
 
-export async function regeneratePrimaryKey(
+async function regenerateKey__(
   apiClient: ApiManagementClient,
   subscriptionId: string,
-  userId: string
+  userId: string,
+  keyType: "primary" | "secondary"
 ): Promise<Option<SubscriptionContract>> {
   logger.debug("regeneratePrimaryKey");
-  const maybeSubscription = await getUserSubscription(
+  const maybeSubscription = await getUserSubscription__(
     apiClient,
     subscriptionId,
     userId
@@ -137,35 +138,44 @@ export async function regeneratePrimaryKey(
   if (isNone(maybeSubscription)) {
     return none;
   }
-  await apiClient.subscription.regeneratePrimaryKey(
-    config.azurermResourceGroup,
-    config.azurermApim,
-    subscriptionId
-  );
-  return getUserSubscription(apiClient, subscriptionId, userId);
+  switch (keyType) {
+    case "primary":
+      await apiClient.subscription.regeneratePrimaryKey(
+        config.azurermResourceGroup,
+        config.azurermApim,
+        subscriptionId
+      );
+      break;
+    case "secondary":
+      await apiClient.subscription.regeneratePrimaryKey(
+        config.azurermResourceGroup,
+        config.azurermApim,
+        subscriptionId
+      );
+      break;
+  }
+  return getUserSubscription__(apiClient, subscriptionId, userId);
 }
 
-export async function regenerateSecondaryKey(
+export const regeneratePrimaryKey = (
   apiClient: ApiManagementClient,
   subscriptionId: string,
   userId: string
-): Promise<Option<SubscriptionContract>> {
-  logger.debug("regenerateSecondaryKey");
-  const maybeSubscription = await getUserSubscription(
-    apiClient,
-    subscriptionId,
-    userId
-  );
-  if (isNone(maybeSubscription)) {
-    return none;
-  }
-  await apiClient.subscription.regenerateSecondaryKey(
-    config.azurermResourceGroup,
-    config.azurermApim,
-    subscriptionId
-  );
-  return getUserSubscription(apiClient, subscriptionId, userId);
-}
+) => {
+  // tslint:disable-next-line:no-any
+  (memoizee as any).delete("getUserSubscription", {}, subscriptionId, userId);
+  return regenerateKey__(apiClient, subscriptionId, userId, "primary");
+};
+
+export const regenerateSecondaryKey = (
+  apiClient: ApiManagementClient,
+  subscriptionId: string,
+  userId: string
+) => {
+  // tslint:disable-next-line:no-any
+  (memoizee as any).delete("getUserSubscription", {}, subscriptionId, userId);
+  return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
+};
 
 /**
  * Return the corresponding API management user

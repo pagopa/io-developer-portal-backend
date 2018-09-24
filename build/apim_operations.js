@@ -78,30 +78,34 @@ function getUserSubscriptions(apiClient, userId) {
     });
 }
 exports.getUserSubscriptions = getUserSubscriptions;
-function regeneratePrimaryKey(apiClient, subscriptionId, userId) {
+function regenerateKey__(apiClient, subscriptionId, userId, keyType) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("regeneratePrimaryKey");
-        const maybeSubscription = yield exports.getUserSubscription(apiClient, subscriptionId, userId);
+        const maybeSubscription = yield getUserSubscription__(apiClient, subscriptionId, userId);
         if (Option_1.isNone(maybeSubscription)) {
             return Option_1.none;
         }
-        yield apiClient.subscription.regeneratePrimaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
-        return exports.getUserSubscription(apiClient, subscriptionId, userId);
-    });
-}
-exports.regeneratePrimaryKey = regeneratePrimaryKey;
-function regenerateSecondaryKey(apiClient, subscriptionId, userId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        logger_1.logger.debug("regenerateSecondaryKey");
-        const maybeSubscription = yield exports.getUserSubscription(apiClient, subscriptionId, userId);
-        if (Option_1.isNone(maybeSubscription)) {
-            return Option_1.none;
+        switch (keyType) {
+            case "primary":
+                yield apiClient.subscription.regeneratePrimaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
+                break;
+            case "secondary":
+                yield apiClient.subscription.regeneratePrimaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
+                break;
         }
-        yield apiClient.subscription.regenerateSecondaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
-        return exports.getUserSubscription(apiClient, subscriptionId, userId);
+        return getUserSubscription__(apiClient, subscriptionId, userId);
     });
 }
-exports.regenerateSecondaryKey = regenerateSecondaryKey;
+exports.regeneratePrimaryKey = (apiClient, subscriptionId, userId) => {
+    // tslint:disable-next-line:no-any
+    memoizee.delete("getUserSubscription", {}, subscriptionId, userId);
+    return regenerateKey__(apiClient, subscriptionId, userId, "primary");
+};
+exports.regenerateSecondaryKey = (apiClient, subscriptionId, userId) => {
+    // tslint:disable-next-line:no-any
+    memoizee.delete("getUserSubscription", {}, subscriptionId, userId);
+    return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
+};
 /**
  * Return the corresponding API management user
  * given the Active Directory B2C user's email.
