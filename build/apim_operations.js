@@ -97,11 +97,13 @@ function regenerateKey__(apiClient, subscriptionId, userId, keyType) {
     });
 }
 exports.regeneratePrimaryKey = (apiClient, subscriptionId, userId) => {
+    // invalidate subscriptions cache
     // tslint:disable-next-line:no-any
     exports.getUserSubscription.delete({}, subscriptionId, userId);
     return regenerateKey__(apiClient, subscriptionId, userId, "primary");
 };
 exports.regenerateSecondaryKey = (apiClient, subscriptionId, userId) => {
+    // invalidate subscriptions cache
     // tslint:disable-next-line:no-any
     exports.getUserSubscription.delete({}, subscriptionId, userId);
     return regenerateKey__(apiClient, subscriptionId, userId, "secondary");

@@ -12,6 +12,7 @@ const node_fetch_1 = require("node-fetch");
 const CreatedMessageWithContent_1 = require("./api/CreatedMessageWithContent");
 const ExtendedProfile_1 = require("./api/ExtendedProfile");
 const LimitedProfile_1 = require("./api/LimitedProfile");
+const Service_1 = require("./api/Service");
 const ServicePublic_1 = require("./api/ServicePublic");
 const OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 // ProfileLimitedOrExtended is oneOf [LimitedProfile, ExtendedProfile]
@@ -39,7 +40,7 @@ fetchApi = node_fetch_1.default) {
         headers: tokenHeaderProducer,
         method: "get",
         query: _ => ({}),
-        response_decoder: basicResponseDecoderWith401(ServicePublic_1.ServicePublic),
+        response_decoder: basicResponseDecoderWith401(Service_1.Service),
         url: params => `/adm/services/${params.id}`
     };
     const sendMessageT = {

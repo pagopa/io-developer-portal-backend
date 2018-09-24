@@ -69,7 +69,7 @@ export type GetServiceT = IGetApiRequestType<
   },
   OcpApimSubscriptionKey,
   never,
-  BasicResponseTypeWith401<ServicePublic>
+  BasicResponseTypeWith401<Service>
 >;
 
 export type SendMessageT = IPostApiRequestType<
@@ -134,7 +134,7 @@ export function APIClient(
     headers: tokenHeaderProducer,
     method: "get",
     query: _ => ({}),
-    response_decoder: basicResponseDecoderWith401(ServicePublic),
+    response_decoder: basicResponseDecoderWith401(Service),
     url: params => `/adm/services/${params.id}`
   };
 

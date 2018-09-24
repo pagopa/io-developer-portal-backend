@@ -23,7 +23,6 @@ import * as config from "./config";
 import { Either, left, right } from "fp-ts/lib/Either";
 import { isNone, none, Option, some } from "fp-ts/lib/Option";
 import { ulid } from "ulid";
-import { getSubscriptions } from "./controllers/subscriptions";
 
 export interface IUserData extends UserCreateParameters {
   readonly oid: string;
@@ -163,6 +162,7 @@ export const regeneratePrimaryKey = (
   subscriptionId: string,
   userId: string
 ) => {
+  // invalidate subscriptions cache
   // tslint:disable-next-line:no-any
   (getUserSubscription as any).delete({}, subscriptionId, userId);
   return regenerateKey__(apiClient, subscriptionId, userId, "primary");
@@ -173,6 +173,7 @@ export const regenerateSecondaryKey = (
   subscriptionId: string,
   userId: string
 ) => {
+  // invalidate subscriptions cache
   // tslint:disable-next-line:no-any
   (getUserSubscription as any).delete({}, subscriptionId, userId);
   return regenerateKey__(apiClient, subscriptionId, userId, "secondary");

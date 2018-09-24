@@ -10,13 +10,31 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessJson
 } from "italia-ts-commons/lib/responses";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
-import { Service } from "../api/Service";
+import {
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "italia-ts-commons/lib/strings";
 import { ServicePublic } from "../api/ServicePublic";
 import { APIClient, toEither } from "../api_client";
 import { getApimUser, getUserSubscription } from "../apim_operations";
 import { AdUser } from "../bearer_strategy";
 import * as config from "../config";
+
+import * as t from "io-ts";
+import { Service } from "../api/Service";
+
+/**
+ * Service fields editable by the user.
+ */
+const ServicePayload = t.exact(
+  t.interface({
+    department_name: NonEmptyString,
+    organization_fiscal_code: OrganizationFiscalCode,
+    organization_name: NonEmptyString,
+    service_name: NonEmptyString
+  })
+);
+type ServicePayload = t.TypeOf<typeof ServicePayload>;
 
 const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 
@@ -28,7 +46,7 @@ export async function getService(
   authenticatedUser: AdUser,
   serviceId: NonEmptyString
 ): Promise<
-  | IResponseSuccessJson<ServicePublic>
+  | IResponseSuccessJson<Service>
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorInternal
   | IResponseErrorNotFound
@@ -56,7 +74,7 @@ export async function getService(
     return ResponseErrorInternal("Cannot get user subscription");
   }
 
-  const errorOrServiceResponse = toEither<ServicePublic>(
+  const errorOrServiceResponse = toEither(
     await notificationApiClient.getService({
       id: serviceId
     })
@@ -68,8 +86,8 @@ export async function getService(
       "Cannot get existing service"
     );
   }
-
-  return ResponseSuccessJson(errorOrServiceResponse.value);
+  const service = errorOrServiceResponse.value;
+  return ResponseSuccessJson(service);
 }
 
 /**
@@ -79,7 +97,7 @@ export async function putService(
   apiClient: ApiManagementClient,
   authenticatedUser: AdUser,
   serviceId: NonEmptyString,
-  servicePayload: Service
+  servicePayload: ServicePayload
 ): Promise<
   | IResponseSuccessJson<ServicePublic>
   | IResponseErrorForbiddenNotAuthorized
@@ -112,16 +130,30 @@ export async function putService(
     );
   }
 
+  // Get old service data
+  const errorOrService = toEither(
+    await notificationApiClient.getService({
+      id: serviceId
+    })
+  );
+  if (isLeft(errorOrService)) {
+    return ResponseErrorNotFound(
+      "Service not found",
+      "Cannot get a service with the provided id."
+    );
+  }
+  const service = errorOrService.value;
+
   // TODO: get the old service then filter only
   // authorized fields and merge the changes
-  const errorOrService = toEither(
+  const errorOrUpdatedService = toEither(
     await notificationApiClient.updateService({
-      service: servicePayload,
+      service: { ...service, ...servicePayload },
       serviceId
     })
   );
 
-  return errorOrService.fold<
+  return errorOrUpdatedService.fold<
     IResponseErrorInternal | IResponseSuccessJson<ServicePublic>
   >(
     errs => ResponseErrorInternal("Error updating service: " + errs.message),
