@@ -163,15 +163,9 @@ export const regeneratePrimaryKey = (
   subscriptionId: string,
   userId: string
 ) => {
-  try {
-    // tslint:disable-next-line:no-any
-    (getUserSubscription as any).delete({}, subscriptionId, userId);
-    logger.debug("pruning cache %s", JSON.stringify(getUserSubscription));
-    return regenerateKey__(apiClient, subscriptionId, userId, "primary");
-  } catch (e) {
-    logger.error("regeneratePrimaryKey %s", e.message);
-    return none;
-  }
+  // tslint:disable-next-line:no-any
+  (getUserSubscription as any).delete({}, subscriptionId, userId);
+  return regenerateKey__(apiClient, subscriptionId, userId, "primary");
 };
 
 export const regenerateSecondaryKey = (
@@ -179,15 +173,9 @@ export const regenerateSecondaryKey = (
   subscriptionId: string,
   userId: string
 ) => {
-  try {
-    // tslint:disable-next-line:no-any
-    (getUserSubscription as any).delete({}, subscriptionId, userId);
-    logger.debug("pruning cache %s", JSON.stringify(getUserSubscription));
-    return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
-  } catch (e) {
-    logger.error("regenerateSecondaryKey %s", e.message);
-    return none;
-  }
+  // tslint:disable-next-line:no-any
+  (getUserSubscription as any).delete({}, subscriptionId, userId);
+  return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
 };
 
 /**

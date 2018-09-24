@@ -97,28 +97,14 @@ function regenerateKey__(apiClient, subscriptionId, userId, keyType) {
     });
 }
 exports.regeneratePrimaryKey = (apiClient, subscriptionId, userId) => {
-    try {
-        // tslint:disable-next-line:no-any
-        exports.getUserSubscription.delete({}, subscriptionId, userId);
-        logger_1.logger.debug("pruning cache %s", JSON.stringify(exports.getUserSubscription));
-        return regenerateKey__(apiClient, subscriptionId, userId, "primary");
-    }
-    catch (e) {
-        logger_1.logger.error("regeneratePrimaryKey %s", e.message);
-        return Option_1.none;
-    }
+    // tslint:disable-next-line:no-any
+    exports.getUserSubscription.delete({}, subscriptionId, userId);
+    return regenerateKey__(apiClient, subscriptionId, userId, "primary");
 };
 exports.regenerateSecondaryKey = (apiClient, subscriptionId, userId) => {
-    try {
-        // tslint:disable-next-line:no-any
-        exports.getUserSubscription.delete({}, subscriptionId, userId);
-        logger_1.logger.debug("pruning cache %s", JSON.stringify(exports.getUserSubscription));
-        return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
-    }
-    catch (e) {
-        logger_1.logger.error("regenerateSecondaryKey %s", e.message);
-        return Option_1.none;
-    }
+    // tslint:disable-next-line:no-any
+    exports.getUserSubscription.delete({}, subscriptionId, userId);
+    return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
 };
 /**
  * Return the corresponding API management user
