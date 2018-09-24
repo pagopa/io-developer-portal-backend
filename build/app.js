@@ -43,7 +43,9 @@ const extract_payload_1 = require("./middlewares/extract_payload");
 const required_param_1 = require("./middlewares/required_param");
 const user_1 = require("./middlewares/user");
 process.on("unhandledRejection", e => logger_1.logger.error(JSON.stringify(e)));
-cache_1.initCacheStats();
+if (process.env.NODE_ENV === "debug") {
+    cache_1.initCacheStats();
+}
 /**
  * Setup an authentication strategy (oauth) for express endpoints.
  */

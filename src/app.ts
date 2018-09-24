@@ -45,7 +45,9 @@ import { getUserFromRequestMiddleware } from "./middlewares/user";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
-initCacheStats();
+if (process.env.NODE_ENV === "debug") {
+  initCacheStats();
+}
 
 /**
  * Setup an authentication strategy (oauth) for express endpoints.
