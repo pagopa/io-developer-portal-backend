@@ -170,6 +170,8 @@ export async function subscribeApimUser(
       return left(new Error(errorOrServiceResponse.value.message));
     }
 
+    logger.debug("subscribeApimUser|sending message");
+
     const errorOrMessage = NewMessage.decode({
       content: {
         markdown: [
@@ -187,7 +189,7 @@ export async function subscribeApimUser(
     }
     const message = errorOrMessage.value;
 
-    logger.debug("subscribeApimUser|sendMessage");
+    logger.debug("subscribeApimUser|message sent");
 
     const errorOrMessageResponse = toEither(
       await notificationApiClient.sendMessage({

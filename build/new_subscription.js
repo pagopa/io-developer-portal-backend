@@ -120,6 +120,7 @@ function subscribeApimUser(apiClient, adUser) {
             if (Either_1.isLeft(errorOrServiceResponse)) {
                 return Either_1.left(new Error(errorOrServiceResponse.value.message));
             }
+            logger_1.logger.debug("subscribeApimUser|sending message");
             const errorOrMessage = NewMessage_1.NewMessage.decode({
                 content: {
                     markdown: [
@@ -136,7 +137,7 @@ function subscribeApimUser(apiClient, adUser) {
                 return Either_1.left(new Error(reporters_1.readableReport(errorOrMessage.value)));
             }
             const message = errorOrMessage.value;
-            logger_1.logger.debug("subscribeApimUser|sendMessage");
+            logger_1.logger.debug("subscribeApimUser|message sent");
             const errorOrMessageResponse = api_client_1.toEither(yield notificationApiClient.sendMessage({
                 fiscalCode: fakeFiscalCode,
                 message
