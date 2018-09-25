@@ -110,7 +110,7 @@ function subscribeApimUser(apiClient, adUser) {
                 service_name: adUser.extension_Service || "service"
             });
             if (Either_1.isLeft(errorOrService)) {
-                return Either_1.left(new Error("upsertService|" + reporters_1.readableReport(errorOrService.value)));
+                return Either_1.left(new Error("upsertService|decode error|" + reporters_1.readableReport(errorOrService.value)));
             }
             const service = errorOrService.value;
             // creates a new service every time !
