@@ -17,11 +17,11 @@ const ServicePublic_1 = require("./api/ServicePublic");
 const OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 // ProfileLimitedOrExtended is oneOf [LimitedProfile, ExtendedProfile]
 const ProfileLimitedOrExtended = t.union([LimitedProfile_1.LimitedProfile, ExtendedProfile_1.ExtendedProfile]);
-// A basic response decoder that also include 401
-function basicResponseDecoderWith401(type) {
-    return requests_1.composeResponseDecoders(requests_1.basicResponseDecoder(type), requests_1.basicErrorResponseDecoder(401));
+function apiResponseDecoder(type) {
+    const basicResponseDecoderWith401 = requests_1.composeResponseDecoders(apiResponseDecoder(type), requests_1.basicErrorResponseDecoder(401));
+    return requests_1.composeResponseDecoders(requests_1.ioResponseDecoder(201, type), basicResponseDecoderWith401);
 }
-exports.basicResponseDecoderWith401 = basicResponseDecoderWith401;
+exports.apiResponseDecoder = apiResponseDecoder;
 function SubscriptionKeyHeaderProducer(token) {
     return () => ({
         [OcpApimSubscriptionKey]: token
@@ -40,7 +40,7 @@ fetchApi = node_fetch_1.default) {
         headers: tokenHeaderProducer,
         method: "get",
         query: _ => ({}),
-        response_decoder: basicResponseDecoderWith401(Service_1.Service),
+        response_decoder: apiResponseDecoder(Service_1.Service),
         url: params => `/adm/services/${params.id}`
     };
     const sendMessageT = {
@@ -48,7 +48,7 @@ fetchApi = node_fetch_1.default) {
         headers: requests_1.composeHeaderProducers(tokenHeaderProducer, requests_1.ApiHeaderJson),
         method: "post",
         query: _ => ({}),
-        response_decoder: basicResponseDecoderWith401(t.interface({ id: strings_1.NonEmptyString })),
+        response_decoder: apiResponseDecoder(t.interface({ id: strings_1.NonEmptyString })),
         url: params => `/api/v1/messages/${params.fiscalCode}`
     };
     const createOrUpdateProfileT = {
@@ -56,7 +56,7 @@ fetchApi = node_fetch_1.default) {
         headers: requests_1.composeHeaderProducers(tokenHeaderProducer, requests_1.ApiHeaderJson),
         method: "post",
         query: _ => ({}),
-        response_decoder: basicResponseDecoderWith401(ExtendedProfile_1.ExtendedProfile),
+        response_decoder: apiResponseDecoder(ExtendedProfile_1.ExtendedProfile),
         url: params => `/api/v1/profiles/${params.fiscalCode}`
     };
     const createServiceT = {
@@ -64,7 +64,7 @@ fetchApi = node_fetch_1.default) {
         headers: requests_1.composeHeaderProducers(tokenHeaderProducer, requests_1.ApiHeaderJson),
         method: "post",
         query: _ => ({}),
-        response_decoder: basicResponseDecoderWith401(ServicePublic_1.ServicePublic),
+        response_decoder: apiResponseDecoder(ServicePublic_1.ServicePublic),
         url: _ => `/adm/services`
     };
     const updateServiceT = {
@@ -72,7 +72,7 @@ fetchApi = node_fetch_1.default) {
         headers: requests_1.composeHeaderProducers(tokenHeaderProducer, requests_1.ApiHeaderJson),
         method: "post",
         query: _ => ({}),
-        response_decoder: basicResponseDecoderWith401(ServicePublic_1.ServicePublic),
+        response_decoder: apiResponseDecoder(ServicePublic_1.ServicePublic),
         url: params => `/adm/services/${params.serviceId}`
     };
     return {

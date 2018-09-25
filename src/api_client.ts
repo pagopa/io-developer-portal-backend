@@ -10,12 +10,12 @@ import { Either, left, right } from "fp-ts/lib/Either";
 import {
   ApiHeaderJson,
   basicErrorResponseDecoder,
-  basicResponseDecoder,
   BasicResponseType,
   composeHeaderProducers,
   composeResponseDecoders,
   createFetchRequestForApi,
   IGetApiRequestType,
+  ioResponseDecoder,
   IPostApiRequestType,
   IResponseType,
   RequestHeaderProducer,
@@ -42,18 +42,21 @@ export type ProfileLimitedOrExtended = t.TypeOf<
   typeof ProfileLimitedOrExtended
 >;
 
-export type BasicResponseTypeWith401<R> =
+export type ApiResponseType<R> =
   | BasicResponseType<R>
   | IResponseType<201, R>
   | IResponseType<401, Error>;
 
-// A basic response decoder that also include 401
-export function basicResponseDecoderWith401<R, O = R>(
+export function apiResponseDecoder<R, O = R>(
   type: t.Type<R, O>
-): ResponseDecoder<BasicResponseTypeWith401<R>> {
-  return composeResponseDecoders(
-    basicResponseDecoder(type),
+): ResponseDecoder<ApiResponseType<R>> {
+  const basicResponseDecoderWith401 = composeResponseDecoders(
+    apiResponseDecoder(type),
     basicErrorResponseDecoder(401)
+  );
+  return composeResponseDecoders(
+    ioResponseDecoder(201, type),
+    basicResponseDecoderWith401
   );
 }
 
@@ -71,7 +74,7 @@ export type GetServiceT = IGetApiRequestType<
   },
   OcpApimSubscriptionKey,
   never,
-  BasicResponseTypeWith401<Service>
+  ApiResponseType<Service>
 >;
 
 export type SendMessageT = IPostApiRequestType<
@@ -81,7 +84,7 @@ export type SendMessageT = IPostApiRequestType<
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
-  BasicResponseTypeWith401<{ readonly id: NonEmptyString }>
+  ApiResponseType<{ readonly id: NonEmptyString }>
 >;
 
 export type CreateOrUpdateProfileT = IPostApiRequestType<
@@ -91,7 +94,7 @@ export type CreateOrUpdateProfileT = IPostApiRequestType<
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
-  BasicResponseTypeWith401<ExtendedProfile>
+  ApiResponseType<ExtendedProfile>
 >;
 
 export type CreateServiceT = IPostApiRequestType<
@@ -100,7 +103,7 @@ export type CreateServiceT = IPostApiRequestType<
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
-  BasicResponseTypeWith401<ServicePublic>
+  ApiResponseType<ServicePublic>
 >;
 
 export type UpdateServiceT = IPostApiRequestType<
@@ -110,7 +113,7 @@ export type UpdateServiceT = IPostApiRequestType<
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
-  BasicResponseTypeWith401<ServicePublic>
+  ApiResponseType<ServicePublic>
 >;
 
 export function APIClient(
@@ -136,7 +139,7 @@ export function APIClient(
     headers: tokenHeaderProducer,
     method: "get",
     query: _ => ({}),
-    response_decoder: basicResponseDecoderWith401(Service),
+    response_decoder: apiResponseDecoder(Service),
     url: params => `/adm/services/${params.id}`
   };
 
@@ -145,9 +148,7 @@ export function APIClient(
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
     method: "post",
     query: _ => ({}),
-    response_decoder: basicResponseDecoderWith401(
-      t.interface({ id: NonEmptyString })
-    ),
+    response_decoder: apiResponseDecoder(t.interface({ id: NonEmptyString })),
     url: params => `/api/v1/messages/${params.fiscalCode}`
   };
 
@@ -156,7 +157,7 @@ export function APIClient(
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
     method: "post",
     query: _ => ({}),
-    response_decoder: basicResponseDecoderWith401(ExtendedProfile),
+    response_decoder: apiResponseDecoder(ExtendedProfile),
     url: params => `/api/v1/profiles/${params.fiscalCode}`
   };
 
@@ -165,7 +166,7 @@ export function APIClient(
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
     method: "post",
     query: _ => ({}),
-    response_decoder: basicResponseDecoderWith401(ServicePublic),
+    response_decoder: apiResponseDecoder(ServicePublic),
     url: _ => `/adm/services`
   };
 
@@ -174,7 +175,7 @@ export function APIClient(
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
     method: "post",
     query: _ => ({}),
-    response_decoder: basicResponseDecoderWith401(ServicePublic),
+    response_decoder: apiResponseDecoder(ServicePublic),
     url: params => `/adm/services/${params.serviceId}`
   };
 
@@ -191,7 +192,7 @@ export function APIClient(
 }
 
 export function toEither<T>(
-  res: BasicResponseTypeWith401<T> | undefined
+  res: ApiResponseType<T> | undefined
 ): Either<Error, T> {
   if (!res) {
     return left(new Error("Response is empty"));
