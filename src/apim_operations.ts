@@ -268,14 +268,17 @@ export async function addUserToGroups(
     user.name
   );
   const existingGroupsNames = new Set(existingGroups.map(g => g.name));
-  logger.debug("addUserToGroups|groups|%s", existingGroupsNames);
+  logger.debug(
+    "addUserToGroups|groups|%s",
+    JSON.stringify(existingGroupsNames)
+  );
   const missingGroups = new Set(
     groups.filter(g => !existingGroupsNames.has(g))
   );
   if (missingGroups.size === 0) {
     logger.debug(
       "addUserToGroups|user already belongs to groups|%s",
-      existingGroupsNames
+      JSON.stringify(existingGroupsNames)
     );
     return right([]);
   }

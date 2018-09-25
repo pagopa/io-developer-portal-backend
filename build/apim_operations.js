@@ -168,10 +168,10 @@ function addUserToGroups(apiClient, user, groups) {
         }
         const existingGroups = yield apiClient.userGroup.list(config.azurermResourceGroup, config.azurermApim, user.name);
         const existingGroupsNames = new Set(existingGroups.map(g => g.name));
-        logger_1.logger.debug("addUserToGroups|groups|%s", existingGroupsNames);
+        logger_1.logger.debug("addUserToGroups|groups|%s", JSON.stringify(existingGroupsNames));
         const missingGroups = new Set(groups.filter(g => !existingGroupsNames.has(g)));
         if (missingGroups.size === 0) {
-            logger_1.logger.debug("addUserToGroups|user already belongs to groups|%s", existingGroupsNames);
+            logger_1.logger.debug("addUserToGroups|user already belongs to groups|%s", JSON.stringify(existingGroupsNames));
             return Either_1.right([]);
         }
         // sequence the promises here as calling this method

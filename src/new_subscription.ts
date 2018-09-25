@@ -156,7 +156,9 @@ export async function subscribeApimUser(
       service_name: adUser.extension_Service || "service"
     });
     if (isLeft(errorOrService)) {
-      return left(new Error(readableReport(errorOrService.value)));
+      return left(
+        new Error("upsertService|" + readableReport(errorOrService.value))
+      );
     }
     const service = errorOrService.value;
 
@@ -167,7 +169,11 @@ export async function subscribeApimUser(
       })
     );
     if (isLeft(errorOrServiceResponse)) {
-      return left(new Error(errorOrServiceResponse.value.message));
+      return left(
+        new Error(
+          "upsertService|response|" + errorOrServiceResponse.value.message
+        )
+      );
     }
 
     logger.debug("subscribeApimUser|sending message");
@@ -185,11 +191,13 @@ export async function subscribeApimUser(
       }
     });
     if (isLeft(errorOrMessage)) {
-      return left(new Error(readableReport(errorOrMessage.value)));
+      return left(
+        new Error(
+          "sendMessage|decode error|" + readableReport(errorOrMessage.value)
+        )
+      );
     }
     const message = errorOrMessage.value;
-
-    logger.debug("subscribeApimUser|message sent");
 
     const errorOrMessageResponse = toEither(
       await notificationApiClient.sendMessage({
@@ -198,7 +206,9 @@ export async function subscribeApimUser(
       })
     );
     if (isLeft(errorOrMessageResponse)) {
-      return left(new Error(errorOrMessageResponse.value.message));
+      return left(
+        new Error("sendMessage|error|" + errorOrMessageResponse.value.message)
+      );
     }
 
     telemetryClient.trackEvent({
