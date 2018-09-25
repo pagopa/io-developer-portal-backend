@@ -158,7 +158,7 @@ export async function subscribeApimUser(
     if (isLeft(errorOrService)) {
       return left(
         new Error(
-          "upsertService|decode error|" + readableReport(errorOrService.value)
+          "upsertService|decode err|" + readableReport(errorOrService.value)
         )
       );
     }
