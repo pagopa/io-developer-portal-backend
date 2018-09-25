@@ -57,6 +57,9 @@ exports.creds = {
     policyName: process.env.POLICY_NAME
 };
 exports.policyName = process.env.POLICY_NAME;
+exports.resetPasswordPolicyName = process.env.RESET_PASSWORD_POLICY_NAME;
+exports.tenantId = process.env.TENANT_ID;
+exports.clientName = process.env.CLIENT_NAME;
 // The url you need to go to destroy the session with AAD,
 // replace <tenant_name> with your tenant name, and
 // replace <signin_policy_name> with your signin policy name.

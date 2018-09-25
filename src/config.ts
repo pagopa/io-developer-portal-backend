@@ -75,6 +75,9 @@ export const creds = {
 };
 
 export const policyName = process.env.POLICY_NAME;
+export const resetPasswordPolicyName = process.env.RESET_PASSWORD_POLICY_NAME;
+export const tenantId = process.env.TENANT_ID;
+export const clientName = process.env.CLIENT_NAME;
 
 // The url you need to go to destroy the session with AAD,
 // replace <tenant_name> with your tenant name, and
