@@ -44,6 +44,7 @@ export type ProfileLimitedOrExtended = t.TypeOf<
 
 export type BasicResponseTypeWith401<R> =
   | BasicResponseType<R>
+  | IResponseType<201, R>
   | IResponseType<401, Error>;
 
 // A basic response decoder that also include 401
@@ -195,7 +196,7 @@ export function toEither<T>(
   if (!res) {
     return left(new Error("Response is empty"));
   }
-  if (res.status === 200) {
+  if (res.status === 200 || res.status === 201) {
     return right(res.value);
   } else {
     return left(new Error("Error parsing response: " + res.status));

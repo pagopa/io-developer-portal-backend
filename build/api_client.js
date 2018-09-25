@@ -88,7 +88,7 @@ function toEither(res) {
     if (!res) {
         return Either_1.left(new Error("Response is empty"));
     }
-    if (res.status === 200) {
+    if (res.status === 200 || res.status === 201) {
         return Either_1.right(res.value);
     }
     else {
