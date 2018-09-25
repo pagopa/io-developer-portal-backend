@@ -8,9 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- *  Shares public configuration variables with the client.
- */
 const responses_1 = require("italia-ts-commons/lib/responses");
 const config = require("../config");
 /**
@@ -25,7 +22,7 @@ const msalConfig = {
     changePasswordLink: `https://login.microsoftonline.com/${config.tenantId}/oauth2/v2.0/authorize?p=${config.resetPasswordPolicyName}&client_id=${config.creds.clientID}&nonce=defaultNonce&redirect_uri=${config.creds.redirectUrl}login&scope=openid&response_type=id_token&prompt=login`,
     clientID: config.creds.clientID
 };
-function getConfiguration() {
+function getConfiguration(_) {
     return __awaiter(this, void 0, void 0, function* () {
         return responses_1.ResponseSuccessJson(msalConfig);
     });

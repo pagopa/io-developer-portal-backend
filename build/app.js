@@ -29,14 +29,16 @@ const cookieSession = require("cookie-session");
  */
 dotenv.config({ path: __dirname + "/../local.env" });
 const config = require("./config");
+const express_1 = require("italia-ts-commons/lib/express");
 const request_middleware_1 = require("italia-ts-commons/lib/request_middleware");
 const strings_1 = require("italia-ts-commons/lib/strings");
 const Service_1 = require("./api/Service");
 const bearer_strategy_1 = require("./bearer_strategy");
 const cache_1 = require("./cache");
+const configuration_1 = require("./controllers/configuration");
 const services_1 = require("./controllers/services");
 const subscriptions_1 = require("./controllers/subscriptions");
-const express_1 = require("./express");
+const express_2 = require("./express");
 const logger_1 = require("./logger");
 const api_client_1 = require("./middlewares/api_client");
 const extract_payload_1 = require("./middlewares/extract_payload");
@@ -56,7 +58,7 @@ bearer_strategy_1.setupBearerStrategy(passport, config.creds, (userId, profile) 
     logger_1.logger.debug("setupBearerStrategy %s %s", userId, JSON.stringify(profile));
 }));
 const app = express();
-express_1.secureExpressApp(app);
+express_2.secureExpressApp(app);
 app.use(cors());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -88,6 +90,7 @@ app.post("/subscriptions", ouathVerifier, request_middleware_1.wrapRequestHandle
 app.put("/subscriptions/:subscriptionId/:keyType", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("subscriptionId", strings_1.NonEmptyString), required_param_1.RequiredParamMiddleware("keyType", strings_1.NonEmptyString))(subscriptions_1.putSubscriptionKey)));
 app.get("/services/:serviceId", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("serviceId", strings_1.NonEmptyString))(services_1.getService)));
 app.put("/services/:serviceId", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("serviceId", strings_1.NonEmptyString), extract_payload_1.ExtractFromPayloadMiddleware(Service_1.Service))(services_1.putService)));
+app.get("/configuration", ouathVerifier, express_1.toExpressHandler(configuration_1.getConfiguration));
 const port = config.port || 3000;
 app.listen(port);
 logger_1.logger.debug("Listening on port %s", port.toString());

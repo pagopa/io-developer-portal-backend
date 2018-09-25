@@ -22,6 +22,7 @@ dotenv.config({ path: __dirname + "/../local.env" });
 
 import * as config from "./config";
 
+import { toExpressHandler } from "italia-ts-commons/lib/express";
 import {
   withRequestMiddlewares,
   wrapRequestHandler
@@ -30,6 +31,7 @@ import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { Service } from "./api/Service";
 import { setupBearerStrategy } from "./bearer_strategy";
 import { initCacheStats } from "./cache";
+import { getConfiguration } from "./controllers/configuration";
 import { getService, putService } from "./controllers/services";
 import {
   getSubscriptions,
@@ -157,6 +159,8 @@ app.put(
     )(putService)
   )
 );
+
+app.get("/configuration", ouathVerifier, toExpressHandler(getConfiguration));
 
 const port = config.port || 3000;
 app.listen(port);
