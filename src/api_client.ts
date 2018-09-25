@@ -25,7 +25,6 @@ import {
 
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import nodeFetch from "node-fetch";
-import { CreatedMessageWithContent } from "./api/CreatedMessageWithContent";
 import { ExtendedProfile } from "./api/ExtendedProfile";
 import { FiscalCode } from "./api/FiscalCode";
 import { LimitedProfile } from "./api/LimitedProfile";
