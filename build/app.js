@@ -90,7 +90,7 @@ app.post("/subscriptions", ouathVerifier, request_middleware_1.wrapRequestHandle
 app.put("/subscriptions/:subscriptionId/:keyType", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("subscriptionId", strings_1.NonEmptyString), required_param_1.RequiredParamMiddleware("keyType", strings_1.NonEmptyString))(subscriptions_1.putSubscriptionKey)));
 app.get("/services/:serviceId", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("serviceId", strings_1.NonEmptyString))(services_1.getService)));
 app.put("/services/:serviceId", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("serviceId", strings_1.NonEmptyString), extract_payload_1.ExtractFromPayloadMiddleware(Service_1.Service))(services_1.putService)));
-app.get("/configuration", ouathVerifier, express_1.toExpressHandler(configuration_1.getConfiguration));
+app.get("/configuration", express_1.toExpressHandler(configuration_1.getConfiguration));
 const port = config.port || 3000;
 app.listen(port);
 logger_1.logger.debug("Listening on port %s", port.toString());

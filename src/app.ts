@@ -160,7 +160,7 @@ app.put(
   )
 );
 
-app.get("/configuration", ouathVerifier, toExpressHandler(getConfiguration));
+app.get("/configuration", toExpressHandler(getConfiguration));
 
 const port = config.port || 3000;
 app.listen(port);
