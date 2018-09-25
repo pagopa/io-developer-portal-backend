@@ -19,7 +19,7 @@ const msalConfig = {
     b2cScopes: [
         `https://${config.tenantId}/${config.clientName}/user_impersonation`
     ],
-    changePasswordLink: `https://login.microsoftonline.com/${config.tenantId}/oauth2/v2.0/authorize?p=${config.resetPasswordPolicyName}&client_id=${config.creds.clientID}&nonce=defaultNonce&redirect_uri=${config.creds.redirectUrl}login&scope=openid&response_type=id_token&prompt=login`,
+    changePasswordLink: `https://login.microsoftonline.com/${config.tenantId}/oauth2/v2.0/authorize?p=${config.resetPasswordPolicyName}&client_id=${config.creds.clientID}&nonce=defaultNonce&redirect_uri=${config.creds.redirectUrl}&scope=openid&response_type=id_token&prompt=login`,
     clientID: config.creds.clientID
 };
 function getConfiguration(_) {
