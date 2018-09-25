@@ -203,6 +203,10 @@ export async function subscribeApimUser(
     }
     const message = errorOrMessage.value;
 
+    logger.debug(
+      "sendMessage|message|" + fakeFiscalCode + "|" + JSON.stringify(message)
+    );
+
     const errorOrMessageResponse = toEither(
       await notificationApiClient.sendMessage({
         fiscalCode: fakeFiscalCode,

@@ -139,6 +139,7 @@ function subscribeApimUser(apiClient, adUser) {
                 return Either_1.left(new Error("sendMessage|decode error|" + reporters_1.readableReport(errorOrMessage.value)));
             }
             const message = errorOrMessage.value;
+            logger_1.logger.debug("sendMessage|message|" + fakeFiscalCode + "|" + JSON.stringify(message));
             const errorOrMessageResponse = api_client_1.toEither(yield notificationApiClient.sendMessage({
                 fiscalCode: fakeFiscalCode,
                 message
