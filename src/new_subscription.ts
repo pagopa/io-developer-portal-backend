@@ -28,7 +28,6 @@ import * as config from "./config";
 import * as appinsights from "applicationinsights";
 import { EmailString, FiscalCode } from "italia-ts-commons/lib/strings";
 import randomstring = require("randomstring");
-import { CreatedMessageWithContent } from "./api/CreatedMessageWithContent";
 import { APIClient, toEither } from "./api_client";
 import { logger } from "./logger";
 
