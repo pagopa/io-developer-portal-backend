@@ -18,7 +18,7 @@ const OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 // ProfileLimitedOrExtended is oneOf [LimitedProfile, ExtendedProfile]
 const ProfileLimitedOrExtended = t.union([LimitedProfile_1.LimitedProfile, ExtendedProfile_1.ExtendedProfile]);
 function apiResponseDecoder(type) {
-    const basicResponseDecoderWith401 = requests_1.composeResponseDecoders(apiResponseDecoder(type), requests_1.basicErrorResponseDecoder(401));
+    const basicResponseDecoderWith401 = requests_1.composeResponseDecoders(requests_1.basicResponseDecoder(type), requests_1.basicErrorResponseDecoder(401));
     return requests_1.composeResponseDecoders(requests_1.ioResponseDecoder(201, type), basicResponseDecoderWith401);
 }
 exports.apiResponseDecoder = apiResponseDecoder;

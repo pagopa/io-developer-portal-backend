@@ -10,6 +10,7 @@ import { Either, left, right } from "fp-ts/lib/Either";
 import {
   ApiHeaderJson,
   basicErrorResponseDecoder,
+  basicResponseDecoder,
   BasicResponseType,
   composeHeaderProducers,
   composeResponseDecoders,
@@ -51,7 +52,7 @@ export function apiResponseDecoder<R, O = R>(
   type: t.Type<R, O>
 ): ResponseDecoder<ApiResponseType<R>> {
   const basicResponseDecoderWith401 = composeResponseDecoders(
-    apiResponseDecoder(type),
+    basicResponseDecoder(type),
     basicErrorResponseDecoder(401)
   );
   return composeResponseDecoders(
