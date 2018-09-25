@@ -86,6 +86,8 @@ function subscribeApimUser(apiClient, adUser) {
             const fakeFiscalCode = generateFakeFiscalCode();
             const errorOrProfile = ExtendedProfile_1.ExtendedProfile.decode({
                 email: userData.email,
+                is_inbox_enabled: true,
+                is_webhook_enabled: true,
                 version: 0
             });
             if (Either_1.isLeft(errorOrProfile)) {
@@ -144,6 +146,7 @@ function subscribeApimUser(apiClient, adUser) {
             if (Either_1.isLeft(errorOrMessageResponse)) {
                 return Either_1.left(new Error("sendMessage|error|" + errorOrMessageResponse.value.message));
             }
+            logger_1.logger.debug("sendMessage|message sent");
             telemetryClient.trackEvent({
                 name: "onboarding.success",
                 properties: {

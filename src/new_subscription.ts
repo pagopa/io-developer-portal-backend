@@ -126,6 +126,8 @@ export async function subscribeApimUser(
 
     const errorOrProfile = ExtendedProfile.decode({
       email: userData.email as EmailString,
+      is_inbox_enabled: true,
+      is_webhook_enabled: true,
       version: 0
     });
     if (isLeft(errorOrProfile)) {
@@ -212,6 +214,8 @@ export async function subscribeApimUser(
         new Error("sendMessage|error|" + errorOrMessageResponse.value.message)
       );
     }
+
+    logger.debug("sendMessage|message sent");
 
     telemetryClient.trackEvent({
       name: "onboarding.success",
