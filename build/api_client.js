@@ -8,8 +8,8 @@ const t = require("io-ts");
 // A basic response type that also include 401
 const Either_1 = require("fp-ts/lib/Either");
 const requests_1 = require("italia-ts-commons/lib/requests");
+const strings_1 = require("italia-ts-commons/lib/strings");
 const node_fetch_1 = require("node-fetch");
-const CreatedMessageWithContent_1 = require("./api/CreatedMessageWithContent");
 const ExtendedProfile_1 = require("./api/ExtendedProfile");
 const LimitedProfile_1 = require("./api/LimitedProfile");
 const Service_1 = require("./api/Service");
@@ -48,7 +48,7 @@ fetchApi = node_fetch_1.default) {
         headers: requests_1.composeHeaderProducers(tokenHeaderProducer, requests_1.ApiHeaderJson),
         method: "post",
         query: _ => ({}),
-        response_decoder: basicResponseDecoderWith401(CreatedMessageWithContent_1.CreatedMessageWithContent),
+        response_decoder: basicResponseDecoderWith401(t.interface({ id: strings_1.NonEmptyString })),
         url: params => `/api/v1/messages/${params.fiscalCode}`
     };
     const createOrUpdateProfileT = {

@@ -23,11 +23,13 @@ import {
   TypeofApiCall
 } from "italia-ts-commons/lib/requests";
 
+import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import nodeFetch from "node-fetch";
 import { CreatedMessageWithContent } from "./api/CreatedMessageWithContent";
 import { ExtendedProfile } from "./api/ExtendedProfile";
 import { FiscalCode } from "./api/FiscalCode";
 import { LimitedProfile } from "./api/LimitedProfile";
+import { NewMessage } from "./api/NewMessage";
 import { Service } from "./api/Service";
 import { ServicePublic } from "./api/ServicePublic";
 
@@ -74,12 +76,12 @@ export type GetServiceT = IGetApiRequestType<
 
 export type SendMessageT = IPostApiRequestType<
   {
-    readonly message: CreatedMessageWithContent;
+    readonly message: NewMessage;
     readonly fiscalCode: FiscalCode;
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
-  BasicResponseTypeWith401<CreatedMessageWithContent>
+  BasicResponseTypeWith401<{ readonly id: NonEmptyString }>
 >;
 
 export type CreateOrUpdateProfileT = IPostApiRequestType<
@@ -143,7 +145,9 @@ export function APIClient(
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
     method: "post",
     query: _ => ({}),
-    response_decoder: basicResponseDecoderWith401(CreatedMessageWithContent),
+    response_decoder: basicResponseDecoderWith401(
+      t.interface({ id: NonEmptyString })
+    ),
     url: params => `/api/v1/messages/${params.fiscalCode}`
   };
 
