@@ -34,6 +34,7 @@ import { logger } from "./logger";
 
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { ExtendedProfile } from "./api/ExtendedProfile";
+import { NewMessage } from "./api/NewMessage";
 import { Service } from "./api/Service";
 
 const telemetryClient = new appinsights.TelemetryClient();
@@ -170,7 +171,7 @@ export async function subscribeApimUser(
       return left(new Error(errorOrServiceResponse.value.message));
     }
 
-    const errorOrMessage = CreatedMessageWithContent.decode({
+    const errorOrMessage = NewMessage.decode({
       content: {
         markdown: [
           `Hello,`,

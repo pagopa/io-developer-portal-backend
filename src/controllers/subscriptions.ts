@@ -71,7 +71,7 @@ export async function postSubscriptions(
   return subscriptionOrError.fold<
     IResponseErrorInternal | IResponseSuccessJson<SubscriptionContract>
   >(
-    err => ResponseErrorInternal("Cannot get subscription: " + err),
+    err => ResponseErrorInternal("Cannot add new subscription: " + err),
     ResponseSuccessJson
   );
 }

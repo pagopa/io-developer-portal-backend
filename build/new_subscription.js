@@ -14,11 +14,11 @@ const Option_1 = require("fp-ts/lib/Option");
 const config = require("./config");
 const appinsights = require("applicationinsights");
 const randomstring = require("randomstring");
-const CreatedMessageWithContent_1 = require("./api/CreatedMessageWithContent");
 const api_client_1 = require("./api_client");
 const logger_1 = require("./logger");
 const reporters_1 = require("italia-ts-commons/lib/reporters");
 const ExtendedProfile_1 = require("./api/ExtendedProfile");
+const NewMessage_1 = require("./api/NewMessage");
 const Service_1 = require("./api/Service");
 const telemetryClient = new appinsights.TelemetryClient();
 const notificationApiClient = api_client_1.APIClient(config.adminApiUrl, config.adminApiKey);
@@ -120,7 +120,7 @@ function subscribeApimUser(apiClient, adUser) {
             if (Either_1.isLeft(errorOrServiceResponse)) {
                 return Either_1.left(new Error(errorOrServiceResponse.value.message));
             }
-            const errorOrMessage = CreatedMessageWithContent_1.CreatedMessageWithContent.decode({
+            const errorOrMessage = NewMessage_1.NewMessage.decode({
                 content: {
                     markdown: [
                         `Hello,`,

@@ -39,7 +39,7 @@ function postSubscriptions(apiClient, authenticatedUser) {
             return responses_1.ResponseErrorForbiddenNotAuthorized;
         }
         const subscriptionOrError = yield new_subscription_1.subscribeApimUser(apiClient, authenticatedUser);
-        return subscriptionOrError.fold(err => responses_1.ResponseErrorInternal("Cannot get subscription: " + err), responses_1.ResponseSuccessJson);
+        return subscriptionOrError.fold(err => responses_1.ResponseErrorInternal("Cannot add new subscription: " + err), responses_1.ResponseSuccessJson);
     });
 }
 exports.postSubscriptions = postSubscriptions;
