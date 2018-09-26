@@ -195,7 +195,11 @@ async function getApimUser__(
     config.azurermApim,
     { filter: "email eq '" + email + "'" }
   );
-  logger.debug("apimUsers found", results);
+  logger.debug(
+    "lookup apimUsers for (%s) (%s)",
+    email,
+    JSON.stringify(results)
+  );
   if (!results || results.length === 0) {
     return none;
   }
@@ -250,6 +254,28 @@ export async function addUserSubscriptionToProduct(
   );
 }
 
+export async function removeUserFromGroups(
+  apiClient: ApiManagementClient,
+  user: UserContract,
+  groups: ReadonlyArray<string>
+): Promise<Either<Error, ReadonlyArray<string>>> {
+  return right(
+    await groups.reduce(async (prev, group) => {
+      const removedGroups = await prev;
+      logger.debug("removeUserFromGroups (%s)", group);
+      // For some odd reason in the Azure ARM API user.name
+      // here is actually the user.id
+      await apiClient.groupUser.deleteMethod(
+        config.azurermResourceGroup,
+        config.azurermApim,
+        group,
+        user.name as string
+      );
+      return [...removedGroups, group];
+    }, Promise.resolve([]))
+  );
+}
+
 /**
  * Returns the array of added groups names (as strings).
  */
@@ -269,8 +295,8 @@ export async function addUserToGroups(
   );
   const existingGroupsNames = new Set(existingGroups.map(g => g.name));
   logger.debug(
-    "addUserToGroups|groups|%s",
-    JSON.stringify(existingGroupsNames)
+    "addUserToGroups|existing groups|%s",
+    JSON.stringify(Array.from(existingGroupsNames))
   );
   const missingGroups = new Set(
     groups.filter(g => !existingGroupsNames.has(g))
@@ -278,7 +304,7 @@ export async function addUserToGroups(
   if (missingGroups.size === 0) {
     logger.debug(
       "addUserToGroups|user already belongs to groups|%s",
-      JSON.stringify(existingGroupsNames)
+      JSON.stringify(Array.from(existingGroupsNames))
     );
     return right([]);
   }
@@ -286,7 +312,8 @@ export async function addUserToGroups(
   // concurrently seems to cause some issues assigning
   // users to groups
   return right(
-    await groups.reduce(async (prev, group) => {
+    await Array.from(missingGroups).reduce(async (prev, group) => {
+      logger.debug("addUserToGroups|adding user to group (%s)", group);
       const addedGroups = await prev;
       // For some odd reason in the Azure ARM API user.name
       // here is actually the user.id

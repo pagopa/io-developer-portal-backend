@@ -79,4 +79,6 @@ exports.adminApiKey = process.env.ADMIN_API_KEY;
 exports.subscriptionId = process.env.ARM_SUBSCRIPTION_ID;
 exports.logLevel = process.env.LOG_LEVEL;
 exports.port = process.env.PORT;
+exports.armClientId = process.env.ARM_CLIENT_ID;
+exports.armClientSecret = process.env.ARM_CLIENT_SECRET;
 //# sourceMappingURL=config.js.map

@@ -116,7 +116,7 @@ function getApimUser__(apiClient, email) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("getApimUser");
         const results = yield apiClient.user.listByService(config.azurermResourceGroup, config.azurermApim, { filter: "email eq '" + email + "'" });
-        logger_1.logger.debug("apimUsers found", results);
+        logger_1.logger.debug("lookup apimUsers for (%s) (%s)", email, JSON.stringify(results));
         if (!results || results.length === 0) {
             return Option_1.none;
         }
@@ -157,6 +157,19 @@ function addUserSubscriptionToProduct(apiClient, userId, productName) {
     });
 }
 exports.addUserSubscriptionToProduct = addUserSubscriptionToProduct;
+function removeUserFromGroups(apiClient, user, groups) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return Either_1.right(yield groups.reduce((prev, group) => __awaiter(this, void 0, void 0, function* () {
+            const removedGroups = yield prev;
+            logger_1.logger.debug("removeUserFromGroups (%s)", group);
+            // For some odd reason in the Azure ARM API user.name
+            // here is actually the user.id
+            yield apiClient.groupUser.deleteMethod(config.azurermResourceGroup, config.azurermApim, group, user.name);
+            return [...removedGroups, group];
+        }), Promise.resolve([])));
+    });
+}
+exports.removeUserFromGroups = removeUserFromGroups;
 /**
  * Returns the array of added groups names (as strings).
  */
@@ -168,16 +181,17 @@ function addUserToGroups(apiClient, user, groups) {
         }
         const existingGroups = yield apiClient.userGroup.list(config.azurermResourceGroup, config.azurermApim, user.name);
         const existingGroupsNames = new Set(existingGroups.map(g => g.name));
-        logger_1.logger.debug("addUserToGroups|groups|%s", JSON.stringify(existingGroupsNames));
+        logger_1.logger.debug("addUserToGroups|existing groups|%s", JSON.stringify(Array.from(existingGroupsNames)));
         const missingGroups = new Set(groups.filter(g => !existingGroupsNames.has(g)));
         if (missingGroups.size === 0) {
-            logger_1.logger.debug("addUserToGroups|user already belongs to groups|%s", JSON.stringify(existingGroupsNames));
+            logger_1.logger.debug("addUserToGroups|user already belongs to groups|%s", JSON.stringify(Array.from(existingGroupsNames)));
             return Either_1.right([]);
         }
         // sequence the promises here as calling this method
         // concurrently seems to cause some issues assigning
         // users to groups
-        return Either_1.right(yield groups.reduce((prev, group) => __awaiter(this, void 0, void 0, function* () {
+        return Either_1.right(yield Array.from(missingGroups).reduce((prev, group) => __awaiter(this, void 0, void 0, function* () {
+            logger_1.logger.debug("addUserToGroups|adding user to group (%s)", group);
             const addedGroups = yield prev;
             // For some odd reason in the Azure ARM API user.name
             // here is actually the user.id
