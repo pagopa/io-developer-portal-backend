@@ -22,6 +22,7 @@ import * as config from "../config";
 
 import * as t from "io-ts";
 import { Service } from "../api/Service";
+import { logger } from "../logger";
 
 /**
  * Service fields editable by the user.
@@ -144,8 +145,11 @@ export async function putService(
   }
   const service = errorOrService.value;
 
-  // TODO: get the old service then filter only
-  // authorized fields and merge the changes
+  logger.debug(
+    "updating service %s",
+    JSON.stringify({ ...service, ...servicePayload })
+  );
+
   const errorOrUpdatedService = toEither(
     await notificationApiClient.updateService({
       service: { ...service, ...servicePayload },

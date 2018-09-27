@@ -16,6 +16,7 @@ const api_client_1 = require("../api_client");
 const apim_operations_1 = require("../apim_operations");
 const config = require("../config");
 const t = require("io-ts");
+const logger_1 = require("../logger");
 /**
  * Service fields editable by the user.
  */
@@ -77,8 +78,7 @@ function putService(apiClient, authenticatedUser, serviceId, servicePayload) {
             return responses_1.ResponseErrorNotFound("Service not found", "Cannot get a service with the provided id.");
         }
         const service = errorOrService.value;
-        // TODO: get the old service then filter only
-        // authorized fields and merge the changes
+        logger_1.logger.debug("updating service %s", JSON.stringify(Object.assign({}, service, servicePayload)));
         const errorOrUpdatedService = api_client_1.toEither(yield notificationApiClient.updateService({
             service: Object.assign({}, service, servicePayload),
             serviceId
