@@ -70,9 +70,9 @@ fetchApi = node_fetch_1.default) {
     const updateServiceT = {
         body: params => JSON.stringify(params.service),
         headers: requests_1.composeHeaderProducers(tokenHeaderProducer, requests_1.ApiHeaderJson),
-        method: "post",
+        method: "put",
         query: _ => ({}),
-        response_decoder: apiResponseDecoder(Service_1.Service),
+        response_decoder: apiResponseDecoder(ServicePublic_1.ServicePublic),
         url: params => `/adm/services/${params.serviceId}`
     };
     return {

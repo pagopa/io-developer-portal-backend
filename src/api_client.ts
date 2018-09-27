@@ -18,6 +18,7 @@ import {
   IGetApiRequestType,
   ioResponseDecoder,
   IPostApiRequestType,
+  IPutApiRequestType,
   IResponseType,
   RequestHeaderProducer,
   ResponseDecoder,
@@ -107,14 +108,14 @@ export type CreateServiceT = IPostApiRequestType<
   ApiResponseType<ServicePublic>
 >;
 
-export type UpdateServiceT = IPostApiRequestType<
+export type UpdateServiceT = IPutApiRequestType<
   {
     readonly service: Service;
     readonly serviceId: string;
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
-  ApiResponseType<Service>
+  ApiResponseType<ServicePublic>
 >;
 
 export function APIClient(
@@ -174,9 +175,9 @@ export function APIClient(
   const updateServiceT: UpdateServiceT = {
     body: params => JSON.stringify(params.service),
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
-    method: "post",
+    method: "put",
     query: _ => ({}),
-    response_decoder: apiResponseDecoder(Service),
+    response_decoder: apiResponseDecoder(ServicePublic),
     url: params => `/adm/services/${params.serviceId}`
   };
 
