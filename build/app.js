@@ -61,6 +61,7 @@ express_2.secureExpressApp(app);
 app.use(cors());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(passport.initialize());
 app.use(morgan("combined"));
 // Avoid stateful in-memory sessions
