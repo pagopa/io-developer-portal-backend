@@ -26,7 +26,7 @@ import { Service } from "../api/Service";
 /**
  * Service fields editable by the user.
  */
-const ServicePayload = t.exact(
+export const ServicePayload = t.exact(
   t.interface({
     department_name: NonEmptyString,
     organization_fiscal_code: OrganizationFiscalCode,
@@ -34,7 +34,7 @@ const ServicePayload = t.exact(
     service_name: NonEmptyString
   })
 );
-type ServicePayload = t.TypeOf<typeof ServicePayload>;
+export type ServicePayload = t.TypeOf<typeof ServicePayload>;
 
 const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 

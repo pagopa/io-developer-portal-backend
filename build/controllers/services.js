@@ -19,7 +19,7 @@ const t = require("io-ts");
 /**
  * Service fields editable by the user.
  */
-const ServicePayload = t.exact(t.interface({
+exports.ServicePayload = t.exact(t.interface({
     department_name: strings_1.NonEmptyString,
     organization_fiscal_code: strings_1.OrganizationFiscalCode,
     organization_name: strings_1.NonEmptyString,
