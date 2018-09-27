@@ -18,7 +18,7 @@ export function ExtractFromPayloadMiddleware<S, A>(
       logger.debug(
         "ExtractFromPayloadMiddleware %s %s => %s",
         type.name,
-        JSON.stringify(request.body),
+        JSON.stringify(request),
         JSON.stringify(result.value)
       );
       resolve(result);

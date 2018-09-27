@@ -6,7 +6,7 @@ function ExtractFromPayloadMiddleware(type) {
     return request => new Promise(resolve => {
         const validation = type.decode(request.body);
         const result = validation.mapLeft(responses_1.ResponseErrorFromValidationErrors(type));
-        logger_1.logger.debug("ExtractFromPayloadMiddleware %s %s => %s", type.name, JSON.stringify(request.body), JSON.stringify(result.value));
+        logger_1.logger.debug("ExtractFromPayloadMiddleware %s %s => %s", type.name, JSON.stringify(request), JSON.stringify(result.value));
         resolve(result);
     });
 }
