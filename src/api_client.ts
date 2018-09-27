@@ -114,7 +114,7 @@ export type UpdateServiceT = IPostApiRequestType<
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
-  ApiResponseType<ServicePublic>
+  ApiResponseType<Service>
 >;
 
 export function APIClient(
@@ -176,7 +176,7 @@ export function APIClient(
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
     method: "post",
     query: _ => ({}),
-    response_decoder: apiResponseDecoder(ServicePublic),
+    response_decoder: apiResponseDecoder(Service),
     url: params => `/adm/services/${params.serviceId}`
   };
 

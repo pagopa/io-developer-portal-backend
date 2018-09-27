@@ -72,7 +72,7 @@ fetchApi = node_fetch_1.default) {
         headers: requests_1.composeHeaderProducers(tokenHeaderProducer, requests_1.ApiHeaderJson),
         method: "post",
         query: _ => ({}),
-        response_decoder: apiResponseDecoder(ServicePublic_1.ServicePublic),
+        response_decoder: apiResponseDecoder(Service_1.Service),
         url: params => `/adm/services/${params.serviceId}`
     };
     return {
