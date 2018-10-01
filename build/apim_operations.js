@@ -124,7 +124,8 @@ function getApimUser__(apiClient, email) {
         if (!user.id || !user.name) {
             return Option_1.none;
         }
-        const apimUser = Object.assign({ id: user.id, name: user.name }, user);
+        const groupNames = yield getUserGroups(apiClient, user);
+        const apimUser = Object.assign({ id: user.id, name: user.name }, user, { groupNames: Option_1.isSome(groupNames) ? new Set(groupNames.value) : new Set() });
         // return first matching user
         return Option_1.some(apimUser);
     });
@@ -136,6 +137,10 @@ exports.getApimUser = memoizee(getApimUser__, {
     profileName: "getApimUser",
     promise: true
 });
+function isAdminUser(user) {
+    return user.groupNames.has("ApiAdmin");
+}
+exports.isAdminUser = isAdminUser;
 function addUserSubscriptionToProduct(apiClient, userId, productName) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("addUserToProduct");
@@ -201,4 +206,14 @@ function addUserToGroups(apiClient, user, groups) {
     });
 }
 exports.addUserToGroups = addUserToGroups;
+function getUserGroups(apiClient, user) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!user || !user.name || !user.groups) {
+            return Option_1.none;
+        }
+        const existingGroups = yield apiClient.userGroup.list(config.azurermResourceGroup, config.azurermApim, user.name);
+        return Option_1.some(existingGroups.map(g => g.name));
+    });
+}
+exports.getUserGroups = getUserGroups;
 //# sourceMappingURL=apim_operations.js.map

@@ -10,7 +10,6 @@ import * as msRestAzure from "ms-rest-azure";
 import { logger } from "./logger";
 
 import {
-  GroupContractProperties,
   SubscriptionCollection,
   SubscriptionContract,
   UserContract,
@@ -22,7 +21,7 @@ import * as memoizee from "memoizee";
 import * as config from "./config";
 
 import { Either, left, right } from "fp-ts/lib/Either";
-import { isNone, none, Option, some } from "fp-ts/lib/Option";
+import { isNone, isSome, none, Option, some } from "fp-ts/lib/Option";
 import { ulid } from "ulid";
 
 export interface IUserData extends UserCreateParameters {
@@ -180,6 +179,12 @@ export const regenerateSecondaryKey = (
   return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
 };
 
+interface IExtendedUserContract extends UserContract {
+  readonly id: string;
+  readonly name: string;
+  readonly groupNames: ReadonlySet<string>;
+}
+
 /**
  * Return the corresponding API management user
  * given the Active Directory B2C user's email.
@@ -187,14 +192,7 @@ export const regenerateSecondaryKey = (
 async function getApimUser__(
   apiClient: ApiManagementClient,
   email: string
-): Promise<
-  Option<
-    UserContract & {
-      readonly id: string;
-      readonly name: string;
-    }
-  >
-> {
+): Promise<Option<IExtendedUserContract>> {
   logger.debug("getApimUser");
   const results = await apiClient.user.listByService(
     config.azurermResourceGroup,
@@ -213,7 +211,14 @@ async function getApimUser__(
   if (!user.id || !user.name) {
     return none;
   }
-  const apimUser = { id: user.id, name: user.name, ...user };
+  const groupNames = await getUserGroups(apiClient, user);
+  const apimUser = {
+    id: user.id,
+    name: user.name,
+    ...user,
+    groupNames: isSome(groupNames) ? new Set(groupNames.value) : new Set()
+  };
+
   // return first matching user
   return some(apimUser);
 }
@@ -225,6 +230,10 @@ export const getApimUser = memoizee(getApimUser__, {
   profileName: "getApimUser",
   promise: true
 });
+
+export function isAdminUser(user: IExtendedUserContract): boolean {
+  return user.groupNames.has("ApiAdmin");
+}
 
 export async function addUserSubscriptionToProduct(
   apiClient: ApiManagementClient,
@@ -332,4 +341,19 @@ export async function addUserToGroups(
       return [...addedGroups, group];
     }, Promise.resolve([]))
   );
+}
+
+export async function getUserGroups(
+  apiClient: ApiManagementClient,
+  user: UserContract
+): Promise<Option<ReadonlyArray<string>>> {
+  if (!user || !user.name || !user.groups) {
+    return none;
+  }
+  const existingGroups = await apiClient.userGroup.list(
+    config.azurermResourceGroup,
+    config.azurermApim,
+    user.name
+  );
+  return some(existingGroups.map(g => g.name) as ReadonlyArray<string>);
 }

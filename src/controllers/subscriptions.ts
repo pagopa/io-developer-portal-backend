@@ -19,6 +19,7 @@ import {
   getApimUser,
   getUserSubscription,
   getUserSubscriptions,
+  isAdminUser,
   regeneratePrimaryKey,
   regenerateSecondaryKey
 } from "../apim_operations";
@@ -27,6 +28,8 @@ import { subscribeApimUser } from "../new_subscription";
 
 import { isEmpty } from "fp-ts/lib/Array";
 import { logger } from "../logger";
+
+const ADMIN_GROUP_NAME = "ApiAdmin";
 
 /**
  * List all subscriptions for the logged in user
@@ -44,11 +47,7 @@ export async function getSubscriptions(
     authenticatedUser.emails[0]
   );
 
-  const isApimAdmin = maybeApimUser.exists(
-    apimUser =>
-      Array.isArray(apimUser.groups) &&
-      !isEmpty(apimUser.groups.filter(g => g.displayName === "Administrator"))
-  );
+  const isApimAdmin = maybeApimUser.exists(isAdminUser);
 
   // If the logged in user is an administrator and we have
   // an email address, load the actual user from that address
