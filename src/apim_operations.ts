@@ -232,6 +232,7 @@ export const getApimUser = memoizee(getApimUser__, {
 });
 
 export function isAdminUser(user: IExtendedUserContract): boolean {
+  logger.debug("groupNames", Array.from(user.groupNames));
   return user.groupNames.has("ApiAdmin");
 }
 

@@ -138,6 +138,7 @@ exports.getApimUser = memoizee(getApimUser__, {
     promise: true
 });
 function isAdminUser(user) {
+    logger_1.logger.debug("groupNames", Array.from(user.groupNames));
     return user.groupNames.has("ApiAdmin");
 }
 exports.isAdminUser = isAdminUser;
