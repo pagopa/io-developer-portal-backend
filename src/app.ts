@@ -102,7 +102,7 @@ app.get("/logout", (req: express.Request, res: express.Response) => {
 });
 
 app.get(
-  "/subscriptions/:email?",
+  ["/subscriptions", "/subscriptions/:email"],
   ouathVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
