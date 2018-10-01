@@ -41,6 +41,7 @@ const express_2 = require("./express");
 const logger_1 = require("./logger");
 const api_client_1 = require("./middlewares/api_client");
 const extract_payload_1 = require("./middlewares/extract_payload");
+const optional_param_1 = require("./middlewares/optional_param");
 const required_param_1 = require("./middlewares/required_param");
 const user_1 = require("./middlewares/user");
 process.on("unhandledRejection", e => logger_1.logger.error(JSON.stringify(e)));
@@ -85,7 +86,7 @@ app.get("/logout", (req, res) => {
     req.logout();
     res.json("OK");
 });
-app.get("/subscriptions", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware())(subscriptions_1.getSubscriptions)));
+app.get("/subscriptions/:email?", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware(), optional_param_1.OptionalParamMiddleware("email", strings_1.EmailString))(subscriptions_1.getSubscriptions)));
 app.post("/subscriptions", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware())(subscriptions_1.postSubscriptions)));
 app.put("/subscriptions/:subscriptionId/:keyType", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("subscriptionId", strings_1.NonEmptyString), required_param_1.RequiredParamMiddleware("keyType", strings_1.NonEmptyString))(subscriptions_1.putSubscriptionKey)));
 app.get("/services/:serviceId", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_1.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("serviceId", strings_1.NonEmptyString))(services_1.getService)));

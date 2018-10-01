@@ -14,7 +14,7 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessJson
 } from "italia-ts-commons/lib/responses";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import {
   getApimUser,
   getUserSubscription,
@@ -25,12 +25,16 @@ import {
 import { AdUser } from "../bearer_strategy";
 import { subscribeApimUser } from "../new_subscription";
 
+import { isEmpty } from "fp-ts/lib/Array";
+import { logger } from "../logger";
+
 /**
  * List all subscriptions for the logged in user
  */
 export async function getSubscriptions(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser
+  authenticatedUser: AdUser,
+  userEmail?: EmailString
 ): Promise<
   | IResponseSuccessJson<SubscriptionCollection>
   | IResponseErrorForbiddenNotAuthorized
@@ -39,11 +43,34 @@ export async function getSubscriptions(
     apiClient,
     authenticatedUser.emails[0]
   );
-  if (isNone(maybeApimUser)) {
+
+  const isApimAdmin = maybeApimUser.exists(
+    apimUser =>
+      !isEmpty(apimUser.groups.filter(g => g.displayName === "Administrator"))
+  );
+
+  // If the logged in user is an administrator and we have
+  // an email address, load the actual user from that address
+  const maybeRetrievedApimUser =
+    userEmail && isApimAdmin
+      ? await getApimUser(apiClient, userEmail)
+      : maybeApimUser;
+
+  logger.debug(
+    "getSubscriptions, isAdmin=%d groups=%s",
+    isApimAdmin,
+    JSON.stringify(maybeApimUser)
+  );
+
+  if (isNone(maybeRetrievedApimUser)) {
     return ResponseErrorForbiddenNotAuthorized;
   }
-  const apimUser = maybeApimUser.value;
-  const subscriptions = await getUserSubscriptions(apiClient, apimUser.name);
+  const retrievedApimUser = maybeRetrievedApimUser.value;
+
+  const subscriptions = await getUserSubscriptions(
+    apiClient,
+    retrievedApimUser.name
+  );
   return ResponseSuccessJson(subscriptions);
 }
 

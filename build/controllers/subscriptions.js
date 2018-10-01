@@ -12,17 +12,26 @@ const Option_1 = require("fp-ts/lib/Option");
 const responses_1 = require("italia-ts-commons/lib/responses");
 const apim_operations_1 = require("../apim_operations");
 const new_subscription_1 = require("../new_subscription");
+const Array_1 = require("fp-ts/lib/Array");
+const logger_1 = require("../logger");
 /**
  * List all subscriptions for the logged in user
  */
-function getSubscriptions(apiClient, authenticatedUser) {
+function getSubscriptions(apiClient, authenticatedUser, userEmail) {
     return __awaiter(this, void 0, void 0, function* () {
         const maybeApimUser = yield apim_operations_1.getApimUser(apiClient, authenticatedUser.emails[0]);
-        if (Option_1.isNone(maybeApimUser)) {
+        const isApimAdmin = maybeApimUser.exists(apimUser => !Array_1.isEmpty(apimUser.groups.filter(g => g.displayName === "Administrator")));
+        // If the logged in user is an administrator and we have
+        // an email address, load the actual user from that address
+        const maybeRetrievedApimUser = userEmail && isApimAdmin
+            ? yield apim_operations_1.getApimUser(apiClient, userEmail)
+            : maybeApimUser;
+        logger_1.logger.debug("getSubscriptions, isAdmin=%d groups=%s", isApimAdmin, JSON.stringify(maybeApimUser));
+        if (Option_1.isNone(maybeRetrievedApimUser)) {
             return responses_1.ResponseErrorForbiddenNotAuthorized;
         }
-        const apimUser = maybeApimUser.value;
-        const subscriptions = yield apim_operations_1.getUserSubscriptions(apiClient, apimUser.name);
+        const retrievedApimUser = maybeRetrievedApimUser.value;
+        const subscriptions = yield apim_operations_1.getUserSubscriptions(apiClient, retrievedApimUser.name);
         return responses_1.ResponseSuccessJson(subscriptions);
     });
 }

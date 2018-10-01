@@ -27,7 +27,7 @@ import {
   withRequestMiddlewares,
   wrapRequestHandler
 } from "italia-ts-commons/lib/request_middleware";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { setupBearerStrategy } from "./bearer_strategy";
 import { initCacheStats } from "./cache";
 import { getConfiguration } from "./controllers/configuration";
@@ -41,6 +41,7 @@ import { secureExpressApp } from "./express";
 import { logger } from "./logger";
 import { getApiClientMiddleware } from "./middlewares/api_client";
 import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
+import { OptionalParamMiddleware } from "./middlewares/optional_param";
 import { RequiredParamMiddleware } from "./middlewares/required_param";
 import { getUserFromRequestMiddleware } from "./middlewares/user";
 
@@ -101,12 +102,13 @@ app.get("/logout", (req: express.Request, res: express.Response) => {
 });
 
 app.get(
-  "/subscriptions",
+  "/subscriptions/:email?",
   ouathVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
-      getUserFromRequestMiddleware()
+      getUserFromRequestMiddleware(),
+      OptionalParamMiddleware("email", EmailString)
     )(getSubscriptions)
   )
 );

@@ -10,6 +10,7 @@ import * as msRestAzure from "ms-rest-azure";
 import { logger } from "./logger";
 
 import {
+  GroupContractProperties,
   SubscriptionCollection,
   SubscriptionContract,
   UserContract,
@@ -187,7 +188,13 @@ async function getApimUser__(
   apiClient: ApiManagementClient,
   email: string
 ): Promise<
-  Option<UserContract & { readonly id: string; readonly name: string }>
+  Option<
+    UserContract & {
+      readonly id: string;
+      readonly name: string;
+      readonly groups: ReadonlyArray<GroupContractProperties>;
+    }
+  >
 > {
   logger.debug("getApimUser");
   const results = await apiClient.user.listByService(
