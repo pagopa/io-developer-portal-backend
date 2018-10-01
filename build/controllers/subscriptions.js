@@ -20,7 +20,8 @@ const logger_1 = require("../logger");
 function getSubscriptions(apiClient, authenticatedUser, userEmail) {
     return __awaiter(this, void 0, void 0, function* () {
         const maybeApimUser = yield apim_operations_1.getApimUser(apiClient, authenticatedUser.emails[0]);
-        const isApimAdmin = maybeApimUser.exists(apimUser => !Array_1.isEmpty(apimUser.groups.filter(g => g.displayName === "Administrator")));
+        const isApimAdmin = maybeApimUser.exists(apimUser => Array.isArray(apimUser.groups) &&
+            !Array_1.isEmpty(apimUser.groups.filter(g => g.displayName === "Administrator")));
         // If the logged in user is an administrator and we have
         // an email address, load the actual user from that address
         const maybeRetrievedApimUser = userEmail && isApimAdmin

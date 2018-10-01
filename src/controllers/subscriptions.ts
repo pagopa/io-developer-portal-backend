@@ -46,6 +46,7 @@ export async function getSubscriptions(
 
   const isApimAdmin = maybeApimUser.exists(
     apimUser =>
+      Array.isArray(apimUser.groups) &&
       !isEmpty(apimUser.groups.filter(g => g.displayName === "Administrator"))
   );
 

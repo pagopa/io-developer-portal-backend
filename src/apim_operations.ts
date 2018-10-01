@@ -192,7 +192,6 @@ async function getApimUser__(
     UserContract & {
       readonly id: string;
       readonly name: string;
-      readonly groups: ReadonlyArray<GroupContractProperties>;
     }
   >
 > {
