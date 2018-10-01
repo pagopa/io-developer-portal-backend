@@ -348,7 +348,7 @@ export async function getUserGroups(
   apiClient: ApiManagementClient,
   user: UserContract
 ): Promise<Option<ReadonlyArray<string>>> {
-  if (!user || !user.name || !user.groups) {
+  if (!user.name) {
     return none;
   }
   const existingGroups = await apiClient.userGroup.list(

@@ -209,7 +209,7 @@ function addUserToGroups(apiClient, user, groups) {
 exports.addUserToGroups = addUserToGroups;
 function getUserGroups(apiClient, user) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!user || !user.name || !user.groups) {
+        if (!user.name) {
             return Option_1.none;
         }
         const existingGroups = yield apiClient.userGroup.list(config.azurermResourceGroup, config.azurermApim, user.name);
