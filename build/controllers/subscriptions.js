@@ -13,7 +13,6 @@ const responses_1 = require("italia-ts-commons/lib/responses");
 const apim_operations_1 = require("../apim_operations");
 const new_subscription_1 = require("../new_subscription");
 const logger_1 = require("../logger");
-const ADMIN_GROUP_NAME = "ApiAdmin";
 /**
  * List all subscriptions for the logged in user
  */

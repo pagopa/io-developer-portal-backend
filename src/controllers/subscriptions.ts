@@ -26,10 +26,7 @@ import {
 import { AdUser } from "../bearer_strategy";
 import { subscribeApimUser } from "../new_subscription";
 
-import { isEmpty } from "fp-ts/lib/Array";
 import { logger } from "../logger";
-
-const ADMIN_GROUP_NAME = "ApiAdmin";
 
 /**
  * List all subscriptions for the logged in user
