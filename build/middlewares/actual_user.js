@@ -12,6 +12,7 @@ const Either_1 = require("fp-ts/lib/Either");
 const Option_1 = require("fp-ts/lib/Option");
 const responses_1 = require("italia-ts-commons/lib/responses");
 const apim_operations_1 = require("../apim_operations");
+const logger_1 = require("../logger");
 function getActualUser(apiClient, authenticatedUser, userEmail) {
     return __awaiter(this, void 0, void 0, function* () {
         // Get API management groups for the authenticated user
@@ -23,6 +24,7 @@ function getActualUser(apiClient, authenticatedUser, userEmail) {
         const maybeRetrievedApimUser = userEmail && isApimAdmin
             ? yield apim_operations_1.getApimUser(apiClient, userEmail)
             : maybeApimUser;
+        logger_1.logger.debug("getActualUser (isApimAdmin=%d maybeApimUser=%s maybeRetrievedApimUser=%s)", isApimAdmin, maybeApimUser, maybeRetrievedApimUser);
         if (Option_1.isNone(maybeRetrievedApimUser)) {
             return Either_1.left(responses_1.ResponseErrorForbiddenNotAuthorized);
         }
