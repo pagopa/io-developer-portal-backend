@@ -88,7 +88,7 @@ export async function loginToApim(
 async function getUserSubscription__(
   apiClient: ApiManagementClient,
   subscriptionId: string,
-  userId: string
+  userId?: string
 ): Promise<Option<SubscriptionContract & { readonly name: string }>> {
   logger.debug("getUserSubscription");
   const subscription = await apiClient.subscription.get(
@@ -96,7 +96,7 @@ async function getUserSubscription__(
     config.azurermApim,
     subscriptionId
   );
-  if (subscription.userId !== userId || !subscription.name) {
+  if ((userId && subscription.userId !== userId) || !subscription.name) {
     return none;
   }
   return some({ name: subscription.name, ...subscription });

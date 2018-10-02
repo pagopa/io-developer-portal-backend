@@ -16,7 +16,11 @@ import {
 } from "italia-ts-commons/lib/strings";
 import { ServicePublic } from "../api/ServicePublic";
 import { APIClient, toEither } from "../api_client";
-import { getApimUser, getUserSubscription } from "../apim_operations";
+import {
+  getApimUser,
+  getUserSubscription,
+  isAdminUser
+} from "../apim_operations";
 import { AdUser } from "../bearer_strategy";
 import * as config from "../config";
 
@@ -66,11 +70,13 @@ export async function getService(
 
   // Authenticates this request against the logged in user
   // checking that serviceId = subscriptionId
+  // if the user is an admin we skip the check on userId
   const maybeSubscription = await getUserSubscription(
     apiClient,
     serviceId,
-    apimUser.id
+    isAdminUser(apimUser) ? undefined : apimUser.id
   );
+
   if (isNone(maybeSubscription)) {
     return ResponseErrorInternal("Cannot get user subscription");
   }
@@ -118,11 +124,12 @@ export async function putService(
   const apimUser = maybeApimUser.value;
 
   // Authenticates this request against the logged in user
-  // checking that he owns a subscription with the provided serviceId
+  // checking that serviceId = subscriptionId
+  // if the user is an admin we skip the check on userId
   const maybeSubscription = await getUserSubscription(
     apiClient,
     serviceId,
-    apimUser.id
+    isAdminUser(apimUser) ? undefined : apimUser.id
   );
   if (isNone(maybeSubscription)) {
     return ResponseErrorNotFound(

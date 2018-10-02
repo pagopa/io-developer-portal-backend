@@ -39,7 +39,8 @@ function getService(apiClient, authenticatedUser, serviceId) {
         const apimUser = maybeApimUser.value;
         // Authenticates this request against the logged in user
         // checking that serviceId = subscriptionId
-        const maybeSubscription = yield apim_operations_1.getUserSubscription(apiClient, serviceId, apimUser.id);
+        // if the user is an admin we skip the check on userId
+        const maybeSubscription = yield apim_operations_1.getUserSubscription(apiClient, serviceId, apim_operations_1.isAdminUser(apimUser) ? undefined : apimUser.id);
         if (Option_1.isNone(maybeSubscription)) {
             return responses_1.ResponseErrorInternal("Cannot get user subscription");
         }
@@ -65,8 +66,9 @@ function putService(apiClient, authenticatedUser, serviceId, servicePayload) {
         }
         const apimUser = maybeApimUser.value;
         // Authenticates this request against the logged in user
-        // checking that he owns a subscription with the provided serviceId
-        const maybeSubscription = yield apim_operations_1.getUserSubscription(apiClient, serviceId, apimUser.id);
+        // checking that serviceId = subscriptionId
+        // if the user is an admin we skip the check on userId
+        const maybeSubscription = yield apim_operations_1.getUserSubscription(apiClient, serviceId, apim_operations_1.isAdminUser(apimUser) ? undefined : apimUser.id);
         if (Option_1.isNone(maybeSubscription)) {
             return responses_1.ResponseErrorNotFound("Subscription not found", "Cannot get a subscription for the logged in user");
         }

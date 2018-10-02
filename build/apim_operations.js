@@ -56,7 +56,7 @@ function getUserSubscription__(apiClient, subscriptionId, userId) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("getUserSubscription");
         const subscription = yield apiClient.subscription.get(config.azurermResourceGroup, config.azurermApim, subscriptionId);
-        if (subscription.userId !== userId || !subscription.name) {
+        if ((userId && subscription.userId !== userId) || !subscription.name) {
             return Option_1.none;
         }
         return Option_1.some(Object.assign({ name: subscription.name }, subscription));
