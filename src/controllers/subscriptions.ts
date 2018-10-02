@@ -19,14 +19,14 @@ import {
   getApimUser,
   getUserSubscription,
   getUserSubscriptions,
-  isAdminUser,
   regeneratePrimaryKey,
   regenerateSecondaryKey
 } from "../apim_operations";
 import { AdUser } from "../bearer_strategy";
 import { subscribeApimUser } from "../new_subscription";
 
-import { logger } from "../logger";
+import { isLeft } from "fp-ts/lib/Either";
+import { getActualUser } from "../middlewares/actual_user";
 
 /**
  * List all subscriptions for the logged in user
@@ -39,30 +39,15 @@ export async function getSubscriptions(
   | IResponseSuccessJson<SubscriptionCollection>
   | IResponseErrorForbiddenNotAuthorized
 > {
-  const maybeApimUser = await getApimUser(
+  const errorOrRetrievedApimUser = await getActualUser(
     apiClient,
-    authenticatedUser.emails[0]
+    authenticatedUser,
+    userEmail
   );
-
-  const isApimAdmin = maybeApimUser.exists(isAdminUser);
-
-  // If the logged in user is an administrator and we have
-  // an email address, load the actual user from that address
-  const maybeRetrievedApimUser =
-    userEmail && isApimAdmin
-      ? await getApimUser(apiClient, userEmail)
-      : maybeApimUser;
-
-  logger.debug(
-    "getSubscriptions, isAdmin=%d groups=%s",
-    isApimAdmin,
-    JSON.stringify(maybeApimUser)
-  );
-
-  if (isNone(maybeRetrievedApimUser)) {
-    return ResponseErrorForbiddenNotAuthorized;
+  if (isLeft(errorOrRetrievedApimUser)) {
+    return errorOrRetrievedApimUser.value;
   }
-  const retrievedApimUser = maybeRetrievedApimUser.value;
+  const retrievedApimUser = errorOrRetrievedApimUser.value;
 
   const subscriptions = await getUserSubscriptions(
     apiClient,
@@ -76,6 +61,7 @@ export async function getSubscriptions(
  * Is it possible to create multiple subscriptions
  * for the same user / product tuple.
  */
+// TODO: work with the actual user (not the logged one)
 export async function postSubscriptions(
   apiClient: ApiManagementClient,
   authenticatedUser: AdUser

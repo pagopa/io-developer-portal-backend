@@ -12,24 +12,18 @@ const Option_1 = require("fp-ts/lib/Option");
 const responses_1 = require("italia-ts-commons/lib/responses");
 const apim_operations_1 = require("../apim_operations");
 const new_subscription_1 = require("../new_subscription");
-const logger_1 = require("../logger");
+const Either_1 = require("fp-ts/lib/Either");
+const actual_user_1 = require("../middlewares/actual_user");
 /**
  * List all subscriptions for the logged in user
  */
 function getSubscriptions(apiClient, authenticatedUser, userEmail) {
     return __awaiter(this, void 0, void 0, function* () {
-        const maybeApimUser = yield apim_operations_1.getApimUser(apiClient, authenticatedUser.emails[0]);
-        const isApimAdmin = maybeApimUser.exists(apim_operations_1.isAdminUser);
-        // If the logged in user is an administrator and we have
-        // an email address, load the actual user from that address
-        const maybeRetrievedApimUser = userEmail && isApimAdmin
-            ? yield apim_operations_1.getApimUser(apiClient, userEmail)
-            : maybeApimUser;
-        logger_1.logger.debug("getSubscriptions, isAdmin=%d groups=%s", isApimAdmin, JSON.stringify(maybeApimUser));
-        if (Option_1.isNone(maybeRetrievedApimUser)) {
-            return responses_1.ResponseErrorForbiddenNotAuthorized;
+        const errorOrRetrievedApimUser = yield actual_user_1.getActualUser(apiClient, authenticatedUser, userEmail);
+        if (Either_1.isLeft(errorOrRetrievedApimUser)) {
+            return errorOrRetrievedApimUser.value;
         }
-        const retrievedApimUser = maybeRetrievedApimUser.value;
+        const retrievedApimUser = errorOrRetrievedApimUser.value;
         const subscriptions = yield apim_operations_1.getUserSubscriptions(apiClient, retrievedApimUser.name);
         return responses_1.ResponseSuccessJson(subscriptions);
     });
@@ -40,6 +34,7 @@ exports.getSubscriptions = getSubscriptions;
  * Is it possible to create multiple subscriptions
  * for the same user / product tuple.
  */
+// TODO: work with the actual user (not the logged one)
 function postSubscriptions(apiClient, authenticatedUser) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = yield apim_operations_1.getApimUser(apiClient, authenticatedUser.emails[0]);
