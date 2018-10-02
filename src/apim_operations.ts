@@ -179,7 +179,7 @@ export const regenerateSecondaryKey = (
   return regenerateKey__(apiClient, subscriptionId, userId, "secondary");
 };
 
-interface IExtendedUserContract extends UserContract {
+export interface IExtendedUserContract extends UserContract {
   readonly id: string;
   readonly name: string;
   readonly groupNames: ReadonlySet<string>;

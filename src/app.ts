@@ -37,6 +37,7 @@ import {
   postSubscriptions,
   putSubscriptionKey
 } from "./controllers/subscriptions";
+import { getUser } from "./controllers/user";
 import { secureExpressApp } from "./express";
 import { logger } from "./logger";
 import { getApiClientMiddleware } from "./middlewares/api_client";
@@ -159,6 +160,18 @@ app.put(
       RequiredParamMiddleware("serviceId", NonEmptyString),
       ExtractFromPayloadMiddleware(ServicePayload)
     )(putService)
+  )
+);
+
+app.get(
+  ["/user", "/user/:email"],
+  ouathVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getUserFromRequestMiddleware(),
+      OptionalParamMiddleware("email", EmailString)
+    )(getUser)
   )
 );
 
