@@ -8,6 +8,7 @@ import {
 import { EmailString } from "italia-ts-commons/lib/strings";
 import { IExtendedUserContract } from "../apim_operations";
 import { AdUser } from "../bearer_strategy";
+import { logger } from "../logger";
 import { getActualUser } from "../middlewares/actual_user";
 
 interface IUserData {
@@ -22,6 +23,7 @@ export async function getUser(
 ): Promise<
   IResponseSuccessJson<IUserData> | IResponseErrorForbiddenNotAuthorized
 > {
+  logger.debug("getUser (%s)", userEmail);
   const errorOrRetrievedApimUser = await getActualUser(
     apiClient,
     authenticatedUser,
