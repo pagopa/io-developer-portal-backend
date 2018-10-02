@@ -182,6 +182,7 @@ export const regenerateSecondaryKey = (
 export interface IExtendedUserContract extends UserContract {
   readonly id: string;
   readonly name: string;
+  readonly email: string;
   readonly groupNames: ReadonlySet<string>;
 }
 
@@ -208,11 +209,12 @@ async function getApimUser__(
     return none;
   }
   const user = results[0];
-  if (!user.id || !user.name) {
+  if (!user.id || !user.name || !user.email || !user.email[0]) {
     return none;
   }
   const groupNames = await getUserGroups(apiClient, user);
   const apimUser = {
+    email: user.email,
     id: user.id,
     name: user.name,
     ...user,

@@ -121,11 +121,11 @@ function getApimUser__(apiClient, email) {
             return Option_1.none;
         }
         const user = results[0];
-        if (!user.id || !user.name) {
+        if (!user.id || !user.name || !user.email || !user.email[0]) {
             return Option_1.none;
         }
         const groupNames = yield getUserGroups(apiClient, user);
-        const apimUser = Object.assign({ id: user.id, name: user.name }, user, { groupNames: Option_1.isSome(groupNames) ? new Set(groupNames.value) : new Set() });
+        const apimUser = Object.assign({ email: user.email, id: user.id, name: user.name }, user, { groupNames: Option_1.isSome(groupNames) ? new Set(groupNames.value) : new Set() });
         // return first matching user
         return Option_1.some(apimUser);
     });
