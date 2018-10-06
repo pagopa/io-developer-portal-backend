@@ -4,6 +4,9 @@
   "main": "./build/app",
   "typings": "src/typings",
   "license": "MIT",
+  "engines": {
+    "node": "6.5.0"
+  },
   "scripts": {
     "start": "node build/app",
     "build:tsc": "tsc --outDir build",
