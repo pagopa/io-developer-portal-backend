@@ -24,7 +24,7 @@ function getActualUser(apiClient, authenticatedUser, userEmail) {
         const maybeRetrievedApimUser = userEmail && isApimAdmin
             ? yield apim_operations_1.getApimUser(apiClient, userEmail)
             : maybeApimUser;
-        logger_1.logger.debug("getActualUser (isApimAdmin=%d maybeApimUser=%s maybeRetrievedApimUser=%s)", isApimAdmin, JSON.stringify(maybeApimUser), maybeRetrievedApimUser);
+        logger_1.logger.debug("getActualUser (isApimAdmin=%d maybeApimUser=%s maybeRetrievedApimUser=%s)", isApimAdmin, maybeApimUser, maybeRetrievedApimUser);
         if (Option_1.isNone(maybeRetrievedApimUser)) {
             return Either_1.left(responses_1.ResponseErrorForbiddenNotAuthorized);
         }
