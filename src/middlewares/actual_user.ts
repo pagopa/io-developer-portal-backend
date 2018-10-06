@@ -45,7 +45,7 @@ export async function getActualUser(
   logger.debug(
     "getActualUser (isApimAdmin=%d maybeApimUser=%s maybeRetrievedApimUser=%s)",
     isApimAdmin,
-    maybeApimUser,
+    JSON.stringify(maybeApimUser),
     maybeRetrievedApimUser
   );
 
