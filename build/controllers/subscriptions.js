@@ -35,13 +35,14 @@ exports.getSubscriptions = getSubscriptions;
  * for the same user / product tuple.
  */
 // TODO: work with the actual user (not the logged one)
-function postSubscriptions(apiClient, authenticatedUser) {
+function postSubscriptions(apiClient, authenticatedUser, subscriptionData, userEmail) {
     return __awaiter(this, void 0, void 0, function* () {
-        const user = yield apim_operations_1.getApimUser(apiClient, authenticatedUser.emails[0]);
-        if (Option_1.isNone(user)) {
-            return responses_1.ResponseErrorForbiddenNotAuthorized;
+        const errorOrRetrievedApimUser = yield actual_user_1.getActualUser(apiClient, authenticatedUser, userEmail);
+        if (Either_1.isLeft(errorOrRetrievedApimUser)) {
+            return errorOrRetrievedApimUser.value;
         }
-        const subscriptionOrError = yield new_subscription_1.subscribeApimUser(apiClient, authenticatedUser);
+        const retrievedApimUser = errorOrRetrievedApimUser.value;
+        const subscriptionOrError = yield new_subscription_1.subscribeApimUser(apiClient, retrievedApimUser, subscriptionData);
         return subscriptionOrError.fold(err => responses_1.ResponseErrorInternal("Cannot add new subscription: " + err), responses_1.ResponseSuccessJson);
     });
 }

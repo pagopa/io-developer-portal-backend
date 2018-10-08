@@ -23,7 +23,7 @@ import {
   regenerateSecondaryKey
 } from "../apim_operations";
 import { AdUser } from "../bearer_strategy";
-import { subscribeApimUser } from "../new_subscription";
+import { subscribeApimUser, SubscriptionData } from "../new_subscription";
 
 import { isLeft } from "fp-ts/lib/Either";
 import { getActualUser } from "../middlewares/actual_user";
@@ -64,19 +64,28 @@ export async function getSubscriptions(
 // TODO: work with the actual user (not the logged one)
 export async function postSubscriptions(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser
+  authenticatedUser: AdUser,
+  subscriptionData: SubscriptionData,
+  userEmail?: EmailString
 ): Promise<
   | IResponseSuccessJson<SubscriptionContract>
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorInternal
 > {
-  const user = await getApimUser(apiClient, authenticatedUser.emails[0]);
-  if (isNone(user)) {
-    return ResponseErrorForbiddenNotAuthorized;
+  const errorOrRetrievedApimUser = await getActualUser(
+    apiClient,
+    authenticatedUser,
+    userEmail
+  );
+  if (isLeft(errorOrRetrievedApimUser)) {
+    return errorOrRetrievedApimUser.value;
   }
+  const retrievedApimUser = errorOrRetrievedApimUser.value;
+
   const subscriptionOrError = await subscribeApimUser(
     apiClient,
-    authenticatedUser
+    retrievedApimUser,
+    subscriptionData
   );
   return subscriptionOrError.fold<
     IResponseErrorInternal | IResponseSuccessJson<SubscriptionContract>

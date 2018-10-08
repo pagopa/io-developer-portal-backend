@@ -45,6 +45,7 @@ import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 import { OptionalParamMiddleware } from "./middlewares/optional_param";
 import { RequiredParamMiddleware } from "./middlewares/required_param";
 import { getUserFromRequestMiddleware } from "./middlewares/user";
+import { SubscriptionData } from "./new_subscription";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
@@ -120,7 +121,9 @@ app.post(
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
-      getUserFromRequestMiddleware()
+      getUserFromRequestMiddleware(),
+      ExtractFromPayloadMiddleware(SubscriptionData),
+      OptionalParamMiddleware("email", EmailString)
     )(postSubscriptions)
   )
 );

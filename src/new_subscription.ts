@@ -7,8 +7,7 @@
  * 4. Creates a new Service linked to the new subscription
  */
 import ApiManagementClient from "azure-arm-apimanagement";
-
-import { AdUser } from "./bearer_strategy";
+import * as t from "io-ts";
 
 import { Either, isLeft, left, right } from "fp-ts/lib/Either";
 
@@ -17,16 +16,18 @@ import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 import {
   addUserSubscriptionToProduct,
   addUserToGroups,
-  getApimUser,
-  IUserData
+  IExtendedUserContract
 } from "./apim_operations";
-
-import { isNone } from "fp-ts/lib/Option";
 
 import * as config from "./config";
 
 import * as appinsights from "applicationinsights";
-import { EmailString, FiscalCode } from "italia-ts-commons/lib/strings";
+import {
+  EmailString,
+  FiscalCode,
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "italia-ts-commons/lib/strings";
 import randomstring = require("randomstring");
 import { APIClient, toEither } from "./api_client";
 import { logger } from "./logger";
@@ -60,20 +61,13 @@ function generateFakeFiscalCode(): FiscalCode {
   ) as FiscalCode;
 }
 
-/**
- * Convert a profile obtained from oauth authentication
- * to the user data needed to perform API operations.
- */
-function toUserData(profile: AdUser): IUserData {
-  return {
-    email: profile.emails[0],
-    firstName: profile.given_name,
-    groups: (config.apimUserGroups || "").split(","),
-    lastName: profile.family_name,
-    oid: profile.oid,
-    productName: config.apimProductName
-  };
-}
+export const SubscriptionData = t.interface({
+  department_name: NonEmptyString,
+  organization_fiscal_code: OrganizationFiscalCode,
+  organization_name: NonEmptyString,
+  service_name: NonEmptyString
+});
+export type SubscriptionData = t.TypeOf<typeof SubscriptionData>;
 
 /**
  * Assigns logged-in user to API management products and groups,
@@ -82,28 +76,25 @@ function toUserData(profile: AdUser): IUserData {
  */
 export async function subscribeApimUser(
   apiClient: ApiManagementClient,
-  adUser: AdUser
+  apimUser: IExtendedUserContract,
+  subscriptionData: SubscriptionData
 ): Promise<Either<Error, SubscriptionContract>> {
-  const userData = toUserData(adUser);
   try {
     // user must already exists (is created at login)
-    logger.debug("subscribeApimUser|getApimUser");
-    const maybeUser = await getApimUser(apiClient, userData.email);
-
-    if (isNone(maybeUser)) {
-      return left(new Error("subscribeApimUser|getApimUser|no user found"));
-    }
-    const user = maybeUser.value;
 
     // idempotent
     logger.debug("subscribeApimUser|addUserToGroups");
-    await addUserToGroups(apiClient, user, userData.groups);
+    await addUserToGroups(
+      apiClient,
+      apimUser,
+      (config.apimUserGroups || "").split(",")
+    );
 
     // creates a new subscription every time !
     logger.debug("subscribeApimUser|addUserSubscriptionToProduct");
     const errorOrSubscription = await addUserSubscriptionToProduct(
       apiClient,
-      user.id,
+      apimUser.id,
       config.apimProductName
     );
 
@@ -125,7 +116,7 @@ export async function subscribeApimUser(
     const fakeFiscalCode = generateFakeFiscalCode();
 
     const errorOrProfile = ExtendedProfile.decode({
-      email: userData.email as EmailString,
+      email: apimUser.email as EmailString,
       is_inbox_enabled: true,
       is_webhook_enabled: true,
       version: 0
@@ -151,11 +142,12 @@ export async function subscribeApimUser(
     const errorOrService = Service.decode({
       authorized_cidrs: [],
       authorized_recipients: [fakeFiscalCode],
-      department_name: adUser.extension_Department || "department",
-      organization_fiscal_code: "00000000000",
-      organization_name: adUser.extension_Organization || "organization",
+      department_name: subscriptionData.department_name || "department",
+      organization_fiscal_code:
+        subscriptionData.organization_fiscal_code || "00000000000",
+      organization_name: subscriptionData.organization_name || "organization",
       service_id: subscription.name,
-      service_name: adUser.extension_Service || "service"
+      service_name: subscriptionData.service_name || "service"
     });
     if (isLeft(errorOrService)) {
       return left(
@@ -191,7 +183,7 @@ export async function subscribeApimUser(
           `\nYou can start in the developer portal here:`,
           config.apimUrl
         ].join("\n"),
-        subject: `Welcome ${userData.firstName} ${userData.lastName} !`
+        subject: `Welcome ${apimUser.firstName} ${apimUser.lastName} !`
       }
     });
     if (isLeft(errorOrMessage)) {
@@ -224,8 +216,8 @@ export async function subscribeApimUser(
     telemetryClient.trackEvent({
       name: "onboarding.success",
       properties: {
-        id: userData.oid,
-        username: `${userData.firstName} ${userData.lastName}`
+        id: apimUser.id,
+        username: `${apimUser.firstName} ${apimUser.lastName}`
       }
     });
 
@@ -234,8 +226,8 @@ export async function subscribeApimUser(
     telemetryClient.trackEvent({
       name: "onboarding.failure",
       properties: {
-        id: userData.oid,
-        username: `${userData.firstName} ${userData.lastName}`
+        id: apimUser.id,
+        username: `${apimUser.firstName} ${apimUser.lastName}`
       }
     });
     telemetryClient.trackException({ exception: e });

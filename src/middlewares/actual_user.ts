@@ -37,6 +37,7 @@ export async function getActualUser(
 
   // If the logged in user is an administrator and we have
   // an email address, load the actual user from that address
+  // othwerise return the authenticated user
   const maybeRetrievedApimUser =
     userEmail && isApimAdmin
       ? await getApimUser(apiClient, userEmail)
