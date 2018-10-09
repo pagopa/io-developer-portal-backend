@@ -365,18 +365,19 @@ export async function getUserGroups(
 export async function getApimUsers(
   apiClient: ApiManagementClient
 ): Promise<ReadonlyArray<UserContract>> {
-  const users: ReadonlyArray<UserContract> = [];
+  // tslint:disable-next-line:readonly-array no-let
+  let users: UserContract[] = [];
   logger.debug("getUsers");
   // tslint:disable-next-line:refer-const no-let
   let nextUsers = await apiClient.user.listByService(
     config.azurermResourceGroup,
     config.azurermApim
   );
-  users.concat(nextUsers);
+  users = users.concat(nextUsers);
   while (nextUsers.nextLink) {
     logger.debug("getUsers (%s)", nextUsers.nextLink);
     nextUsers = await apiClient.user.listByServiceNext(nextUsers.nextLink);
-    users.concat(nextUsers);
+    users = users.concat(nextUsers);
   }
   return users;
 }

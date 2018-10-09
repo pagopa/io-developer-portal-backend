@@ -219,15 +219,16 @@ function getUserGroups(apiClient, user) {
 exports.getUserGroups = getUserGroups;
 function getApimUsers(apiClient) {
     return __awaiter(this, void 0, void 0, function* () {
-        const users = [];
+        // tslint:disable-next-line:readonly-array no-let
+        let users = [];
         logger_1.logger.debug("getUsers");
         // tslint:disable-next-line:refer-const no-let
         let nextUsers = yield apiClient.user.listByService(config.azurermResourceGroup, config.azurermApim);
-        users.concat(nextUsers);
+        users = users.concat(nextUsers);
         while (nextUsers.nextLink) {
             logger_1.logger.debug("getUsers (%s)", nextUsers.nextLink);
             nextUsers = yield apiClient.user.listByServiceNext(nextUsers.nextLink);
-            users.concat(nextUsers);
+            users = users.concat(nextUsers);
         }
         return users;
     });
