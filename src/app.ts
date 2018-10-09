@@ -38,6 +38,7 @@ import {
   putSubscriptionKey
 } from "./controllers/subscriptions";
 import { getUser } from "./controllers/user";
+import { getUsers } from "./controllers/users";
 import { secureExpressApp } from "./express";
 import { logger } from "./logger";
 import { getApiClientMiddleware } from "./middlewares/api_client";
@@ -175,6 +176,17 @@ app.get(
       getUserFromRequestMiddleware(),
       OptionalParamMiddleware("email", EmailString)
     )(getUser)
+  )
+);
+
+app.get(
+  "/users",
+  ouathVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getUserFromRequestMiddleware()
+    )(getUsers)
   )
 );
 

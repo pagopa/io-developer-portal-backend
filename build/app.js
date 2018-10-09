@@ -38,6 +38,7 @@ const configuration_1 = require("./controllers/configuration");
 const services_1 = require("./controllers/services");
 const subscriptions_1 = require("./controllers/subscriptions");
 const user_1 = require("./controllers/user");
+const users_1 = require("./controllers/users");
 const express_2 = require("./express");
 const logger_1 = require("./logger");
 const api_client_1 = require("./middlewares/api_client");
@@ -94,6 +95,7 @@ app.put("/subscriptions/:subscriptionId/:keyType", ouathVerifier, request_middle
 app.get("/services/:serviceId", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("serviceId", strings_1.NonEmptyString))(services_1.getService)));
 app.put("/services/:serviceId", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("serviceId", strings_1.NonEmptyString), extract_payload_1.ExtractFromPayloadMiddleware(services_1.ServicePayload))(services_1.putService)));
 app.get(["/user", "/user/:email"], ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware(), optional_param_1.OptionalParamMiddleware("email", strings_1.EmailString))(user_1.getUser)));
+app.get("/users", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware())(users_1.getUsers)));
 app.get("/configuration", express_1.toExpressHandler(configuration_1.getConfiguration));
 const port = config.port || 3000;
 app.listen(port);

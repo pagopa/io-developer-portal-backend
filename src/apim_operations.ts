@@ -12,6 +12,7 @@ import { logger } from "./logger";
 import {
   SubscriptionCollection,
   SubscriptionContract,
+  UserCollection,
   UserContract,
   UserCreateParameters
 } from "azure-arm-apimanagement/lib/models";
@@ -359,4 +360,21 @@ export async function getUserGroups(
     user.name
   );
   return some(existingGroups.map(g => g.name) as ReadonlyArray<string>);
+}
+
+export async function getApimUsers(
+  apiClient: ApiManagementClient
+): Promise<ReadonlyArray<UserContract>> {
+  const users: ReadonlyArray<UserContract> = [];
+  logger.debug("getUsers");
+  const nextUsers = await apiClient.user.listByService(
+    config.azurermResourceGroup,
+    config.azurermApim
+  );
+  users.concat(nextUsers);
+  while (nextUsers.nextLink) {
+    logger.debug("getUsers (%s)", nextUsers.nextLink);
+    users.concat(await apiClient.user.listByServiceNext(nextUsers.nextLink));
+  }
+  return users;
 }

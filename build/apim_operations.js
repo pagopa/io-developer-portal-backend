@@ -217,4 +217,18 @@ function getUserGroups(apiClient, user) {
     });
 }
 exports.getUserGroups = getUserGroups;
+function getApimUsers(apiClient) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const users = [];
+        logger_1.logger.debug("getUsers");
+        const nextUsers = yield apiClient.user.listByService(config.azurermResourceGroup, config.azurermApim);
+        users.concat(nextUsers);
+        while (nextUsers.nextLink) {
+            logger_1.logger.debug("getUsers (%s)", nextUsers.nextLink);
+            users.concat(yield apiClient.user.listByServiceNext(nextUsers.nextLink));
+        }
+        return users;
+    });
+}
+exports.getApimUsers = getApimUsers;
 //# sourceMappingURL=apim_operations.js.map
