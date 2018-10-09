@@ -6,15 +6,15 @@
  * See https://docs.microsoft.com/en-us/rest/api/apimanagement/
  */
 import { ApiManagementClient } from "azure-arm-apimanagement";
-import * as msRestAzure from "ms-rest-azure";
-import { logger } from "./logger";
-
 import {
   SubscriptionCollection,
   SubscriptionContract,
   UserContract,
   UserCreateParameters
 } from "azure-arm-apimanagement/lib/models";
+import { Set } from "json-set-map";
+import * as msRestAzure from "ms-rest-azure";
+import { logger } from "./logger";
 
 import * as memoizee from "memoizee";
 

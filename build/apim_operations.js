@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const json_set_map_1 = require("json-set-map");
 const msRestAzure = require("ms-rest-azure");
 const logger_1 = require("./logger");
 const memoizee = require("memoizee");
@@ -125,7 +126,7 @@ function getApimUser__(apiClient, email) {
             return Option_1.none;
         }
         const groupNames = yield getUserGroups(apiClient, user);
-        const apimUser = Object.assign({ email: user.email, id: user.id, name: user.name }, user, { groupNames: Option_1.isSome(groupNames) ? new Set(groupNames.value) : new Set() });
+        const apimUser = Object.assign({ email: user.email, id: user.id, name: user.name }, user, { groupNames: Option_1.isSome(groupNames) ? new json_set_map_1.Set(groupNames.value) : new json_set_map_1.Set() });
         // return first matching user
         return Option_1.some(apimUser);
     });
@@ -186,9 +187,9 @@ function addUserToGroups(apiClient, user, groups) {
             return Either_1.left(new Error("Cannot parse user"));
         }
         const existingGroups = yield apiClient.userGroup.list(config.azurermResourceGroup, config.azurermApim, user.name);
-        const existingGroupsNames = new Set(existingGroups.map(g => g.name));
+        const existingGroupsNames = new json_set_map_1.Set(existingGroups.map(g => g.name));
         logger_1.logger.debug("addUserToGroups|existing groups|%s", JSON.stringify(Array.from(existingGroupsNames)));
-        const missingGroups = new Set(groups.filter(g => !existingGroupsNames.has(g)));
+        const missingGroups = new json_set_map_1.Set(groups.filter(g => !existingGroupsNames.has(g)));
         if (missingGroups.size === 0) {
             logger_1.logger.debug("addUserToGroups|user already belongs to groups|%s", JSON.stringify(Array.from(existingGroupsNames)));
             return Either_1.right([]);
