@@ -57,11 +57,10 @@ export async function getSubscriptions(
 }
 
 /**
- * Subscribe the logged in user to a configured product.
+ * Subscribe the user to a configured product.
  * Is it possible to create multiple subscriptions
  * for the same user / product tuple.
  */
-// TODO: work with the actual user (not the logged one)
 export async function postSubscriptions(
   apiClient: ApiManagementClient,
   authenticatedUser: AdUser,

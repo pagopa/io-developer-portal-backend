@@ -37,8 +37,7 @@ import {
   postSubscriptions,
   putSubscriptionKey
 } from "./controllers/subscriptions";
-import { getUser } from "./controllers/user";
-import { getUsers } from "./controllers/users";
+import { getUser, getUsers } from "./controllers/user";
 import { secureExpressApp } from "./express";
 import { logger } from "./logger";
 import { getApiClientMiddleware } from "./middlewares/api_client";
@@ -117,7 +116,7 @@ app.get(
 );
 
 app.post(
-  "/subscriptions",
+  ["/subscriptions", "/subscriptions/:email"],
   ouathVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(

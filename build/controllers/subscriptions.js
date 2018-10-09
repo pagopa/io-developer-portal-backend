@@ -30,11 +30,10 @@ function getSubscriptions(apiClient, authenticatedUser, userEmail) {
 }
 exports.getSubscriptions = getSubscriptions;
 /**
- * Subscribe the logged in user to a configured product.
+ * Subscribe the user to a configured product.
  * Is it possible to create multiple subscriptions
  * for the same user / product tuple.
  */
-// TODO: work with the actual user (not the logged one)
 function postSubscriptions(apiClient, authenticatedUser, subscriptionData, userEmail) {
     return __awaiter(this, void 0, void 0, function* () {
         const errorOrRetrievedApimUser = yield actual_user_1.getActualUser(apiClient, authenticatedUser, userEmail);
