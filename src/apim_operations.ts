@@ -333,6 +333,13 @@ export async function addUserToGroups(
     await Array.from(missingGroups).reduce(async (prev, group) => {
       logger.debug("addUserToGroups|adding user to group (%s)", group);
       const addedGroups = await prev;
+
+      // If the user already belong to the unlimited group related
+      // to the new group, do not add the user to the limited one
+      if (existingGroupsNames.has(group.replace(/Limited/, ""))) {
+        logger.debug("addUserToGroups|skipping limited group (%s)", group);
+        return addedGroups;
+      }
       // For some odd reason in the Azure ARM API user.name
       // here is actually the user.id
       await apiClient.groupUser.create(
