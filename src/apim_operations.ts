@@ -22,6 +22,7 @@ import * as config from "./config";
 
 import { Either, left, right } from "fp-ts/lib/Either";
 import { isNone, isSome, none, Option, some } from "fp-ts/lib/Option";
+import SerializableSet from "json-set-map/build/src/set";
 import { ulid } from "ulid";
 
 export interface IUserData extends UserCreateParameters {
@@ -183,7 +184,7 @@ export interface IExtendedUserContract extends UserContract {
   readonly id: string;
   readonly name: string;
   readonly email: string;
-  readonly groupNames: ReadonlySet<string>;
+  readonly groupNames: SerializableSet<string>;
 }
 
 /**
@@ -218,7 +219,9 @@ async function getApimUser__(
     id: user.id,
     name: user.name,
     ...user,
-    groupNames: isSome(groupNames) ? new Set(groupNames.value) : new Set()
+    groupNames: isSome(groupNames)
+      ? new Set(groupNames.value)
+      : (new Set() as SerializableSet<string>)
   };
 
   // return first matching user

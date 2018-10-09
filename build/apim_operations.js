@@ -126,7 +126,9 @@ function getApimUser__(apiClient, email) {
             return Option_1.none;
         }
         const groupNames = yield getUserGroups(apiClient, user);
-        const apimUser = Object.assign({ email: user.email, id: user.id, name: user.name }, user, { groupNames: Option_1.isSome(groupNames) ? new json_set_map_1.Set(groupNames.value) : new json_set_map_1.Set() });
+        const apimUser = Object.assign({ email: user.email, id: user.id, name: user.name }, user, { groupNames: Option_1.isSome(groupNames)
+                ? new json_set_map_1.Set(groupNames.value)
+                : new json_set_map_1.Set() });
         // return first matching user
         return Option_1.some(apimUser);
     });
