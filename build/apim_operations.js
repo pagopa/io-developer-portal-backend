@@ -221,11 +221,13 @@ function getApimUsers(apiClient) {
     return __awaiter(this, void 0, void 0, function* () {
         const users = [];
         logger_1.logger.debug("getUsers");
-        const nextUsers = yield apiClient.user.listByService(config.azurermResourceGroup, config.azurermApim);
+        // tslint:disable-next-line:refer-const no-let
+        let nextUsers = yield apiClient.user.listByService(config.azurermResourceGroup, config.azurermApim);
         users.concat(nextUsers);
         while (nextUsers.nextLink) {
             logger_1.logger.debug("getUsers (%s)", nextUsers.nextLink);
-            users.concat(yield apiClient.user.listByServiceNext(nextUsers.nextLink));
+            nextUsers = yield apiClient.user.listByServiceNext(nextUsers.nextLink);
+            users.concat(nextUsers);
         }
         return users;
     });

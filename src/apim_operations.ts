@@ -367,14 +367,16 @@ export async function getApimUsers(
 ): Promise<ReadonlyArray<UserContract>> {
   const users: ReadonlyArray<UserContract> = [];
   logger.debug("getUsers");
-  const nextUsers = await apiClient.user.listByService(
+  // tslint:disable-next-line:refer-const no-let
+  let nextUsers = await apiClient.user.listByService(
     config.azurermResourceGroup,
     config.azurermApim
   );
   users.concat(nextUsers);
   while (nextUsers.nextLink) {
     logger.debug("getUsers (%s)", nextUsers.nextLink);
-    users.concat(await apiClient.user.listByServiceNext(nextUsers.nextLink));
+    nextUsers = await apiClient.user.listByServiceNext(nextUsers.nextLink);
+    users.concat(nextUsers);
   }
   return users;
 }
