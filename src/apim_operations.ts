@@ -12,7 +12,6 @@ import { logger } from "./logger";
 import {
   SubscriptionCollection,
   SubscriptionContract,
-  UserCollection,
   UserContract,
   UserCreateParameters
 } from "azure-arm-apimanagement/lib/models";
