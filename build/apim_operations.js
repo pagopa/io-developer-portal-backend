@@ -199,9 +199,11 @@ function addUserToGroups(apiClient, user, groups) {
         return Either_1.right(yield Array.from(missingGroups).reduce((prev, group) => __awaiter(this, void 0, void 0, function* () {
             logger_1.logger.debug("addUserToGroups|adding user to group (%s)", group);
             const addedGroups = yield prev;
-            // If the user already belong to the unlimited group related
+            // If the user already belongs to the unlimited group related
             // to the new group, do not add the user to the limited one
-            if (existingGroupsNames.has(group.replace(/Limited/, ""))) {
+            // (aka: avoids to restrict user rights when adding new subscriptions)
+            if (existingGroupsNames.has(group.replace(/Limited/, "")) ||
+                existingGroupsNames.has(group.replace(/Limited/, "Full"))) {
                 logger_1.logger.debug("addUserToGroups|skipping limited group (%s)", group);
                 return addedGroups;
             }

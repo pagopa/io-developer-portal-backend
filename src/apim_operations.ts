@@ -333,10 +333,13 @@ export async function addUserToGroups(
     await Array.from(missingGroups).reduce(async (prev, group) => {
       logger.debug("addUserToGroups|adding user to group (%s)", group);
       const addedGroups = await prev;
-
-      // If the user already belong to the unlimited group related
+      // If the user already belongs to the unlimited group related
       // to the new group, do not add the user to the limited one
-      if (existingGroupsNames.has(group.replace(/Limited/, ""))) {
+      // (aka: avoids to restrict user rights when adding new subscriptions)
+      if (
+        existingGroupsNames.has(group.replace(/Limited/, "")) ||
+        existingGroupsNames.has(group.replace(/Limited/, "Full"))
+      ) {
         logger.debug("addUserToGroups|skipping limited group (%s)", group);
         return addedGroups;
       }
