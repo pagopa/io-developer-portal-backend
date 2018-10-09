@@ -29,7 +29,11 @@ function getUsers(apiClient, authenticatedUser) {
         // checking that serviceId = subscriptionId
         // if the user is an admin we skip the check on userId
         const users = yield apim_operations_1.getApimUsers(apiClient);
-        return responses_1.ResponseSuccessJson(users.map(u => types_1.pick(["email", "firstName", "lastName"], u)));
+        const userCollection = users.map(u => types_1.pick(["email", "firstName", "lastName"], u));
+        return responses_1.ResponseSuccessJson({
+            items: userCollection,
+            length: userCollection.length
+        });
     });
 }
 exports.getUsers = getUsers;

@@ -367,7 +367,7 @@ export async function getApimUsers(
   // tslint:disable-next-line:readonly-array no-let
   let users: UserContract[] = [];
   logger.debug("getUsers");
-  // tslint:disable-next-line:refer-const no-let
+  // tslint:disable-next-line:no-let
   let nextUsers = await apiClient.user.listByService(
     config.azurermResourceGroup,
     config.azurermApim

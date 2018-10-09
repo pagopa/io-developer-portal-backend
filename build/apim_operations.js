@@ -222,7 +222,7 @@ function getApimUsers(apiClient) {
         // tslint:disable-next-line:readonly-array no-let
         let users = [];
         logger_1.logger.debug("getUsers");
-        // tslint:disable-next-line:refer-const no-let
+        // tslint:disable-next-line:no-let
         let nextUsers = yield apiClient.user.listByService(config.azurermResourceGroup, config.azurermApim);
         users = users.concat(nextUsers);
         while (nextUsers.nextLink) {
