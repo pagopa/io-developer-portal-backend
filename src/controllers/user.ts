@@ -1,6 +1,6 @@
 import ApiManagementClient from "azure-arm-apimanagement";
 import { UserContract } from "azure-arm-apimanagement/lib/models";
-import { isLeft, isRight } from "fp-ts/lib/Either";
+import { isRight } from "fp-ts/lib/Either";
 import { isNone } from "fp-ts/lib/Option";
 import {
   IResponseErrorForbiddenNotAuthorized,
