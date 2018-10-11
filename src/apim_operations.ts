@@ -37,6 +37,11 @@ export interface ITokenAndCredentials {
   readonly expiresOn: number;
 }
 
+export interface IApimConfig {
+  readonly azurermResourceGroup: string;
+  readonly azurermApim: string;
+}
+
 function getToken(
   loginCreds: msRestAzure.MSIAppServiceTokenCredentials
 ): Promise<msRestAzure.TokenResponse> {
@@ -89,12 +94,13 @@ export async function loginToApim(
 async function getUserSubscription__(
   apiClient: ApiManagementClient,
   subscriptionId: string,
-  userId?: string
+  userId?: string,
+  lconfig: IApimConfig = config
 ): Promise<Option<SubscriptionContract & { readonly name: string }>> {
   logger.debug("getUserSubscription");
   const subscription = await apiClient.subscription.get(
-    config.azurermResourceGroup,
-    config.azurermApim,
+    lconfig.azurermResourceGroup,
+    lconfig.azurermApim,
     subscriptionId
   );
   if ((userId && subscription.userId !== userId) || !subscription.name) {
@@ -112,14 +118,15 @@ export const getUserSubscription = memoizee(getUserSubscription__, {
 
 export async function getUserSubscriptions(
   apiClient: ApiManagementClient,
-  userId: string
+  userId: string,
+  lconfig: IApimConfig = config
 ): Promise<SubscriptionCollection> {
   logger.debug("getUserSubscriptions");
   // TODO: this list is paginated with a next-link
   // by now we get only the first result page
   return apiClient.userSubscription.list(
-    config.azurermResourceGroup,
-    config.azurermApim,
+    lconfig.azurermResourceGroup,
+    lconfig.azurermApim,
     userId
   );
 }
@@ -128,7 +135,8 @@ async function regenerateKey__(
   apiClient: ApiManagementClient,
   subscriptionId: string,
   userId: string,
-  keyType: "primary" | "secondary"
+  keyType: "primary" | "secondary",
+  lconfig: IApimConfig = config
 ): Promise<Option<SubscriptionContract>> {
   logger.debug("regeneratePrimaryKey");
   const maybeSubscription = await getUserSubscription__(
@@ -142,15 +150,15 @@ async function regenerateKey__(
   switch (keyType) {
     case "primary":
       await apiClient.subscription.regeneratePrimaryKey(
-        config.azurermResourceGroup,
-        config.azurermApim,
+        lconfig.azurermResourceGroup,
+        lconfig.azurermApim,
         subscriptionId
       );
       break;
     case "secondary":
       await apiClient.subscription.regenerateSecondaryKey(
-        config.azurermResourceGroup,
-        config.azurermApim,
+        lconfig.azurermResourceGroup,
+        lconfig.azurermApim,
         subscriptionId
       );
       break;
@@ -193,12 +201,13 @@ export interface IExtendedUserContract extends UserContract {
  */
 async function getApimUser__(
   apiClient: ApiManagementClient,
-  email: string
+  email: string,
+  lconfig: IApimConfig = config
 ): Promise<Option<IExtendedUserContract>> {
   logger.debug("getApimUser");
   const results = await apiClient.user.listByService(
-    config.azurermResourceGroup,
-    config.azurermApim,
+    lconfig.azurermResourceGroup,
+    lconfig.azurermApim,
     { filter: "email eq '" + email + "'" }
   );
   logger.debug(
@@ -244,12 +253,13 @@ export function isAdminUser(user: IExtendedUserContract): boolean {
 export async function addUserSubscriptionToProduct(
   apiClient: ApiManagementClient,
   userId: string,
-  productName: string
+  productName: string,
+  lconfig: IApimConfig = config
 ): Promise<Either<Error, SubscriptionContract>> {
   logger.debug("addUserToProduct");
   const product = await apiClient.product.get(
-    config.azurermResourceGroup,
-    config.azurermApim,
+    lconfig.azurermResourceGroup,
+    lconfig.azurermApim,
     productName
   );
   if (!product || !product.id) {
@@ -262,8 +272,8 @@ export async function addUserSubscriptionToProduct(
   // so we can activate a canceled one.
   return right(
     await apiClient.subscription.createOrUpdate(
-      config.azurermResourceGroup,
-      config.azurermApim,
+      lconfig.azurermResourceGroup,
+      lconfig.azurermApim,
       subscriptionId,
       {
         displayName: subscriptionId,
@@ -278,7 +288,8 @@ export async function addUserSubscriptionToProduct(
 export async function removeUserFromGroups(
   apiClient: ApiManagementClient,
   user: UserContract,
-  groups: ReadonlyArray<string>
+  groups: ReadonlyArray<string>,
+  lconfig: IApimConfig = config
 ): Promise<Either<Error, ReadonlyArray<string>>> {
   return right(
     await groups.reduce(async (prev, group) => {
@@ -287,8 +298,8 @@ export async function removeUserFromGroups(
       // For some odd reason in the Azure ARM API user.name
       // here is actually the user.id
       await apiClient.groupUser.deleteMethod(
-        config.azurermResourceGroup,
-        config.azurermApim,
+        lconfig.azurermResourceGroup,
+        lconfig.azurermApim,
         group,
         user.name as string
       );
@@ -303,15 +314,16 @@ export async function removeUserFromGroups(
 export async function addUserToGroups(
   apiClient: ApiManagementClient,
   user: UserContract,
-  groups: ReadonlyArray<string>
+  groups: ReadonlyArray<string>,
+  lconfig: IApimConfig = config
 ): Promise<Either<Error, ReadonlyArray<string>>> {
   logger.debug("addUserToGroups");
   if (!user || !user.name) {
     return left(new Error("Cannot parse user"));
   }
   const existingGroups = await apiClient.userGroup.list(
-    config.azurermResourceGroup,
-    config.azurermApim,
+    lconfig.azurermResourceGroup,
+    lconfig.azurermApim,
     user.name
   );
   const existingGroupsNames = new Set(existingGroups.map(g => g.name));
@@ -349,8 +361,8 @@ export async function addUserToGroups(
       // For some odd reason in the Azure ARM API user.name
       // here is actually the user.id
       await apiClient.groupUser.create(
-        config.azurermResourceGroup,
-        config.azurermApim,
+        lconfig.azurermResourceGroup,
+        lconfig.azurermApim,
         group,
         user.name as string
       );
@@ -361,29 +373,31 @@ export async function addUserToGroups(
 
 export async function getUserGroups(
   apiClient: ApiManagementClient,
-  user: UserContract
+  user: UserContract,
+  lconfig: IApimConfig = config
 ): Promise<Option<ReadonlyArray<string>>> {
   if (!user.name) {
     return none;
   }
   const existingGroups = await apiClient.userGroup.list(
-    config.azurermResourceGroup,
-    config.azurermApim,
+    lconfig.azurermResourceGroup,
+    lconfig.azurermApim,
     user.name
   );
   return some(existingGroups.map(g => g.name) as ReadonlyArray<string>);
 }
 
 export async function getApimUsers(
-  apiClient: ApiManagementClient
+  apiClient: ApiManagementClient,
+  lconfig: IApimConfig = config
 ): Promise<ReadonlyArray<UserContract>> {
   // tslint:disable-next-line:readonly-array no-let
   let users: UserContract[] = [];
   logger.debug("getUsers");
   // tslint:disable-next-line:no-let
   let nextUsers = await apiClient.user.listByService(
-    config.azurermResourceGroup,
-    config.azurermApim
+    lconfig.azurermResourceGroup,
+    lconfig.azurermApim
   );
   users = users.concat(nextUsers);
   while (nextUsers.nextLink) {

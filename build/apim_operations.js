@@ -53,10 +53,10 @@ function loginToApim(tokenCreds) {
     });
 }
 exports.loginToApim = loginToApim;
-function getUserSubscription__(apiClient, subscriptionId, userId) {
+function getUserSubscription__(apiClient, subscriptionId, userId, lconfig = config) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("getUserSubscription");
-        const subscription = yield apiClient.subscription.get(config.azurermResourceGroup, config.azurermApim, subscriptionId);
+        const subscription = yield apiClient.subscription.get(lconfig.azurermResourceGroup, lconfig.azurermApim, subscriptionId);
         if ((userId && subscription.userId !== userId) || !subscription.name) {
             return Option_1.none;
         }
@@ -70,16 +70,16 @@ exports.getUserSubscription = memoizee(getUserSubscription__, {
     profileName: "getUserSubscription",
     promise: true
 });
-function getUserSubscriptions(apiClient, userId) {
+function getUserSubscriptions(apiClient, userId, lconfig = config) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("getUserSubscriptions");
         // TODO: this list is paginated with a next-link
         // by now we get only the first result page
-        return apiClient.userSubscription.list(config.azurermResourceGroup, config.azurermApim, userId);
+        return apiClient.userSubscription.list(lconfig.azurermResourceGroup, lconfig.azurermApim, userId);
     });
 }
 exports.getUserSubscriptions = getUserSubscriptions;
-function regenerateKey__(apiClient, subscriptionId, userId, keyType) {
+function regenerateKey__(apiClient, subscriptionId, userId, keyType, lconfig = config) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("regeneratePrimaryKey");
         const maybeSubscription = yield getUserSubscription__(apiClient, subscriptionId, userId);
@@ -88,10 +88,10 @@ function regenerateKey__(apiClient, subscriptionId, userId, keyType) {
         }
         switch (keyType) {
             case "primary":
-                yield apiClient.subscription.regeneratePrimaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
+                yield apiClient.subscription.regeneratePrimaryKey(lconfig.azurermResourceGroup, lconfig.azurermApim, subscriptionId);
                 break;
             case "secondary":
-                yield apiClient.subscription.regenerateSecondaryKey(config.azurermResourceGroup, config.azurermApim, subscriptionId);
+                yield apiClient.subscription.regenerateSecondaryKey(lconfig.azurermResourceGroup, lconfig.azurermApim, subscriptionId);
                 break;
         }
         return getUserSubscription__(apiClient, subscriptionId, userId);
@@ -113,10 +113,10 @@ exports.regenerateSecondaryKey = (apiClient, subscriptionId, userId) => {
  * Return the corresponding API management user
  * given the Active Directory B2C user's email.
  */
-function getApimUser__(apiClient, email) {
+function getApimUser__(apiClient, email, lconfig = config) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("getApimUser");
-        const results = yield apiClient.user.listByService(config.azurermResourceGroup, config.azurermApim, { filter: "email eq '" + email + "'" });
+        const results = yield apiClient.user.listByService(lconfig.azurermResourceGroup, lconfig.azurermApim, { filter: "email eq '" + email + "'" });
         logger_1.logger.debug("lookup apimUsers for (%s) (%s)", email, JSON.stringify(results));
         if (!results || results.length === 0) {
             return Option_1.none;
@@ -145,10 +145,10 @@ function isAdminUser(user) {
     return user.groupNames.has("ApiAdmin");
 }
 exports.isAdminUser = isAdminUser;
-function addUserSubscriptionToProduct(apiClient, userId, productName) {
+function addUserSubscriptionToProduct(apiClient, userId, productName, lconfig = config) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("addUserToProduct");
-        const product = yield apiClient.product.get(config.azurermResourceGroup, config.azurermApim, productName);
+        const product = yield apiClient.product.get(lconfig.azurermResourceGroup, lconfig.azurermApim, productName);
         if (!product || !product.id) {
             return Either_1.left(new Error("Cannot find API management product for update"));
         }
@@ -157,7 +157,7 @@ function addUserSubscriptionToProduct(apiClient, userId, productName) {
         // user.name here is actually the user.id.
         // We do not skip existing subscriptions
         // so we can activate a canceled one.
-        return Either_1.right(yield apiClient.subscription.createOrUpdate(config.azurermResourceGroup, config.azurermApim, subscriptionId, {
+        return Either_1.right(yield apiClient.subscription.createOrUpdate(lconfig.azurermResourceGroup, lconfig.azurermApim, subscriptionId, {
             displayName: subscriptionId,
             productId: product.id,
             state: "active",
@@ -166,14 +166,14 @@ function addUserSubscriptionToProduct(apiClient, userId, productName) {
     });
 }
 exports.addUserSubscriptionToProduct = addUserSubscriptionToProduct;
-function removeUserFromGroups(apiClient, user, groups) {
+function removeUserFromGroups(apiClient, user, groups, lconfig = config) {
     return __awaiter(this, void 0, void 0, function* () {
         return Either_1.right(yield groups.reduce((prev, group) => __awaiter(this, void 0, void 0, function* () {
             const removedGroups = yield prev;
             logger_1.logger.debug("removeUserFromGroups (%s)", group);
             // For some odd reason in the Azure ARM API user.name
             // here is actually the user.id
-            yield apiClient.groupUser.deleteMethod(config.azurermResourceGroup, config.azurermApim, group, user.name);
+            yield apiClient.groupUser.deleteMethod(lconfig.azurermResourceGroup, lconfig.azurermApim, group, user.name);
             return [...removedGroups, group];
         }), Promise.resolve([])));
     });
@@ -182,13 +182,13 @@ exports.removeUserFromGroups = removeUserFromGroups;
 /**
  * Returns the array of added groups names (as strings).
  */
-function addUserToGroups(apiClient, user, groups) {
+function addUserToGroups(apiClient, user, groups, lconfig = config) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("addUserToGroups");
         if (!user || !user.name) {
             return Either_1.left(new Error("Cannot parse user"));
         }
-        const existingGroups = yield apiClient.userGroup.list(config.azurermResourceGroup, config.azurermApim, user.name);
+        const existingGroups = yield apiClient.userGroup.list(lconfig.azurermResourceGroup, lconfig.azurermApim, user.name);
         const existingGroupsNames = new json_set_map_1.Set(existingGroups.map(g => g.name));
         logger_1.logger.debug("addUserToGroups|existing groups|%s", JSON.stringify(Array.from(existingGroupsNames)));
         const missingGroups = new json_set_map_1.Set(groups.filter(g => !existingGroupsNames.has(g)));
@@ -212,29 +212,29 @@ function addUserToGroups(apiClient, user, groups) {
             }
             // For some odd reason in the Azure ARM API user.name
             // here is actually the user.id
-            yield apiClient.groupUser.create(config.azurermResourceGroup, config.azurermApim, group, user.name);
+            yield apiClient.groupUser.create(lconfig.azurermResourceGroup, lconfig.azurermApim, group, user.name);
             return [...addedGroups, group];
         }), Promise.resolve([])));
     });
 }
 exports.addUserToGroups = addUserToGroups;
-function getUserGroups(apiClient, user) {
+function getUserGroups(apiClient, user, lconfig = config) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!user.name) {
             return Option_1.none;
         }
-        const existingGroups = yield apiClient.userGroup.list(config.azurermResourceGroup, config.azurermApim, user.name);
+        const existingGroups = yield apiClient.userGroup.list(lconfig.azurermResourceGroup, lconfig.azurermApim, user.name);
         return Option_1.some(existingGroups.map(g => g.name));
     });
 }
 exports.getUserGroups = getUserGroups;
-function getApimUsers(apiClient) {
+function getApimUsers(apiClient, lconfig = config) {
     return __awaiter(this, void 0, void 0, function* () {
         // tslint:disable-next-line:readonly-array no-let
         let users = [];
         logger_1.logger.debug("getUsers");
         // tslint:disable-next-line:no-let
-        let nextUsers = yield apiClient.user.listByService(config.azurermResourceGroup, config.azurermApim);
+        let nextUsers = yield apiClient.user.listByService(lconfig.azurermResourceGroup, lconfig.azurermApim);
         users = users.concat(nextUsers);
         while (nextUsers.nextLink) {
             logger_1.logger.debug("getUsers (%s)", nextUsers.nextLink);
