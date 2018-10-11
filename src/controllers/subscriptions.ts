@@ -16,16 +16,18 @@ import {
 } from "italia-ts-commons/lib/responses";
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import {
+  createApimUserIfNotExists,
   getApimUser,
   getUserSubscription,
   getUserSubscriptions,
+  isAdminUser,
   regeneratePrimaryKey,
   regenerateSecondaryKey
 } from "../apim_operations";
 import { AdUser } from "../bearer_strategy";
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
 
-import { isLeft } from "fp-ts/lib/Either";
+import { fromOption, isLeft } from "fp-ts/lib/Either";
 import { getActualUser } from "../middlewares/actual_user";
 
 /**
@@ -71,11 +73,33 @@ export async function postSubscriptions(
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorInternal
 > {
-  const errorOrRetrievedApimUser = await getActualUser(
+  const maybeAuthenticatedApimUser = await getApimUser(
     apiClient,
-    authenticatedUser,
-    userEmail
+    authenticatedUser.emails[0]
   );
+
+  const isAuthenticatedAdmin = maybeAuthenticatedApimUser.exists(isAdminUser);
+
+  // Get the email of the user that must be added to the subscription.
+  // It may be the authenticated user or the Active Directory user
+  // which has the provided userMail in case the logged in user
+  // is the administrator.
+  const email =
+    isAuthenticatedAdmin && userEmail ? userEmail : authenticatedUser.emails[0];
+
+  const errorOrRetrievedApimUser =
+    subscriptionData.new_user && subscriptionData.new_user.email === email
+      ? fromOption(ResponseErrorForbiddenNotAuthorized)(
+          await createApimUserIfNotExists(
+            apiClient,
+            subscriptionData.new_user.email,
+            subscriptionData.new_user.first_name,
+            subscriptionData.new_user.last_name,
+            subscriptionData.new_user.adb2c_id
+          )
+        )
+      : await getActualUser(apiClient, authenticatedUser, userEmail);
+
   if (isLeft(errorOrRetrievedApimUser)) {
     return errorOrRetrievedApimUser.value;
   }

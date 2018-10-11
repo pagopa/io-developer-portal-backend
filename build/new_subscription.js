@@ -42,6 +42,15 @@ function generateFakeFiscalCode() {
 }
 exports.SubscriptionData = t.interface({
     department_name: strings_1.NonEmptyString,
+    new_user: t.union([
+        t.undefined,
+        t.interface({
+            adb2c_id: strings_1.NonEmptyString,
+            email: strings_1.EmailString,
+            first_name: strings_1.NonEmptyString,
+            last_name: strings_1.NonEmptyString
+        })
+    ]),
     organization_fiscal_code: strings_1.OrganizationFiscalCode,
     organization_name: strings_1.NonEmptyString,
     service_name: strings_1.NonEmptyString
@@ -54,6 +63,7 @@ exports.SubscriptionData = t.interface({
 function subscribeApimUser(apiClient, apimUser, subscriptionData) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            // apimUser must exists
             // creates a new subscription every time !
             logger_1.logger.debug("subscribeApimUser|addUserSubscriptionToProduct");
             const errorOrSubscription = yield apim_operations_1.addUserSubscriptionToProduct(apiClient, apimUser.id, config.apimProductName);

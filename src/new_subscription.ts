@@ -62,6 +62,15 @@ function generateFakeFiscalCode(): FiscalCode {
 
 export const SubscriptionData = t.interface({
   department_name: NonEmptyString,
+  new_user: t.union([
+    t.undefined,
+    t.interface({
+      adb2c_id: NonEmptyString,
+      email: EmailString,
+      first_name: NonEmptyString,
+      last_name: NonEmptyString
+    })
+  ]),
   organization_fiscal_code: OrganizationFiscalCode,
   organization_name: NonEmptyString,
   service_name: NonEmptyString
@@ -79,6 +88,7 @@ export async function subscribeApimUser(
   subscriptionData: SubscriptionData
 ): Promise<Either<Error, SubscriptionContract>> {
   try {
+    // apimUser must exists
     // creates a new subscription every time !
     logger.debug("subscribeApimUser|addUserSubscriptionToProduct");
     const errorOrSubscription = await addUserSubscriptionToProduct(

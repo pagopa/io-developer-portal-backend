@@ -416,7 +416,7 @@ export async function createApimUserIfNotExists(
   firstName: string,
   lastName: string,
   lconfig: IApimConfig = config
-): Promise<Option<UserContract>> {
+): Promise<Option<IExtendedUserContract>> {
   const maybeExistingApimUser = await getApimUser__(
     apiClient,
     userEmail,
@@ -425,6 +425,13 @@ export async function createApimUserIfNotExists(
   if (isSome(maybeExistingApimUser)) {
     return maybeExistingApimUser;
   }
+
+  logger.debug(
+    "createApimUserIfNotExists|Creating new user (%s/%s)",
+    userEmail,
+    userAdId
+  );
+
   const newApimUser = await apiClient.user.createOrUpdate(
     lconfig.azurermResourceGroup,
     lconfig.azurermApim,
