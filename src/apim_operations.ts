@@ -450,15 +450,20 @@ export async function createApimUserIfNotExists(
       state: "active"
     }
   );
+
+  logger.debug("createApimUserIfNotExists|Created new user (%s)", newApimUser);
+
   await addUserToGroups(
     apiClient,
     newApimUser,
     config.apimUserGroups.split(",")
   );
+
   const maybeRetrievedUser = await getApimUser__(
     apiClient,
     newApimUser.email!,
     lconfig
   );
+
   return maybeRetrievedUser;
 }

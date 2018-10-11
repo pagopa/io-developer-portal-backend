@@ -44,7 +44,7 @@ function postSubscriptions(apiClient, authenticatedUser, subscriptionData, userE
         // is the administrator.
         const email = isAuthenticatedAdmin && userEmail ? userEmail : authenticatedUser.emails[0];
         const errorOrRetrievedApimUser = subscriptionData.new_user && subscriptionData.new_user.email === email
-            ? Either_1.fromOption(responses_1.ResponseErrorForbiddenNotAuthorized)(yield apim_operations_1.createApimUserIfNotExists(apiClient, subscriptionData.new_user.email, subscriptionData.new_user.first_name, subscriptionData.new_user.last_name, subscriptionData.new_user.adb2c_id))
+            ? Either_1.fromOption(responses_1.ResponseErrorForbiddenNotAuthorized)(yield apim_operations_1.createApimUserIfNotExists(apiClient, subscriptionData.new_user.email, subscriptionData.new_user.adb2c_id, subscriptionData.new_user.first_name, subscriptionData.new_user.last_name))
             : yield actual_user_1.getActualUser(apiClient, authenticatedUser, userEmail);
         if (Either_1.isLeft(errorOrRetrievedApimUser)) {
             return errorOrRetrievedApimUser.value;

@@ -265,6 +265,7 @@ function createApimUserIfNotExists(apiClient, userEmail, userAdId, firstName, la
             lastName,
             state: "active"
         });
+        logger_1.logger.debug("createApimUserIfNotExists|Created new user (%s)", newApimUser);
         yield addUserToGroups(apiClient, newApimUser, config.apimUserGroups.split(","));
         const maybeRetrievedUser = yield getApimUser__(apiClient, newApimUser.email, lconfig);
         return maybeRetrievedUser;

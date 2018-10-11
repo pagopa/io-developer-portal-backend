@@ -93,9 +93,9 @@ export async function postSubscriptions(
           await createApimUserIfNotExists(
             apiClient,
             subscriptionData.new_user.email,
+            subscriptionData.new_user.adb2c_id,
             subscriptionData.new_user.first_name,
-            subscriptionData.new_user.last_name,
-            subscriptionData.new_user.adb2c_id
+            subscriptionData.new_user.last_name
           )
         )
       : await getActualUser(apiClient, authenticatedUser, userEmail);
