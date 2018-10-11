@@ -252,23 +252,29 @@ function createApimUserIfNotExists(apiClient, userEmail, userAdId, firstName, la
             return maybeExistingApimUser;
         }
         logger_1.logger.debug("createApimUserIfNotExists|Creating new user (%s/%s)", userEmail, userAdId);
-        const newApimUser = yield apiClient.user.createOrUpdate(lconfig.azurermResourceGroup, lconfig.azurermApim, userEmail, {
-            confirmation: "signup",
-            email: userEmail,
-            firstName,
-            identities: [
-                {
-                    id: userAdId,
-                    provider: "AadB2C"
-                }
-            ],
-            lastName,
-            state: "active"
-        });
-        logger_1.logger.debug("createApimUserIfNotExists|Created new user (%s)", newApimUser);
-        yield addUserToGroups(apiClient, newApimUser, config.apimUserGroups.split(","));
-        const maybeRetrievedUser = yield getApimUser__(apiClient, newApimUser.email, lconfig);
-        return maybeRetrievedUser;
+        try {
+            const newApimUser = yield apiClient.user.createOrUpdate(lconfig.azurermResourceGroup, lconfig.azurermApim, userEmail, {
+                confirmation: "signup",
+                email: userEmail,
+                firstName,
+                identities: [
+                    {
+                        id: userAdId,
+                        provider: "AadB2C"
+                    }
+                ],
+                lastName,
+                state: "active"
+            });
+            logger_1.logger.debug("createApimUserIfNotExists|Created new user (%s)", newApimUser);
+            yield addUserToGroups(apiClient, newApimUser, config.apimUserGroups.split(","));
+            const maybeRetrievedUser = yield getApimUser__(apiClient, newApimUser.email, lconfig);
+            return maybeRetrievedUser;
+        }
+        catch (e) {
+            logger_1.logger.error("error %s", e);
+            return Option_1.none;
+        }
     });
 }
 exports.createApimUserIfNotExists = createApimUserIfNotExists;

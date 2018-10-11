@@ -432,38 +432,46 @@ export async function createApimUserIfNotExists(
     userAdId
   );
 
-  const newApimUser = await apiClient.user.createOrUpdate(
-    lconfig.azurermResourceGroup,
-    lconfig.azurermApim,
-    userEmail,
-    {
-      confirmation: "signup",
-      email: userEmail,
-      firstName,
-      identities: [
-        {
-          id: userAdId,
-          provider: "AadB2C"
-        }
-      ],
-      lastName,
-      state: "active"
-    }
-  );
+  try {
+    const newApimUser = await apiClient.user.createOrUpdate(
+      lconfig.azurermResourceGroup,
+      lconfig.azurermApim,
+      userEmail,
+      {
+        confirmation: "signup",
+        email: userEmail,
+        firstName,
+        identities: [
+          {
+            id: userAdId,
+            provider: "AadB2C"
+          }
+        ],
+        lastName,
+        state: "active"
+      }
+    );
 
-  logger.debug("createApimUserIfNotExists|Created new user (%s)", newApimUser);
+    logger.debug(
+      "createApimUserIfNotExists|Created new user (%s)",
+      newApimUser
+    );
 
-  await addUserToGroups(
-    apiClient,
-    newApimUser,
-    config.apimUserGroups.split(",")
-  );
+    await addUserToGroups(
+      apiClient,
+      newApimUser,
+      config.apimUserGroups.split(",")
+    );
 
-  const maybeRetrievedUser = await getApimUser__(
-    apiClient,
-    newApimUser.email!,
-    lconfig
-  );
+    const maybeRetrievedUser = await getApimUser__(
+      apiClient,
+      newApimUser.email!,
+      lconfig
+    );
 
-  return maybeRetrievedUser;
+    return maybeRetrievedUser;
+  } catch (e) {
+    logger.error("error %s", e);
+    return none;
+  }
 }
