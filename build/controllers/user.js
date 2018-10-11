@@ -19,12 +19,10 @@ function getUser(apiClient, authenticatedUser, userEmail) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_1.logger.debug("getUser (%s)", userEmail);
         const errorOrRetrievedApimUser = yield actual_user_1.getActualUser(apiClient, authenticatedUser, userEmail);
-        if (Either_1.isLeft(errorOrRetrievedApimUser)) {
-            return errorOrRetrievedApimUser.value;
-        }
-        const retrievedApimUser = errorOrRetrievedApimUser.value;
         return responses_1.ResponseSuccessJson({
-            apimUser: retrievedApimUser,
+            apimUser: Either_1.isRight(errorOrRetrievedApimUser)
+                ? errorOrRetrievedApimUser.value
+                : undefined,
             authenticatedUser
         });
     });

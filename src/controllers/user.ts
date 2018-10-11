@@ -1,6 +1,6 @@
 import ApiManagementClient from "azure-arm-apimanagement";
 import { UserContract } from "azure-arm-apimanagement/lib/models";
-import { isLeft } from "fp-ts/lib/Either";
+import { isLeft, isRight } from "fp-ts/lib/Either";
 import { isNone } from "fp-ts/lib/Option";
 import {
   IResponseErrorForbiddenNotAuthorized,
@@ -24,7 +24,7 @@ import { logger } from "../logger";
 import { getActualUser } from "../middlewares/actual_user";
 
 interface IUserData {
-  readonly apimUser: IExtendedUserContract;
+  readonly apimUser: IExtendedUserContract | undefined;
   readonly authenticatedUser: AdUser;
 }
 
@@ -41,13 +41,10 @@ export async function getUser(
     authenticatedUser,
     userEmail
   );
-  if (isLeft(errorOrRetrievedApimUser)) {
-    return errorOrRetrievedApimUser.value;
-  }
-  const retrievedApimUser = errorOrRetrievedApimUser.value;
-
   return ResponseSuccessJson({
-    apimUser: retrievedApimUser,
+    apimUser: isRight(errorOrRetrievedApimUser)
+      ? errorOrRetrievedApimUser.value
+      : undefined,
     authenticatedUser
   });
 }
