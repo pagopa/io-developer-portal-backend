@@ -436,7 +436,7 @@ export async function createApimUserIfNotExists(
     const newApimUser = await apiClient.user.createOrUpdate(
       lconfig.azurermResourceGroup,
       lconfig.azurermApim,
-      userEmail,
+      ulid(),
       {
         confirmation: "signup",
         email: userEmail,

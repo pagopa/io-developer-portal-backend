@@ -253,7 +253,7 @@ function createApimUserIfNotExists(apiClient, userEmail, userAdId, firstName, la
         }
         logger_1.logger.debug("createApimUserIfNotExists|Creating new user (%s/%s)", userEmail, userAdId);
         try {
-            const newApimUser = yield apiClient.user.createOrUpdate(lconfig.azurermResourceGroup, lconfig.azurermApim, userEmail, {
+            const newApimUser = yield apiClient.user.createOrUpdate(lconfig.azurermResourceGroup, lconfig.azurermApim, ulid_1.ulid(), {
                 confirmation: "signup",
                 email: userEmail,
                 firstName,
