@@ -254,7 +254,6 @@ function createApimUserIfNotExists(apiClient, userEmail, userAdId, firstName, la
         logger_1.logger.debug("createApimUserIfNotExists|Creating new user (%s/%s)", userEmail, userAdId);
         try {
             const newApimUser = yield apiClient.user.createOrUpdate(lconfig.azurermResourceGroup, lconfig.azurermApim, ulid_1.ulid(), {
-                confirmation: "signup",
                 email: userEmail,
                 firstName,
                 identities: [
@@ -266,7 +265,7 @@ function createApimUserIfNotExists(apiClient, userEmail, userAdId, firstName, la
                 lastName,
                 state: "active"
             });
-            logger_1.logger.debug("createApimUserIfNotExists|Created new user (%s)", newApimUser);
+            logger_1.logger.debug("createApimUserIfNotExists|Created new user (%s)", JSON.stringify(newApimUser));
             yield addUserToGroups(apiClient, newApimUser, config.apimUserGroups.split(","));
             const maybeRetrievedUser = yield getApimUser__(apiClient, newApimUser.email, lconfig);
             return maybeRetrievedUser;

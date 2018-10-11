@@ -438,7 +438,6 @@ export async function createApimUserIfNotExists(
       lconfig.azurermApim,
       ulid(),
       {
-        confirmation: "signup",
         email: userEmail,
         firstName,
         identities: [
@@ -454,7 +453,7 @@ export async function createApimUserIfNotExists(
 
     logger.debug(
       "createApimUserIfNotExists|Created new user (%s)",
-      newApimUser
+      JSON.stringify(newApimUser)
     );
 
     await addUserToGroups(
