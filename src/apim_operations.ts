@@ -22,6 +22,7 @@ import * as config from "./config";
 
 import { Either, left, right } from "fp-ts/lib/Either";
 import { isNone, isSome, none, Option, some } from "fp-ts/lib/Option";
+import { EmailString } from "italia-ts-commons/lib/strings";
 import SerializableSet from "json-set-map/build/src/set";
 import { ulid } from "ulid";
 
@@ -406,4 +407,51 @@ export async function getApimUsers(
     users = users.concat(nextUsers);
   }
   return users;
+}
+
+export async function createApimUserIfNotExists(
+  apiClient: ApiManagementClient,
+  userEmail: EmailString,
+  userAdId: string,
+  firstName: string,
+  lastName: string,
+  lconfig: IApimConfig = config
+): Promise<Option<UserContract>> {
+  const maybeExistingApimUser = await getApimUser__(
+    apiClient,
+    userEmail,
+    lconfig
+  );
+  if (isSome(maybeExistingApimUser)) {
+    return maybeExistingApimUser;
+  }
+  const newApimUser = await apiClient.user.createOrUpdate(
+    lconfig.azurermResourceGroup,
+    lconfig.azurermApim,
+    userEmail,
+    {
+      confirmation: "signup",
+      email: userEmail,
+      firstName,
+      identities: [
+        {
+          id: userAdId,
+          provider: "AadB2C"
+        }
+      ],
+      lastName,
+      state: "active"
+    }
+  );
+  await addUserToGroups(
+    apiClient,
+    newApimUser,
+    config.apimUserGroups.split(",")
+  );
+  const maybeRetrievedUser = await getApimUser__(
+    apiClient,
+    newApimUser.email!,
+    lconfig
+  );
+  return maybeRetrievedUser;
 }

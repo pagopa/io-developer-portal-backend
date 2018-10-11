@@ -54,10 +54,6 @@ exports.SubscriptionData = t.interface({
 function subscribeApimUser(apiClient, apimUser, subscriptionData) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            // user must already exists (is created at login)
-            // idempotent
-            logger_1.logger.debug("subscribeApimUser|addUserToGroups");
-            yield apim_operations_1.addUserToGroups(apiClient, apimUser, (config.apimUserGroups || "").split(","));
             // creates a new subscription every time !
             logger_1.logger.debug("subscribeApimUser|addUserSubscriptionToProduct");
             const errorOrSubscription = yield apim_operations_1.addUserSubscriptionToProduct(apiClient, apimUser.id, config.apimProductName);

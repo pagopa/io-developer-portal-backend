@@ -15,7 +15,6 @@ import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 
 import {
   addUserSubscriptionToProduct,
-  addUserToGroups,
   IExtendedUserContract
 } from "./apim_operations";
 
@@ -80,16 +79,6 @@ export async function subscribeApimUser(
   subscriptionData: SubscriptionData
 ): Promise<Either<Error, SubscriptionContract>> {
   try {
-    // user must already exists (is created at login)
-
-    // idempotent
-    logger.debug("subscribeApimUser|addUserToGroups");
-    await addUserToGroups(
-      apiClient,
-      apimUser,
-      (config.apimUserGroups || "").split(",")
-    );
-
     // creates a new subscription every time !
     logger.debug("subscribeApimUser|addUserSubscriptionToProduct");
     const errorOrSubscription = await addUserSubscriptionToProduct(

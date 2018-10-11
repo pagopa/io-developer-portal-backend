@@ -245,4 +245,29 @@ function getApimUsers(apiClient, lconfig = config) {
     });
 }
 exports.getApimUsers = getApimUsers;
+function createApimUserIfNotExists(apiClient, userEmail, userAdId, firstName, lastName, lconfig = config) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const maybeExistingApimUser = yield getApimUser__(apiClient, userEmail, lconfig);
+        if (Option_1.isSome(maybeExistingApimUser)) {
+            return maybeExistingApimUser;
+        }
+        const newApimUser = yield apiClient.user.createOrUpdate(lconfig.azurermResourceGroup, lconfig.azurermApim, userEmail, {
+            confirmation: "signup",
+            email: userEmail,
+            firstName,
+            identities: [
+                {
+                    id: userAdId,
+                    provider: "AadB2C"
+                }
+            ],
+            lastName,
+            state: "active"
+        });
+        yield addUserToGroups(apiClient, newApimUser, config.apimUserGroups.split(","));
+        const maybeRetrievedUser = yield getApimUser__(apiClient, newApimUser.email, lconfig);
+        return maybeRetrievedUser;
+    });
+}
+exports.createApimUserIfNotExists = createApimUserIfNotExists;
 //# sourceMappingURL=apim_operations.js.map
