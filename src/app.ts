@@ -31,7 +31,7 @@ import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { setupBearerStrategy } from "./bearer_strategy";
 import { initCacheStats } from "./cache";
 import { getConfiguration } from "./controllers/configuration";
-import { getService, putService, ServicePayload } from "./controllers/services";
+import { getService, putService } from "./controllers/services";
 import {
   getSubscriptions,
   postSubscriptions,
