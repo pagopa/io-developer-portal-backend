@@ -157,17 +157,22 @@ function addUserSubscriptionToProduct(apiClient, userId, productName, lconfig = 
         // user.name here is actually the user.id.
         // We do not skip existing subscriptions
         // so we can activate a canceled one.
-        return Either_1.right(yield apiClient.subscription.createOrUpdate(lconfig.azurermResourceGroup, lconfig.azurermApim, subscriptionId, {
+        const subscription = yield apiClient.subscription.createOrUpdate(lconfig.azurermResourceGroup, lconfig.azurermApim, subscriptionId, {
             displayName: subscriptionId,
             productId: product.id,
             state: "active",
             userId
-        }));
+        });
+        return Either_1.right(subscription);
     });
 }
 exports.addUserSubscriptionToProduct = addUserSubscriptionToProduct;
 function removeUserFromGroups(apiClient, user, groups, lconfig = config) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (exports.getApimUser.delete) {
+            // invalidate user cache
+            exports.getApimUser.delete(apiClient, user.email);
+        }
         return Either_1.right(yield groups.reduce((prev, group) => __awaiter(this, void 0, void 0, function* () {
             const removedGroups = yield prev;
             logger_1.logger.debug("removeUserFromGroups (%s)", group);
@@ -195,6 +200,10 @@ function addUserToGroups(apiClient, user, groups, lconfig = config) {
         if (missingGroups.size === 0) {
             logger_1.logger.debug("addUserToGroups|user already belongs to groups|%s", JSON.stringify(Array.from(existingGroupsNames)));
             return Either_1.right([]);
+        }
+        if (exports.getApimUser.delete) {
+            // invalidate user cache
+            exports.getApimUser.delete(apiClient, user.email);
         }
         // sequence the promises here as calling this method
         // concurrently seems to cause some issues assigning
@@ -268,6 +277,10 @@ function createApimUserIfNotExists(apiClient, userEmail, userAdId, firstName, la
             logger_1.logger.debug("createApimUserIfNotExists|Created new user (%s)", JSON.stringify(newApimUser));
             yield addUserToGroups(apiClient, newApimUser, config.apimUserGroups.split(","));
             const maybeRetrievedUser = yield getApimUser__(apiClient, newApimUser.email, lconfig);
+            // invalidate users cache
+            if (exports.getApimUser.delete) {
+                exports.getApimUser.delete(apiClient, newApimUser.email);
+            }
             return maybeRetrievedUser;
         }
         catch (e) {

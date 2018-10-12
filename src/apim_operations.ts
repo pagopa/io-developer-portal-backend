@@ -271,19 +271,18 @@ export async function addUserSubscriptionToProduct(
   // user.name here is actually the user.id.
   // We do not skip existing subscriptions
   // so we can activate a canceled one.
-  return right(
-    await apiClient.subscription.createOrUpdate(
-      lconfig.azurermResourceGroup,
-      lconfig.azurermApim,
-      subscriptionId,
-      {
-        displayName: subscriptionId,
-        productId: product.id,
-        state: "active",
-        userId
-      }
-    )
+  const subscription = await apiClient.subscription.createOrUpdate(
+    lconfig.azurermResourceGroup,
+    lconfig.azurermApim,
+    subscriptionId,
+    {
+      displayName: subscriptionId,
+      productId: product.id,
+      state: "active",
+      userId
+    }
   );
+  return right(subscription);
 }
 
 export async function removeUserFromGroups(
@@ -292,6 +291,10 @@ export async function removeUserFromGroups(
   groups: ReadonlyArray<string>,
   lconfig: IApimConfig = config
 ): Promise<Either<Error, ReadonlyArray<string>>> {
+  if (getApimUser.delete) {
+    // invalidate user cache
+    getApimUser.delete(apiClient, user.email!);
+  }
   return right(
     await groups.reduce(async (prev, group) => {
       const removedGroups = await prev;
@@ -342,6 +345,12 @@ export async function addUserToGroups(
     );
     return right([]);
   }
+
+  if (getApimUser.delete) {
+    // invalidate user cache
+    getApimUser.delete(apiClient, user.email!);
+  }
+
   // sequence the promises here as calling this method
   // concurrently seems to cause some issues assigning
   // users to groups
@@ -467,6 +476,11 @@ export async function createApimUserIfNotExists(
       newApimUser.email!,
       lconfig
     );
+
+    // invalidate users cache
+    if (getApimUser.delete) {
+      getApimUser.delete(apiClient, newApimUser.email!);
+    }
 
     return maybeRetrievedUser;
   } catch (e) {
