@@ -28,6 +28,7 @@ import {
   wrapRequestHandler
 } from "italia-ts-commons/lib/request_middleware";
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
+import { Service } from "./api/Service";
 import { setupBearerStrategy } from "./bearer_strategy";
 import { initCacheStats } from "./cache";
 import { getConfiguration } from "./controllers/configuration";
@@ -161,7 +162,7 @@ app.put(
       getApiClientMiddleware(),
       getUserFromRequestMiddleware(),
       RequiredParamMiddleware("serviceId", NonEmptyString),
-      ExtractFromPayloadMiddleware(ServicePayload)
+      ExtractFromPayloadMiddleware(Service)
     )(putService)
   )
 );

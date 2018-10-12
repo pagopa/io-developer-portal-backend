@@ -32,6 +32,7 @@ const config = require("./config");
 const express_1 = require("italia-ts-commons/lib/express");
 const request_middleware_1 = require("italia-ts-commons/lib/request_middleware");
 const strings_1 = require("italia-ts-commons/lib/strings");
+const Service_1 = require("./api/Service");
 const bearer_strategy_1 = require("./bearer_strategy");
 const cache_1 = require("./cache");
 const configuration_1 = require("./controllers/configuration");
@@ -92,7 +93,7 @@ app.get(["/subscriptions", "/subscriptions/:email"], ouathVerifier, request_midd
 app.post(["/subscriptions", "/subscriptions/:email"], ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware(), extract_payload_1.ExtractFromPayloadMiddleware(new_subscription_1.SubscriptionData), optional_param_1.OptionalParamMiddleware("email", strings_1.EmailString))(subscriptions_1.postSubscriptions)));
 app.put("/subscriptions/:subscriptionId/:keyType", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("subscriptionId", strings_1.NonEmptyString), required_param_1.RequiredParamMiddleware("keyType", strings_1.NonEmptyString))(subscriptions_1.putSubscriptionKey)));
 app.get("/services/:serviceId", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("serviceId", strings_1.NonEmptyString))(services_1.getService)));
-app.put("/services/:serviceId", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("serviceId", strings_1.NonEmptyString), extract_payload_1.ExtractFromPayloadMiddleware(ServicePayload))(services_1.putService)));
+app.put("/services/:serviceId", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware(), required_param_1.RequiredParamMiddleware("serviceId", strings_1.NonEmptyString), extract_payload_1.ExtractFromPayloadMiddleware(Service_1.Service))(services_1.putService)));
 app.get(["/user", "/user/:email"], ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware(), optional_param_1.OptionalParamMiddleware("email", strings_1.EmailString))(user_1.getUser)));
 app.get("/users", ouathVerifier, request_middleware_1.wrapRequestHandler(request_middleware_1.withRequestMiddlewares(api_client_1.getApiClientMiddleware(), user_2.getUserFromRequestMiddleware())(user_1.getUsers)));
 app.get("/configuration", express_1.toExpressHandler(configuration_1.getConfiguration));
