@@ -73,7 +73,7 @@ IF DEFINED KUDU_SELECT_NODE_VERSION_CMD (
     SET NODE_EXE=node
   )
 
-  SET NPM_CMD="!NODE_EXE!" "!NPM_JS_PATH!"
+  SET NPM_CMD="!NODE_EXE!" "!NPM_JS_PATH!" --scripts-prepend-node-path
 ) ELSE (
   SET NPM_CMD=npm --scripts-prepend-node-path
   SET NODE_EXE=node
