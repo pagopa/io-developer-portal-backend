@@ -5,7 +5,8 @@
   "typings": "src/typings",
   "license": "MIT",
   "engines": {
-    "node": "6.11.2"
+    "node": "6.11.2",
+    "npm": "6.1.0"
   },
   "scripts": {
     "start": "node build/app",
