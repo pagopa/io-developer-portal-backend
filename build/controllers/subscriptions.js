@@ -40,7 +40,7 @@ function postSubscriptions(apiClient, authenticatedUser, subscriptionData, userE
         const isAuthenticatedAdmin = maybeAuthenticatedApimUser.exists(apim_operations_1.isAdminUser);
         // Get the email of the user that must be added to the subscription.
         // It may be the authenticated user or the Active Directory user
-        // which has the provided userMail in case the logged in user
+        // which has the provided 'userMail' in case the logged in user
         // is the administrator.
         const email = isAuthenticatedAdmin && userEmail ? userEmail : authenticatedUser.emails[0];
         const errorOrRetrievedApimUser = subscriptionData.new_user && subscriptionData.new_user.email === email
