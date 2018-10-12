@@ -259,7 +259,7 @@ function createApimUserIfNotExists(apiClient, userEmail, userAdId, firstName, la
                 identities: [
                     {
                         id: userAdId,
-                        provider: "aadB2C"
+                        provider: "AadB2C"
                     }
                 ],
                 lastName,

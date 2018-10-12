@@ -443,7 +443,7 @@ export async function createApimUserIfNotExists(
         identities: [
           {
             id: userAdId,
-            provider: "aadB2C"
+            provider: "AadB2C"
           }
         ],
         lastName,

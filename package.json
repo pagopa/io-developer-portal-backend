@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node build/app",
+    "prepare": "patch-package",
     "build:tsc": "tsc --outDir build",
     "build": "npm-run-all -s generate:api-models build:tsc",
     "generate:api-models:public": "gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/digital-citizenship-functions/master/api/public_api_v1.yaml --no-strict --out-dir src/api",
@@ -40,6 +41,7 @@
     "node-fetch": "^2.2.0",
     "passport": "*",
     "passport-azure-ad": "^3.0.8",
+    "patch-package": "^5.1.1",
     "randomstring": "^1.1.5",
     "referrer-policy": "^1.1.0",
     "request": "^2.83.0",
