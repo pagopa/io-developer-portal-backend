@@ -10,10 +10,7 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessJson
 } from "italia-ts-commons/lib/responses";
-import {
-  NonEmptyString,
-  OrganizationFiscalCode
-} from "italia-ts-commons/lib/strings";
+import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ServicePublic } from "../api/ServicePublic";
 import { APIClient, toEither } from "../api_client";
 import {
@@ -24,22 +21,11 @@ import {
 import { AdUser } from "../bearer_strategy";
 import * as config from "../config";
 
-import * as t from "io-ts";
+import { pick } from "italia-ts-commons/lib/types";
 import { Service } from "../api/Service";
 import { logger } from "../logger";
 
-/**
- * Service fields editable by the user.
- */
-export const ServicePayload = t.exact(
-  t.interface({
-    department_name: NonEmptyString,
-    organization_fiscal_code: OrganizationFiscalCode,
-    organization_name: NonEmptyString,
-    service_name: NonEmptyString
-  })
-);
-export type ServicePayload = t.TypeOf<typeof ServicePayload>;
+export type ServicePayload = Service;
 
 const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 
@@ -121,7 +107,7 @@ export async function putService(
       "Cannot find a user in the API management with the provided email address"
     );
   }
-  const apimUser = maybeApimUser.value;
+  const authenticatedApimUser = maybeApimUser.value;
 
   // Authenticates this request against the logged in user
   // checking that serviceId = subscriptionId
@@ -129,7 +115,7 @@ export async function putService(
   const maybeSubscription = await getUserSubscription(
     apiClient,
     serviceId,
-    isAdminUser(apimUser) ? undefined : apimUser.id
+    isAdminUser(authenticatedApimUser) ? undefined : authenticatedApimUser.id
   );
   if (isNone(maybeSubscription)) {
     return ResponseErrorNotFound(
@@ -157,9 +143,21 @@ export async function putService(
     JSON.stringify({ ...service, ...servicePayload })
   );
 
+  const payload = !isAdminUser(authenticatedApimUser)
+    ? pick(
+        [
+          "department_name",
+          "organization_fiscal_code",
+          "organization_name",
+          "service_name"
+        ],
+        servicePayload
+      )
+    : servicePayload;
+
   const errorOrUpdatedService = toEither(
     await notificationApiClient.updateService({
-      service: { ...service, ...servicePayload },
+      service: { ...service, ...payload },
       serviceId
     })
   );

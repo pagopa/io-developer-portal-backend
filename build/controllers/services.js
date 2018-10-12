@@ -11,21 +11,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Either_1 = require("fp-ts/lib/Either");
 const Option_1 = require("fp-ts/lib/Option");
 const responses_1 = require("italia-ts-commons/lib/responses");
-const strings_1 = require("italia-ts-commons/lib/strings");
 const api_client_1 = require("../api_client");
 const apim_operations_1 = require("../apim_operations");
 const config = require("../config");
-const t = require("io-ts");
+const types_1 = require("italia-ts-commons/lib/types");
 const logger_1 = require("../logger");
-/**
- * Service fields editable by the user.
- */
-exports.ServicePayload = t.exact(t.interface({
-    department_name: strings_1.NonEmptyString,
-    organization_fiscal_code: strings_1.OrganizationFiscalCode,
-    organization_name: strings_1.NonEmptyString,
-    service_name: strings_1.NonEmptyString
-}));
 const notificationApiClient = api_client_1.APIClient(config.adminApiUrl, config.adminApiKey);
 /**
  * Get service data for a specific serviceId.
@@ -64,11 +54,11 @@ function putService(apiClient, authenticatedUser, serviceId, servicePayload) {
         if (Option_1.isNone(maybeApimUser)) {
             return responses_1.ResponseErrorNotFound("API user not found", "Cannot find a user in the API management with the provided email address");
         }
-        const apimUser = maybeApimUser.value;
+        const authenticatedApimUser = maybeApimUser.value;
         // Authenticates this request against the logged in user
         // checking that serviceId = subscriptionId
         // if the user is an admin we skip the check on userId
-        const maybeSubscription = yield apim_operations_1.getUserSubscription(apiClient, serviceId, apim_operations_1.isAdminUser(apimUser) ? undefined : apimUser.id);
+        const maybeSubscription = yield apim_operations_1.getUserSubscription(apiClient, serviceId, apim_operations_1.isAdminUser(authenticatedApimUser) ? undefined : authenticatedApimUser.id);
         if (Option_1.isNone(maybeSubscription)) {
             return responses_1.ResponseErrorNotFound("Subscription not found", "Cannot get a subscription for the logged in user");
         }
@@ -81,8 +71,16 @@ function putService(apiClient, authenticatedUser, serviceId, servicePayload) {
         }
         const service = errorOrService.value;
         logger_1.logger.debug("updating service %s", JSON.stringify(Object.assign({}, service, servicePayload)));
+        const payload = !apim_operations_1.isAdminUser(authenticatedApimUser)
+            ? types_1.pick([
+                "department_name",
+                "organization_fiscal_code",
+                "organization_name",
+                "service_name"
+            ], servicePayload)
+            : servicePayload;
         const errorOrUpdatedService = api_client_1.toEither(yield notificationApiClient.updateService({
-            service: Object.assign({}, service, servicePayload),
+            service: Object.assign({}, service, payload),
             serviceId
         }));
         return errorOrUpdatedService.fold(errs => responses_1.ResponseErrorInternal("Error updating service: " + errs.message), responses_1.ResponseSuccessJson);
