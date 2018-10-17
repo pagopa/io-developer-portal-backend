@@ -11,11 +11,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Either_1 = require("fp-ts/lib/Either");
 const Option_1 = require("fp-ts/lib/Option");
 const responses_1 = require("italia-ts-commons/lib/responses");
+const strings_1 = require("italia-ts-commons/lib/strings");
 const api_client_1 = require("../api_client");
 const apim_operations_1 = require("../apim_operations");
 const config = require("../config");
 const types_1 = require("italia-ts-commons/lib/types");
 const logger_1 = require("../logger");
+const t = require("io-ts");
+const DepartmentName_1 = require("../api/DepartmentName");
+const MaxAllowedPaymentAmount_1 = require("../api/MaxAllowedPaymentAmount");
+const OrganizationName_1 = require("../api/OrganizationName");
+const ServiceName_1 = require("../api/ServiceName");
+exports.ServicePayload = t.partial({
+    authorized_cidrs: t.readonlyArray(strings_1.CIDR, "array of CIDR"),
+    authorized_recipients: t.readonlyArray(strings_1.FiscalCode, "array of FiscalCode"),
+    department_name: DepartmentName_1.DepartmentName,
+    is_visible: types_1.withDefault(t.boolean, false),
+    max_allowed_payment_amount: MaxAllowedPaymentAmount_1.MaxAllowedPaymentAmount,
+    organization_fiscal_code: strings_1.OrganizationFiscalCode,
+    organization_name: OrganizationName_1.OrganizationName,
+    service_name: ServiceName_1.ServiceName
+});
 const notificationApiClient = api_client_1.APIClient(config.adminApiUrl, config.adminApiKey);
 /**
  * Get service data for a specific serviceId.

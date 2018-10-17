@@ -10,7 +10,12 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessJson
 } from "italia-ts-commons/lib/responses";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import {
+  CIDR,
+  FiscalCode,
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "italia-ts-commons/lib/strings";
 import { ServicePublic } from "../api/ServicePublic";
 import { APIClient, toEither } from "../api_client";
 import {
@@ -21,11 +26,28 @@ import {
 import { AdUser } from "../bearer_strategy";
 import * as config from "../config";
 
-import { pick } from "italia-ts-commons/lib/types";
+import { pick, withDefault } from "italia-ts-commons/lib/types";
 import { Service } from "../api/Service";
 import { logger } from "../logger";
 
-export type ServicePayload = Service;
+import * as t from "io-ts";
+import { DepartmentName } from "../api/DepartmentName";
+import { MaxAllowedPaymentAmount } from "../api/MaxAllowedPaymentAmount";
+import { OrganizationName } from "../api/OrganizationName";
+
+import { ServiceName } from "../api/ServiceName";
+
+export const ServicePayload = t.partial({
+  authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
+  authorized_recipients: t.readonlyArray(FiscalCode, "array of FiscalCode"),
+  department_name: DepartmentName,
+  is_visible: withDefault(t.boolean, false),
+  max_allowed_payment_amount: MaxAllowedPaymentAmount,
+  organization_fiscal_code: OrganizationFiscalCode,
+  organization_name: OrganizationName,
+  service_name: ServiceName
+});
+export type ServicePayload = t.TypeOf<typeof ServicePayload>;
 
 const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 
