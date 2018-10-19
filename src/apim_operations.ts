@@ -223,7 +223,7 @@ async function getApimUser__(
   if (!user.id || !user.name || !user.email || !user.email[0]) {
     return none;
   }
-  const groupNames = await getUserGroups(apiClient, user);
+  const groupNames = await getUserGroups(apiClient, user, lconfig);
   const apimUser = {
     email: user.email,
     id: user.id,

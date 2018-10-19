@@ -78,13 +78,11 @@ export async function getUsers(
   }
   const apimUser = maybeApimUser.value;
 
+  // This endpoint is only for admins
   if (!isAdminUser(apimUser)) {
     return ResponseErrorForbiddenNotAuthorized;
   }
 
-  // Authenticates this request against the logged in user
-  // checking that serviceId = subscriptionId
-  // if the user is an admin we skip the check on userId
   const users = await getApimUsers(apiClient);
   const userCollection = users.map(u =>
     pick(["email", "firstName", "lastName"], u)

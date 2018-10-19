@@ -38,12 +38,10 @@ function getUsers(apiClient, authenticatedUser) {
             return responses_1.ResponseErrorNotFound("API user not found", "Cannot find a user in the API management with the provided email address");
         }
         const apimUser = maybeApimUser.value;
+        // This endpoint is only for admins
         if (!apim_operations_1.isAdminUser(apimUser)) {
             return responses_1.ResponseErrorForbiddenNotAuthorized;
         }
-        // Authenticates this request against the logged in user
-        // checking that serviceId = subscriptionId
-        // if the user is an admin we skip the check on userId
         const users = yield apim_operations_1.getApimUsers(apiClient);
         const userCollection = users.map(u => types_1.pick(["email", "firstName", "lastName"], u));
         return responses_1.ResponseSuccessJson({

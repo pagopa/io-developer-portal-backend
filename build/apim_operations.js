@@ -125,7 +125,7 @@ function getApimUser__(apiClient, email, lconfig = config) {
         if (!user.id || !user.name || !user.email || !user.email[0]) {
             return Option_1.none;
         }
-        const groupNames = yield getUserGroups(apiClient, user);
+        const groupNames = yield getUserGroups(apiClient, user, lconfig);
         const apimUser = Object.assign({ email: user.email, id: user.id, name: user.name }, user, { groupNames: Option_1.isSome(groupNames)
                 ? new json_set_map_1.Set(groupNames.value)
                 : new json_set_map_1.Set() });
