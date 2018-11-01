@@ -10,9 +10,9 @@ const passport_azure_ad_1 = require("passport-azure-ad");
  */
 exports.AdUser = t.interface({
     emails: t.array(strings_1.EmailString),
-    extension_Department: t.string,
-    extension_Organization: t.string,
-    extension_Service: t.string,
+    extension_Department: t.union([t.undefined, t.string]),
+    extension_Organization: t.union([t.undefined, t.string]),
+    extension_Service: t.union([t.undefined, t.string]),
     family_name: t.string,
     given_name: t.string,
     oid: strings_1.NonEmptyString
