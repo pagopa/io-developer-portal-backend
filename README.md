@@ -29,7 +29,7 @@ At this point he can only send messages to his own email address, which is tied 
 ## Install
 
 To install the web application refer to the installation manual here:  
-https://github.com/teamdigitale/io
+https://github.com/teamdigitale/digital-citizenship
 
 ## Usage
 
@@ -55,4 +55,4 @@ To set up the customization:
 yarn gh-pages
 ```
 1. refer to the installation manual to customize the sign-up / sign-in forms:  
-https://github.com/teamdigitale/io
+https://github.com/teamdigitale/digital-citizenship
