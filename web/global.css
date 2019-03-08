@@ -199,6 +199,15 @@ button#cancel {
   line-height: 1.5;
 }
 
+#forgotPassword {
+  display: none;
+}
+
+.forgotYourPasswordLink {
+  margin-bottom: 4em;
+}
+
+.forgotYourPasswordLink,
 .privacyPolicyLink {
   text-align: center;
   font-size: 0.9em;
