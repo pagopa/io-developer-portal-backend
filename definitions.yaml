@@ -19,7 +19,6 @@ definitions:
   #Returned by POST /subscriptions/:email
   #Returned by PUT /subscriptions/:subscriptionId/:keyType
   SubscriptionContract:
-    type: object
     allOf:
       - $ref: "#/definitions/Resource"
       - type: object
