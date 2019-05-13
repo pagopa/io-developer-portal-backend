@@ -16,7 +16,7 @@ import {
   NonEmptyString,
   OrganizationFiscalCode
 } from "italia-ts-commons/lib/strings";
-import { ServicePublic } from "../api/ServicePublic";
+import { ServicePublic } from "../../generated/api/ServicePublic";
 import { APIClient, toEither } from "../api_client";
 import {
   getApimUser,
@@ -27,15 +27,15 @@ import { AdUser } from "../bearer_strategy";
 import * as config from "../config";
 
 import { pick, withDefault } from "italia-ts-commons/lib/types";
-import { Service } from "../api/Service";
+import { Service } from "../../generated/api/Service";
 import { logger } from "../logger";
 
 import * as t from "io-ts";
-import { DepartmentName } from "../api/DepartmentName";
-import { MaxAllowedPaymentAmount } from "../api/MaxAllowedPaymentAmount";
-import { OrganizationName } from "../api/OrganizationName";
+import { DepartmentName } from "../../generated/api/DepartmentName";
+import { MaxAllowedPaymentAmount } from "../../generated/api/MaxAllowedPaymentAmount";
+import { OrganizationName } from "../../generated/api/OrganizationName";
 
-import { ServiceName } from "../api/ServiceName";
+import { ServiceName } from "../../generated/api/ServiceName";
 
 export const ServicePayload = t.partial({
   authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
