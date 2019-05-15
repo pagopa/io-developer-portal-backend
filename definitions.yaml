@@ -348,3 +348,9 @@ definitions:
         type: string
       clientID:
         type: string
+    required:
+      - audience
+      - authority
+      - b2cScopes
+      - changePasswordLink
+      - clientID
