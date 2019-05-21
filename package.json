@@ -13,8 +13,8 @@
     "prepare": "patch-package",
     "build:tsc": "tsc --outDir build",
     "build": "npm-run-all -s generate:api-models build:tsc",
-    "generate:api-models:public": "rimraf generated/api && mkdir -p generated/api && gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/digital-citizenship-functions/master/api/public_api_v1.yaml --no-strict --out-dir generated/api",
-    "generate:api-models:admin": "rimraf generated/api && mkdir -p generated/api && gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/digital-citizenship-functions/master/api/admin_api.yaml --no-strict --out-dir generated/api",
+    "generate:api-models:public": "rimraf generated/api && mkdir -p generated/api && gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/public_api_v1.yaml --no-strict --out-dir generated/api",
+    "generate:api-models:admin": "rimraf generated/api && mkdir -p generated/api && gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/admin_api.yaml --no-strict --out-dir generated/api",
     "generate:api-models": "npm-run-all -s generate:api-models:*"
   },
   "dependencies": {
