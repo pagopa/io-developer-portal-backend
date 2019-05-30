@@ -32,9 +32,9 @@ import { APIClient, toEither } from "./api_client";
 import { logger } from "./logger";
 
 import { readableReport } from "italia-ts-commons/lib/reporters";
-import { ExtendedProfile } from "./api/ExtendedProfile";
-import { NewMessage } from "./api/NewMessage";
-import { Service } from "./api/Service";
+import { ExtendedProfile } from "../generated/api/ExtendedProfile";
+import { NewMessage } from "../generated/api/NewMessage";
+import { Service } from "../generated/api/Service";
 
 const telemetryClient = new appinsights.TelemetryClient();
 

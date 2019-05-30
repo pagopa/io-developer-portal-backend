@@ -27,12 +27,12 @@ import {
 
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import nodeFetch from "node-fetch";
-import { ExtendedProfile } from "./api/ExtendedProfile";
-import { FiscalCode } from "./api/FiscalCode";
-import { LimitedProfile } from "./api/LimitedProfile";
-import { NewMessage } from "./api/NewMessage";
-import { Service } from "./api/Service";
-import { ServicePublic } from "./api/ServicePublic";
+import { ExtendedProfile } from "../generated/api/ExtendedProfile";
+import { FiscalCode } from "../generated/api/FiscalCode";
+import { LimitedProfile } from "../generated/api/LimitedProfile";
+import { NewMessage } from "../generated/api/NewMessage";
+import { Service } from "../generated/api/Service";
+import { ServicePublic } from "../generated/api/ServicePublic";
 
 const OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 type OcpApimSubscriptionKey = typeof OcpApimSubscriptionKey;

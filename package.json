@@ -13,8 +13,8 @@
     "prepare": "patch-package",
     "build:tsc": "tsc --outDir build",
     "build": "npm-run-all -s generate:api-models build:tsc",
-    "generate:api-models:public": "gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/digital-citizenship-functions/master/api/public_api_v1.yaml --no-strict --out-dir src/api",
-    "generate:api-models:admin": "gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/digital-citizenship-functions/master/api/admin_api.yaml --no-strict --out-dir src/api",
+    "generate:api-models:public": "rimraf generated/api && mkdir -p generated/api && gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/public_api_v1.yaml --no-strict --out-dir generated/api",
+    "generate:api-models:admin": "rimraf generated/api && mkdir -p generated/api && gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/admin_api.yaml --no-strict --out-dir generated/api",
     "generate:api-models": "npm-run-all -s generate:api-models:*"
   },
   "dependencies": {
@@ -66,6 +66,7 @@
     "italia-utils": "^3.13.0",
     "npm-run-all": "^4.1.3",
     "prettier": "^1.7.4",
+    "rimraf": "^2.6.3",
     "ts-node": "^6.1.1",
     "tslint": "^5.8.0",
     "tslint-config-prettier": "^1.6.0",

@@ -16,4 +16,4 @@ coverage
 src/**/*.js
 .env
 .vscode
-src/api/*
+generated/api/*
