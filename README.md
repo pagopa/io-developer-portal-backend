@@ -26,10 +26,23 @@ clicking on call-to-action just after the sign-up in the developer portal:
 The email contains the fake fiscal code so the user can start testing the API right now.
 At this point he can only send messages to his own email address, which is tied to the fake profile.
 
-## Install
+## Deployment
 
-To install the web application refer to the installation manual here:  
-https://github.com/teamdigitale/digital-citizenship
+This app gets deployed to the `apim-portal-prod` AppService on Azure.
+
+You can deploy it by pushing to the git repository linked
+to the app. You can get the git credentials with:
+
+```
+$ az webapp deployment list-publishing-credentials --resource-group apim-portal --name apim-portal-prod
+```
+
+Then to deploy:
+
+```
+$ git remote add production https://apim-portal-prod.scm.azurewebsites.net:443/apim-portal-prod.git
+$ git push production
+```
 
 ## Usage
 
@@ -42,7 +55,7 @@ with a fake fiscal code you can use to start testing the Digital Citizenship API
 
 ## ADB2C Sign-in / Sign-up form style
 
-The `web` directory in this repository contains an HTML template & CSS styles 
+The `web` directory in this repository contains an HTML template & CSS styles
 to customize the aspect of default ADB2C sign-in / sign-up pages.
 
 Moreover it contains a page with the privacy policy which is reachable
@@ -50,9 +63,9 @@ from a link placed in the sign-in entry page.
 
 To set up the customization:
 
-1. deploy the HTML template & CSS to GitHub Pages  
+1. deploy the HTML template & CSS to GitHub Pages
 ```
 yarn gh-pages
 ```
-1. refer to the installation manual to customize the sign-up / sign-in forms:  
+1. refer to the installation manual to customize the sign-up / sign-in forms:
 https://github.com/teamdigitale/digital-citizenship
