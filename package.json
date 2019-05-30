@@ -9,7 +9,7 @@
     "npm": "*"
   },
   "scripts": {
-    "start": "node build/app",
+    "start": "node build/src/app",
     "prepare": "patch-package",
     "build:clean": "rimraf build",
     "build:tsc": "tsc",
