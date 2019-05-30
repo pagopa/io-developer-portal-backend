@@ -5,20 +5,25 @@
  */
 /* tslint:disable */
 Object.defineProperty(exports, "__esModule", { value: true });
+const ServiceId_1 = require("./ServiceId");
 const ServiceName_1 = require("./ServiceName");
 const OrganizationName_1 = require("./OrganizationName");
 const DepartmentName_1 = require("./DepartmentName");
+const OrganizationFiscalCode_1 = require("./OrganizationFiscalCode");
 const t = require("io-ts");
 /**
- * Metadata associated to a sender (service).
+ * A Service associated to an user's subscription.
  */
 // required attributes
-const SenderMetadataR = t.interface({
+const ServicePublicR = t.interface({
+    service_id: ServiceId_1.ServiceId,
     service_name: ServiceName_1.ServiceName,
     organization_name: OrganizationName_1.OrganizationName,
-    department_name: DepartmentName_1.DepartmentName
+    department_name: DepartmentName_1.DepartmentName,
+    organization_fiscal_code: OrganizationFiscalCode_1.OrganizationFiscalCode,
+    version: t.Integer
 });
 // optional attributes
-const SenderMetadataO = t.partial({});
-exports.SenderMetadata = t.intersection([SenderMetadataR, SenderMetadataO], "SenderMetadata");
-//# sourceMappingURL=SenderMetadata.js.map
+const ServicePublicO = t.partial({});
+exports.ServicePublic = t.intersection([ServicePublicR, ServicePublicO], "ServicePublic");
+//# sourceMappingURL=ServicePublic.js.map

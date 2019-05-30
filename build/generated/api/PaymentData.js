@@ -7,6 +7,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const PaymentAmount_1 = require("./PaymentAmount");
 const PaymentNoticeNumber_1 = require("./PaymentNoticeNumber");
+const types_1 = require("italia-ts-commons/lib/types");
 const t = require("io-ts");
 /**
  * Metadata needed to process pagoPA payments.
@@ -17,6 +18,8 @@ const PaymentDataR = t.interface({
     notice_number: PaymentNoticeNumber_1.PaymentNoticeNumber
 });
 // optional attributes
-const PaymentDataO = t.partial({});
+const PaymentDataO = t.partial({
+    invalid_after_due_date: types_1.withDefault(t.boolean, false)
+});
 exports.PaymentData = t.intersection([PaymentDataR, PaymentDataO], "PaymentData");
 //# sourceMappingURL=PaymentData.js.map

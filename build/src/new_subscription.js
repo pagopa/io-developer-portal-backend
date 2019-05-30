@@ -18,9 +18,9 @@ const randomstring = require("randomstring");
 const api_client_1 = require("./api_client");
 const logger_1 = require("./logger");
 const reporters_1 = require("italia-ts-commons/lib/reporters");
-const ExtendedProfile_1 = require("./api/ExtendedProfile");
-const NewMessage_1 = require("./api/NewMessage");
-const Service_1 = require("./api/Service");
+const ExtendedProfile_1 = require("../generated/api/ExtendedProfile");
+const NewMessage_1 = require("../generated/api/NewMessage");
+const Service_1 = require("../generated/api/Service");
 const telemetryClient = new appinsights.TelemetryClient();
 const notificationApiClient = api_client_1.APIClient(config.adminApiUrl, config.adminApiKey);
 /**

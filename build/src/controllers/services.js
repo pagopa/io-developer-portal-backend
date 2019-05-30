@@ -18,10 +18,10 @@ const config = require("../config");
 const types_1 = require("italia-ts-commons/lib/types");
 const logger_1 = require("../logger");
 const t = require("io-ts");
-const DepartmentName_1 = require("../api/DepartmentName");
-const MaxAllowedPaymentAmount_1 = require("../api/MaxAllowedPaymentAmount");
-const OrganizationName_1 = require("../api/OrganizationName");
-const ServiceName_1 = require("../api/ServiceName");
+const DepartmentName_1 = require("../../generated/api/DepartmentName");
+const MaxAllowedPaymentAmount_1 = require("../../generated/api/MaxAllowedPaymentAmount");
+const OrganizationName_1 = require("../../generated/api/OrganizationName");
+const ServiceName_1 = require("../../generated/api/ServiceName");
 exports.ServicePayload = t.partial({
     authorized_cidrs: t.readonlyArray(strings_1.CIDR, "array of CIDR"),
     authorized_recipients: t.readonlyArray(strings_1.FiscalCode, "array of FiscalCode"),

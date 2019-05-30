@@ -10,10 +10,10 @@ const Either_1 = require("fp-ts/lib/Either");
 const requests_1 = require("italia-ts-commons/lib/requests");
 const strings_1 = require("italia-ts-commons/lib/strings");
 const node_fetch_1 = require("node-fetch");
-const ExtendedProfile_1 = require("./api/ExtendedProfile");
-const LimitedProfile_1 = require("./api/LimitedProfile");
-const Service_1 = require("./api/Service");
-const ServicePublic_1 = require("./api/ServicePublic");
+const ExtendedProfile_1 = require("../generated/api/ExtendedProfile");
+const LimitedProfile_1 = require("../generated/api/LimitedProfile");
+const Service_1 = require("../generated/api/Service");
+const ServicePublic_1 = require("../generated/api/ServicePublic");
 const OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 // ProfileLimitedOrExtended is oneOf [LimitedProfile, ExtendedProfile]
 const ProfileLimitedOrExtended = t.union([LimitedProfile_1.LimitedProfile, ExtendedProfile_1.ExtendedProfile]);

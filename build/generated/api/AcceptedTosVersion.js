@@ -5,6 +5,6 @@
  */
 /* tslint:disable */
 Object.defineProperty(exports, "__esModule", { value: true });
-const strings_1 = require("italia-ts-commons/lib/strings");
-exports.HttpsUrl = strings_1.PatternString("^https://[-a-zA-Z0-9@:%._+~#=]{2,256}[.][a-z]{2,6}\\b([-a-zA-Z0-9@:%_+.~#?&/=]*)$");
-//# sourceMappingURL=HttpsUrl.js.map
+const t = require("io-ts");
+exports.AcceptedTosVersion = t.number;
+//# sourceMappingURL=AcceptedTosVersion.js.map

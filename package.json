@@ -1,7 +1,7 @@
 {
   "name": "digital-citizenship-portal",
   "version": "0.2.0",
-  "main": "./build/app",
+  "main": "./build/src/app",
   "typings": "src/typings",
   "license": "MIT",
   "engines": {
@@ -11,8 +11,9 @@
   "scripts": {
     "start": "node build/app",
     "prepare": "patch-package",
-    "build:tsc": "tsc --outDir build",
-    "build": "npm-run-all -s generate:api-models build:tsc",
+    "build:clean": "rimraf build",
+    "build:tsc": "tsc",
+    "build": "npm-run-all -s generate:api-models build:clean build:tsc",
     "generate:api-models:public": "rimraf generated/api && mkdir -p generated/api && gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/public_api_v1.yaml --no-strict --out-dir generated/api",
     "generate:api-models:admin": "rimraf generated/api && mkdir -p generated/api && gen-api-models --api-spec https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/admin_api.yaml --no-strict --out-dir generated/api",
     "generate:api-models": "npm-run-all -s generate:api-models:*"

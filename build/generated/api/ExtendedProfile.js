@@ -9,6 +9,7 @@ const EmailAddress_1 = require("./EmailAddress");
 const BlockedInboxOrChannels_1 = require("./BlockedInboxOrChannels");
 const PreferredLanguages_1 = require("./PreferredLanguages");
 const IsInboxEnabled_1 = require("./IsInboxEnabled");
+const AcceptedTosVersion_1 = require("./AcceptedTosVersion");
 const IsWebhookEnabled_1 = require("./IsWebhookEnabled");
 const t = require("io-ts");
 /**
@@ -25,7 +26,8 @@ const ExtendedProfileR = t.interface({
 const ExtendedProfileO = t.partial({
     email: EmailAddress_1.EmailAddress,
     blocked_inbox_or_channels: BlockedInboxOrChannels_1.BlockedInboxOrChannels,
-    preferred_languages: PreferredLanguages_1.PreferredLanguages
+    preferred_languages: PreferredLanguages_1.PreferredLanguages,
+    accepted_tos_version: AcceptedTosVersion_1.AcceptedTosVersion
 });
 exports.ExtendedProfile = t.intersection([ExtendedProfileR, ExtendedProfileO], "ExtendedProfile");
 //# sourceMappingURL=ExtendedProfile.js.map
