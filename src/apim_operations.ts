@@ -34,7 +34,9 @@ export interface IUserData extends UserCreateParameters {
 
 export interface ITokenAndCredentials {
   readonly token: msRestAzure.TokenResponse;
-  readonly loginCreds: msRestAzure.MSIAppServiceTokenCredentials;
+  readonly loginCreds:
+    | msRestAzure.MSIAppServiceTokenCredentials
+    | msRestAzure.ApplicationTokenCredentials;
   readonly expiresOn: number;
 }
 
@@ -44,7 +46,9 @@ export interface IApimConfig {
 }
 
 function getToken(
-  loginCreds: msRestAzure.MSIAppServiceTokenCredentials
+  loginCreds:
+    | msRestAzure.MSIAppServiceTokenCredentials
+    | msRestAzure.ApplicationTokenCredentials
 ): Promise<msRestAzure.TokenResponse> {
   return new Promise((resolve, reject) => {
     loginCreds.getToken((err, tok) => {
@@ -58,7 +62,10 @@ function getToken(
 }
 
 export async function loginToApim(
-  tokenCreds?: ITokenAndCredentials
+  tokenCreds?: ITokenAndCredentials,
+  servicePrincipalClientId?: string,
+  servicePrincipalSecret?: string,
+  tenantId?: string
 ): Promise<ITokenAndCredentials> {
   const isTokenExpired = tokenCreds
     ? tokenCreds.expiresOn <= Date.now()
@@ -78,7 +85,15 @@ export async function loginToApim(
 
   logger.debug("loginToApim(): login with MSI");
 
-  const loginCreds = await msRestAzure.loginWithAppServiceMSI();
+  const loginCreds =
+    servicePrincipalClientId && servicePrincipalSecret && tenantId
+      ? await msRestAzure.loginWithServicePrincipalSecret(
+          servicePrincipalClientId,
+          servicePrincipalSecret,
+          tenantId
+        )
+      : await msRestAzure.loginWithAppServiceMSI();
+
   const token = await getToken(loginCreds);
 
   return {

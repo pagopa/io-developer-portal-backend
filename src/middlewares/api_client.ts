@@ -11,14 +11,20 @@ import * as config from "../config";
 // tslint:disable-next-line
 let tokenCreds: ITokenAndCredentials;
 
-// TODO: this must be cached until the token expire
-// actually we get a new token for every request !
 export function getApiClientMiddleware(): IRequestMiddleware<
   never,
   ApiManagementClient
 > {
   return async _ => {
-    tokenCreds = await loginToApim(tokenCreds);
+    tokenCreds =
+      config.useServicePrincipal === "1"
+        ? await loginToApim(
+            tokenCreds,
+            config.servicePrincipalClientId,
+            config.servicePrincipalSecret,
+            config.tenantId
+          )
+        : await loginToApim(tokenCreds);
     return right(
       new ApiManagementClient(tokenCreds.loginCreds, config.subscriptionId)
     );
