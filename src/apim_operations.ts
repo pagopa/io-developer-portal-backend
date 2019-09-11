@@ -26,6 +26,12 @@ import { EmailString } from "italia-ts-commons/lib/strings";
 import SerializableSet from "json-set-map/build/src/set";
 import { ulid } from "ulid";
 
+export interface IServicePrincipalCreds {
+  readonly servicePrincipalClientId: string;
+  readonly servicePrincipalSecret: string;
+  readonly tenantId: string;
+}
+
 export interface IUserData extends UserCreateParameters {
   readonly oid: string;
   readonly productName: string;
@@ -63,9 +69,7 @@ function getToken(
 
 export async function loginToApim(
   tokenCreds?: ITokenAndCredentials,
-  servicePrincipalClientId?: string,
-  servicePrincipalSecret?: string,
-  tenantId?: string
+  servicePrincipalCreds?: IServicePrincipalCreds
 ): Promise<ITokenAndCredentials> {
   const isTokenExpired = tokenCreds
     ? tokenCreds.expiresOn <= Date.now()
@@ -85,14 +89,13 @@ export async function loginToApim(
 
   logger.debug("loginToApim(): login with MSI");
 
-  const loginCreds =
-    servicePrincipalClientId && servicePrincipalSecret && tenantId
-      ? await msRestAzure.loginWithServicePrincipalSecret(
-          servicePrincipalClientId,
-          servicePrincipalSecret,
-          tenantId
-        )
-      : await msRestAzure.loginWithAppServiceMSI();
+  const loginCreds = servicePrincipalCreds
+    ? await msRestAzure.loginWithServicePrincipalSecret(
+        servicePrincipalCreds.servicePrincipalClientId,
+        servicePrincipalCreds.servicePrincipalSecret,
+        servicePrincipalCreds.tenantId
+      )
+    : await msRestAzure.loginWithAppServiceMSI();
 
   const token = await getToken(loginCreds);
 
