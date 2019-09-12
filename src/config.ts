@@ -105,5 +105,8 @@ export const subscriptionId = process.env.ARM_SUBSCRIPTION_ID as string;
 export const logLevel = process.env.LOG_LEVEL as string;
 export const port = process.env.PORT;
 
-export const armClientId = process.env.ARM_CLIENT_ID;
-export const armClientSecret = process.env.ARM_CLIENT_SECRET;
+export const useServicePrincipal = process.env.USE_SERVICE_PRINCIPAL as string;
+export const servicePrincipalClientId = process.env
+  .SERVICE_PRINCIPAL_CLIENT_ID as string;
+export const servicePrincipalSecret = process.env
+  .SERVICE_PRINCIPAL_SECRET as string;
