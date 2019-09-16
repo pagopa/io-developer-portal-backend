@@ -1,8 +1,8 @@
-# Digital Citizenship - Developer portal automation facilities
+# IO developer portal backend (developer portal automation facilities)
 
 This repository contains an [Express](http://expressjs.com/)
 web application which implements some tasks to automate the provisioning
-of users in the Digital Citizenship Azure API management *developer portal*.
+of users in the IO Azure API management *developer portal*.
 
 The aim is to automate some operations that would otherwise
 require the manual intervention of the APIs administrator:
@@ -68,4 +68,4 @@ To set up the customization:
 yarn gh-pages
 ```
 1. refer to the installation manual to customize the sign-up / sign-in forms:
-https://github.com/teamdigitale/digital-citizenship
+https://github.com/teamdigitale/io-developer-portal-backend
