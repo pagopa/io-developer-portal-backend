@@ -6,28 +6,31 @@
 /* tslint:disable */
 Object.defineProperty(exports, "__esModule", { value: true });
 const EmailAddress_1 = require("./EmailAddress");
-const BlockedInboxOrChannels_1 = require("./BlockedInboxOrChannels");
-const PreferredLanguages_1 = require("./PreferredLanguages");
-const IsInboxEnabled_1 = require("./IsInboxEnabled");
-const AcceptedTosVersion_1 = require("./AcceptedTosVersion");
-const IsWebhookEnabled_1 = require("./IsWebhookEnabled");
+const types_1 = require("italia-ts-commons/lib/types");
 const t = require("io-ts");
 /**
  * Describes the citizen's profile, mostly interesting for preferences
  * attributes.
  */
+/**
+ * All the notification channels blocked by the user.
+ * Each channel is related to a specific service (sender).
+ */
+// additional attributes
+exports.ExtendedProfileBlocked_inbox_or_channels = t.dictionary(t.string, t.readonlyArray(t.string, "array of string"), "ExtendedProfileBlocked_inbox_or_channels");
 // required attributes
 const ExtendedProfileR = t.interface({
-    is_inbox_enabled: IsInboxEnabled_1.IsInboxEnabled,
-    is_webhook_enabled: IsWebhookEnabled_1.IsWebhookEnabled,
+    is_inbox_enabled: types_1.withDefault(t.boolean, false),
+    is_webhook_enabled: types_1.withDefault(t.boolean, false),
     version: t.Integer
 });
 // optional attributes
 const ExtendedProfileO = t.partial({
     email: EmailAddress_1.EmailAddress,
-    blocked_inbox_or_channels: BlockedInboxOrChannels_1.BlockedInboxOrChannels,
-    preferred_languages: PreferredLanguages_1.PreferredLanguages,
-    accepted_tos_version: AcceptedTosVersion_1.AcceptedTosVersion
+    blocked_inbox_or_channels: exports.ExtendedProfileBlocked_inbox_or_channels,
+    preferred_languages: t.readonlyArray(t.string, "array of string"),
+    accepted_tos_version: t.number,
+    is_email_enabled: types_1.withDefault(t.boolean, true)
 });
 exports.ExtendedProfile = t.intersection([ExtendedProfileR, ExtendedProfileO], "ExtendedProfile");
 //# sourceMappingURL=ExtendedProfile.js.map

@@ -32,7 +32,6 @@ import { APIClient, toEither } from "./api_client";
 import { logger } from "./logger";
 
 import { readableReport } from "italia-ts-commons/lib/reporters";
-import { ExtendedProfile } from "../generated/api/ExtendedProfile";
 import { NewMessage } from "../generated/api/NewMessage";
 import { Service } from "../generated/api/Service";
 
@@ -111,29 +110,20 @@ export async function subscribeApimUser(
       );
     }
 
-    logger.debug("subscribeApimUser|createFakeProfile");
+    logger.debug("subscribeApimUser|createDevelopmentProfile");
     const fakeFiscalCode = generateFakeFiscalCode();
 
-    const errorOrProfile = ExtendedProfile.decode({
-      email: apimUser.email as EmailString,
-      is_inbox_enabled: true,
-      is_webhook_enabled: true,
-      version: 0
-    });
-    if (isLeft(errorOrProfile)) {
-      return left(new Error(readableReport(errorOrProfile.value)));
-    }
-    const profile = errorOrProfile.value;
-
     const errorOrProfileResponse = toEither(
-      await notificationApiClient.createOrUpdateProfile({
+      await notificationApiClient.createDevelopmentProfile({
         fiscalCode: fakeFiscalCode,
-        newProfile: profile
+        newProfile: {
+          email: apimUser.email as EmailString
+        }
       })
     );
 
     if (isLeft(errorOrProfileResponse)) {
-      return left(new Error(errorOrProfileResponse.value.message));
+      return left(new Error(`createDevelopmentProfile|response|${errorOrProfileResponse.value.message}`));
     }
 
     logger.debug("subscribeApimUser|upsertService");

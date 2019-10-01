@@ -27,6 +27,7 @@ import {
 
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import nodeFetch from "node-fetch";
+import { DevelopmentProfile } from "../generated/api/DevelopmentProfile";
 import { ExtendedProfile } from "../generated/api/ExtendedProfile";
 import { FiscalCode } from "../generated/api/FiscalCode";
 import { LimitedProfile } from "../generated/api/LimitedProfile";
@@ -89,10 +90,10 @@ export type SendMessageT = IPostApiRequestType<
   ApiResponseType<{ readonly id: NonEmptyString }>
 >;
 
-export type CreateOrUpdateProfileT = IPostApiRequestType<
+export type CreateDevelopmentProfileT = IPostApiRequestType<
   {
     readonly fiscalCode: FiscalCode;
-    readonly newProfile: ExtendedProfile;
+    readonly newProfile: DevelopmentProfile;
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
@@ -124,7 +125,7 @@ export function APIClient(
   // tslint:disable-next-line:no-any
   fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
 ): {
-  readonly createOrUpdateProfile: TypeofApiCall<CreateOrUpdateProfileT>;
+  readonly createDevelopmentProfile: TypeofApiCall<CreateDevelopmentProfileT>;
   readonly createService: TypeofApiCall<CreateServiceT>;
   readonly updateService: TypeofApiCall<UpdateServiceT>;
   readonly getService: TypeofApiCall<GetServiceT>;
@@ -154,13 +155,13 @@ export function APIClient(
     url: params => `/api/v1/messages/${params.fiscalCode}`
   };
 
-  const createOrUpdateProfileT: CreateOrUpdateProfileT = {
+  const createDevelopmentProfileT: CreateDevelopmentProfileT = {
     body: params => JSON.stringify(params.newProfile),
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
     method: "post",
     query: _ => ({}),
     response_decoder: apiResponseDecoder(ExtendedProfile),
-    url: params => `/api/v1/profiles/${params.fiscalCode}`
+    url: params => `/adm/development-profiles/${params.fiscalCode}`
   };
 
   const createServiceT: CreateServiceT = {
@@ -182,8 +183,8 @@ export function APIClient(
   };
 
   return {
-    createOrUpdateProfile: createFetchRequestForApi(
-      createOrUpdateProfileT,
+    createDevelopmentProfile: createFetchRequestForApi(
+      createDevelopmentProfileT,
       options
     ),
     createService: createFetchRequestForApi(createServiceT, options),
