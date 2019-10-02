@@ -123,7 +123,13 @@ export async function subscribeApimUser(
     );
 
     if (isLeft(errorOrProfileResponse)) {
-      return left(new Error(`createDevelopmentProfile|response|${errorOrProfileResponse.value.message}`));
+      return left(
+        new Error(
+          `createDevelopmentProfile|response|${
+            errorOrProfileResponse.value.message
+          }`
+        )
+      );
     }
 
     logger.debug("subscribeApimUser|upsertService");
