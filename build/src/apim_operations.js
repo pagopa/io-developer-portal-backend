@@ -27,7 +27,7 @@ function getToken(loginCreds) {
         });
     });
 }
-function loginToApim(tokenCreds) {
+function loginToApim(tokenCreds, servicePrincipalCreds) {
     return __awaiter(this, void 0, void 0, function* () {
         const isTokenExpired = tokenCreds
             ? tokenCreds.expiresOn <= Date.now()
@@ -39,7 +39,9 @@ function loginToApim(tokenCreds) {
             return tokenCreds;
         }
         logger_1.logger.debug("loginToApim(): login with MSI");
-        const loginCreds = yield msRestAzure.loginWithAppServiceMSI();
+        const loginCreds = servicePrincipalCreds
+            ? yield msRestAzure.loginWithServicePrincipalSecret(servicePrincipalCreds.servicePrincipalClientId, servicePrincipalCreds.servicePrincipalSecret, servicePrincipalCreds.tenantId)
+            : yield msRestAzure.loginWithAppServiceMSI();
         const token = yield getToken(loginCreds);
         return {
             // cache token for 1 hour
