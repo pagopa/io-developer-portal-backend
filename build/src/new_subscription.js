@@ -18,7 +18,6 @@ const randomstring = require("randomstring");
 const api_client_1 = require("./api_client");
 const logger_1 = require("./logger");
 const reporters_1 = require("italia-ts-commons/lib/reporters");
-const ExtendedProfile_1 = require("../generated/api/ExtendedProfile");
 const NewMessage_1 = require("../generated/api/NewMessage");
 const Service_1 = require("../generated/api/Service");
 const telemetryClient = new appinsights.TelemetryClient();
@@ -74,24 +73,16 @@ function subscribeApimUser(apiClient, apimUser, subscriptionData) {
             if (!subscription.name) {
                 return Either_1.left(new Error("subscribeApimUser|getApimUser|subscription found but has empty name"));
             }
-            logger_1.logger.debug("subscribeApimUser|createFakeProfile");
+            logger_1.logger.debug("subscribeApimUser|createDevelopmentProfile");
             const fakeFiscalCode = generateFakeFiscalCode();
-            const errorOrProfile = ExtendedProfile_1.ExtendedProfile.decode({
-                email: apimUser.email,
-                is_inbox_enabled: true,
-                is_webhook_enabled: true,
-                version: 0
-            });
-            if (Either_1.isLeft(errorOrProfile)) {
-                return Either_1.left(new Error(reporters_1.readableReport(errorOrProfile.value)));
-            }
-            const profile = errorOrProfile.value;
-            const errorOrProfileResponse = api_client_1.toEither(yield notificationApiClient.createOrUpdateProfile({
+            const errorOrProfileResponse = api_client_1.toEither(yield notificationApiClient.createDevelopmentProfile({
                 fiscalCode: fakeFiscalCode,
-                newProfile: profile
+                newProfile: {
+                    email: apimUser.email
+                }
             }));
             if (Either_1.isLeft(errorOrProfileResponse)) {
-                return Either_1.left(new Error(errorOrProfileResponse.value.message));
+                return Either_1.left(new Error(`createDevelopmentProfile|response|${errorOrProfileResponse.value.message}`));
             }
             logger_1.logger.debug("subscribeApimUser|upsertService");
             const errorOrService = Service_1.Service.decode({
