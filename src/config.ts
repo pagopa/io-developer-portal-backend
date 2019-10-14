@@ -1,5 +1,3 @@
-import { left } from "fp-ts/lib/Either";
-
 /**
  * Globals and OAuth configuration for the Active Directory B2C tenant / application.
  */
