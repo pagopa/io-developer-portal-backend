@@ -16,26 +16,13 @@ const azure_arm_apimanagement_1 = require("azure-arm-apimanagement");
 const Either_1 = require("fp-ts/lib/Either");
 const apim_operations_1 = require("../apim_operations");
 const config = require("../config");
-// Global var needed to cache the
-// API management access token between calls
-// tslint:disable-next-line:no-let
+// tslint:disable-next-line
 let tokenCreds;
+// TODO: this must be cached until the token expire
+// actually we get a new token for every request !
 function getApiClientMiddleware() {
     return (_) => __awaiter(this, void 0, void 0, function* () {
-        tokenCreds =
-            // note that only a literal "1" will activate
-            // the login procedure using the configured service principal;
-            // env values like "true" won't work here
-            config.useServicePrincipal === "1" &&
-                config.servicePrincipalClientId &&
-                config.servicePrincipalSecret &&
-                config.tenantId
-                ? yield apim_operations_1.loginToApim(tokenCreds, {
-                    servicePrincipalClientId: config.servicePrincipalClientId,
-                    servicePrincipalSecret: config.servicePrincipalSecret,
-                    tenantId: config.tenantId
-                })
-                : yield apim_operations_1.loginToApim(tokenCreds);
+        tokenCreds = yield apim_operations_1.loginToApim(tokenCreds);
         return Either_1.right(new azure_arm_apimanagement_1.default(tokenCreds.loginCreds, config.subscriptionId));
     });
 }

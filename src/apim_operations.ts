@@ -29,7 +29,7 @@ import { ulid } from "ulid";
 export interface IServicePrincipalCreds {
   readonly servicePrincipalClientId: string;
   readonly servicePrincipalSecret: string;
-  readonly tenantId: string;
+  readonly servicePrincipalTenantId: string;
 }
 
 export interface IUserData extends UserCreateParameters {
@@ -93,7 +93,7 @@ export async function loginToApim(
     ? await msRestAzure.loginWithServicePrincipalSecret(
         servicePrincipalCreds.servicePrincipalClientId,
         servicePrincipalCreds.servicePrincipalSecret,
-        servicePrincipalCreds.tenantId
+        servicePrincipalCreds.servicePrincipalTenantId
       )
     : await msRestAzure.loginWithAppServiceMSI();
 

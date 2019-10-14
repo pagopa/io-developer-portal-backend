@@ -10,6 +10,7 @@ const ServiceName_1 = require("./ServiceName");
 const OrganizationName_1 = require("./OrganizationName");
 const DepartmentName_1 = require("./DepartmentName");
 const CIDR_1 = require("./CIDR");
+const FiscalCode_1 = require("./FiscalCode");
 const MaxAllowedPaymentAmount_1 = require("./MaxAllowedPaymentAmount");
 const OrganizationFiscalCode_1 = require("./OrganizationFiscalCode");
 const types_1 = require("italia-ts-commons/lib/types");
@@ -24,7 +25,7 @@ const ServiceR = t.interface({
     organization_name: OrganizationName_1.OrganizationName,
     department_name: DepartmentName_1.DepartmentName,
     authorized_cidrs: t.readonlyArray(CIDR_1.CIDR, "array of CIDR"),
-    authorized_recipients: t.readonlyArray(t.string, "array of string"),
+    authorized_recipients: t.readonlyArray(FiscalCode_1.FiscalCode, "array of FiscalCode"),
     organization_fiscal_code: OrganizationFiscalCode_1.OrganizationFiscalCode
 });
 // optional attributes
@@ -32,8 +33,7 @@ const ServiceO = t.partial({
     is_visible: types_1.withDefault(t.boolean, false),
     max_allowed_payment_amount: MaxAllowedPaymentAmount_1.MaxAllowedPaymentAmount,
     version: t.Integer,
-    id: t.string,
-    require_secure_channels: types_1.withDefault(t.boolean, false)
+    id: t.string
 });
 exports.Service = t.intersection([ServiceR, ServiceO], "Service");
 //# sourceMappingURL=Service.js.map

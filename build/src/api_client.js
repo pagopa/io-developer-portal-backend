@@ -51,13 +51,13 @@ fetchApi = node_fetch_1.default) {
         response_decoder: apiResponseDecoder(t.interface({ id: strings_1.NonEmptyString })),
         url: params => `/api/v1/messages/${params.fiscalCode}`
     };
-    const createDevelopmentProfileT = {
+    const createOrUpdateProfileT = {
         body: params => JSON.stringify(params.newProfile),
         headers: requests_1.composeHeaderProducers(tokenHeaderProducer, requests_1.ApiHeaderJson),
         method: "post",
         query: _ => ({}),
         response_decoder: apiResponseDecoder(ExtendedProfile_1.ExtendedProfile),
-        url: params => `/adm/development-profiles/${params.fiscalCode}`
+        url: params => `/api/v1/profiles/${params.fiscalCode}`
     };
     const createServiceT = {
         body: params => JSON.stringify(params.service),
@@ -76,7 +76,7 @@ fetchApi = node_fetch_1.default) {
         url: params => `/adm/services/${params.serviceId}`
     };
     return {
-        createDevelopmentProfile: requests_1.createFetchRequestForApi(createDevelopmentProfileT, options),
+        createOrUpdateProfile: requests_1.createFetchRequestForApi(createOrUpdateProfileT, options),
         createService: requests_1.createFetchRequestForApi(createServiceT, options),
         getService: requests_1.createFetchRequestForApi(getServiceT, options),
         sendMessage: requests_1.createFetchRequestForApi(sendMessageT, options),

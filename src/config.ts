@@ -1,3 +1,5 @@
+import { left } from "fp-ts/lib/Either";
+
 /**
  * Globals and OAuth configuration for the Active Directory B2C tenant / application.
  */
@@ -110,3 +112,5 @@ export const servicePrincipalClientId = process.env
   .SERVICE_PRINCIPAL_CLIENT_ID as string;
 export const servicePrincipalSecret = process.env
   .SERVICE_PRINCIPAL_SECRET as string;
+export const servicePrincipalTenantId = process.env
+  .SERVICE_PRINCIPAL_TENANT_ID as string;
