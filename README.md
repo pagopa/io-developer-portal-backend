@@ -62,10 +62,14 @@ The application can deployed by pushing it to the git repository linked to the A
 $ az webapp deployment list-publishing-credentials --resource-group apim-portal --name apim-portal-prod
 ```
 
-Then to deploy the  application:
+To deploy the application you must build it before pushing the compiled artifacts to the app service git repository:
 
 ```shell
 $ git remote add production https://apim-portal-prod.scm.azurewebsites.net:443/apim-portal-prod.git
+$ git checkout -b production master
+$ npm run build
+$ git add -f build
+$ git commit -m "added build artifacts"
 $ git push production
 ```
 
