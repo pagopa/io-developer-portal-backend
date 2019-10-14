@@ -29,7 +29,7 @@ export function getApiClientMiddleware(): IRequestMiddleware<
         ? await loginToApim(tokenCreds, {
             servicePrincipalClientId: config.servicePrincipalClientId,
             servicePrincipalSecret: config.servicePrincipalSecret,
-            tenantId: config.tenantId
+            servicePrincipalTenantId: config.servicePrincipalTenantId
           })
         : await loginToApim(tokenCreds);
     return right(
