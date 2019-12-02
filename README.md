@@ -40,6 +40,46 @@ To bring down the Docker test environment and remove the container, use
 docker-compose down
 ```
 
+## Configuration
+
+Both the frontend and the backend applications need some environment variables defined in order to work. Environment variables can be customized as needed.
+
+Environment variables are written inside a *.env* file that is then COPYed into the docker container at build time. The application reads from the .env file shipped within the container.
+
+## Environment variables
+
+The table below describes all the Environment variables needed by the front end of the application.
+
+| Variable name | Description| type |
+|---------------|------------|------|
+|ADMIN\_API_URL|your\_apim_url|string|
+|ADMIN\_API_KEY|your\_admin_api_key|string|
+|APIM\_PRODUCT_NAME|starter|string|
+|APIM\_USER_GROUPS|ApiLimitedMessageWrite,ApiInfoRead,ApiMessageRead,ApiLimitedProfileRead|string (comma separated|
+|APPINSIGHTS\_INSTRUMENTATIONKEY|you\_appinsights\_instrumentationkey|string|
+|ARM\_APIM|your\_apim_name|string|
+|ARM\_RESOURCE_GROUP|your\_resource_group|string|
+|ARM\_SUBSCRIPTION_ID|your\_arm\_subscription_id|string|
+|ARM\_TENANT_ID|your\_tenant_id|string|
+|USE\_SERVICE_PRINCIPAL|true|bool|
+|SERVICE\_PRINCIPAL\_CLIENT_ID|your\_service\_principal\_client_id|string|
+|SERVICE\_PRINCIPAL\_SECRET|your\_service\_principal\_client_secret|string|
+|SERVICE\_PRINCIPAL\_TENANT_ID|your\_service\_principal\_tenant_id|string|
+|CLIENT\_NAME|your_client_name|string|
+|CLIENT\_ID|your\_client_id|string|
+|CLIENT\_SECRET|your\_client_secret|string|
+|COOKIE\_IV|your\_cookie_iv|string|
+|COOKIE\_KEY|your\_cookie_key|string|
+|LOG\_LEVEL|debug|string|
+|POLICY\_NAME|B2C\_1_SignUpIn|string|
+|RESET\_PASSWORD\_POLICY_NAME|B2C\_1_PasswordReset|string|
+|POST\_LOGIN_URL|https://developer.io.italia.it|string|
+|POST\_LOGOUT_URL|https://developer.io.italia.it|string|
+|REPLY\_URL|https://developer.io.italia.it|string|
+|TENANT\_ID|your\_tenant_id|string|
+|WEBSITE\_NODE\_DEFAULT_VERSION|6.11.2|string|
+|WEBSITE\_NPM\_DEFAULT_VERSION|6.1.0|string|
+
 ## Deployment
 
 The application can be deployed either as an *Azure application service* or as a stand-alone container, running for example on top of Kubernetes.
