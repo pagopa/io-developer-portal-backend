@@ -88,7 +88,7 @@ The application can be deployed either as an *Azure application service* or as a
 
 At each change, a Docker image is automatically produced (and tagged) on DockerHub. The image is public and can be consumed for application deployments.
 
-For more informations about IO application deployments on Kubernetes check [this](https://github.com/teamdigitale/io-infrastructure-post-config) out.
+For more informations about IO application deployments on Kubernetes check [this](https://github.com/pagopa/io-infrastructure-post-config) out.
 
 ### Azure AppService deployment
 
@@ -137,4 +137,4 @@ To set up the customization:
 yarn gh-pages
 ```
 
-* Refer to the [installation manual](https://github.com/teamdigitale/io-developer-portal-backend) to customize the sign-up and sign-in default forms
+* Refer to the [installation manual](https://github.com/pagopa/io-developer-portal-backend) to customize the sign-up and sign-in default forms

@@ -71,26 +71,26 @@ definitions:
 
   #Returned by GET /services/:serviceId
   Service:
-    $ref: 'https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/definitions.yaml#/Service'
+    $ref: 'https://raw.githubusercontent.com/pagopa/io-functions/v0.64.0/api/definitions.yaml#/Service'
 
   #Returned by PUT /services/:serviceId
   ServicePublic:
-    $ref: 'https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/definitions.yaml#/ServicePublic'
+    $ref: 'https://raw.githubusercontent.com/pagopa/io-functions/v0.64.0/api/definitions.yaml#/ServicePublic'
 
   ServiceId:
-    $ref: 'https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/definitions.yaml#/ServiceId'
+    $ref: 'https://raw.githubusercontent.com/pagopa/io-functions/v0.64.0/api/definitions.yaml#/ServiceId'
 
   ServiceName:
-    $ref: 'https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/definitions.yaml#/ServiceName'
+    $ref: 'https://raw.githubusercontent.com/pagopa/io-functions/v0.64.0/api/definitions.yaml#/ServiceName'
 
   OrganizationName:
-    $ref: 'https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/definitions.yaml#/OrganizationName'
+    $ref: 'https://raw.githubusercontent.com/pagopa/io-functions/v0.64.0/api/definitions.yaml#/OrganizationName'
 
   DepartmentName:
-    $ref: 'https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/definitions.yaml#/DepartmentName'
+    $ref: 'https://raw.githubusercontent.com/pagopa/io-functions/v0.64.0/api/definitions.yaml#/DepartmentName'
 
   OrganizationFiscalCode:
-    $ref: 'https://raw.githubusercontent.com/teamdigitale/io-functions/v0.64.0/api/definitions.yaml#/OrganizationFiscalCode'
+    $ref: 'https://raw.githubusercontent.com/pagopa/io-functions/v0.64.0/api/definitions.yaml#/OrganizationFiscalCode'
 
   #Returned by GET /user
   #Returned by GET /user/:email

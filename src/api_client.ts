@@ -1,6 +1,6 @@
 /**
  * REST client for Notification / Preference APIs.
- * See spec here: https://teamdigitale.github.io/digital-citizenship/api/public.html
+ * See spec here: https://pagopa.github.io/io/api/public.html
  */
 
 import * as t from "io-ts";
