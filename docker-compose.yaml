@@ -4,7 +4,7 @@ version: '3.2'
 services:
   developer-portal-backend:
     container_name: developer-portal-backend
-    image: teamdigitale/io-developer-portal-backend
+    image: pagopa/io-developer-portal-backend
     build:
       context: ./
       dockerfile: Dockerfile

@@ -14,7 +14,7 @@ RUN npm install
 RUN npm run build
 
 FROM node:10.14.1-alpine
-LABEL maintainer="https://teamdigitale.governo.it"
+LABEL maintainer="https://pagopa.gov.it"
 
 # Install major CA certificates to cover
 # https://github.com/SparebankenVest/azure-key-vault-to-kubernetes integration
