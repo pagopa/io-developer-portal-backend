@@ -44,12 +44,12 @@ trigger:
 
 # This pipeline has been implemented to be run on hosted agent pools based both
 # on 'windows' and 'ubuntu' virtual machine images and using the scripts defined
-# in the package.json file. Since we are deploying on Azure Web app on Windows
+# in the package.json file. Since we are usually deploying on Azure Web app on Windows
 # runtime, the pipeline is currently configured to use a Windows hosted image for
 # verifying the build and deploying, and Linux OS for all other jobs for faster 
 # execution.
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-2019'
 
 stages:
   # A) Build and code validation (always run)
@@ -58,8 +58,6 @@ stages:
     jobs:
       # A1) Checkout, install module and build code (use Windows OS)
       - job: make_build
-        pool:
-          vmImage: 'windows-2019'
         steps:
           - template: azure-templates/make-build-steps.yml
             parameters:
@@ -68,6 +66,8 @@ stages:
       # A2) Analyze source code to find errors with lint: TODO disabled
       - job: lint
         condition: false # TODO now skipped
+        pool:
+          vmImage: 'ubuntu-latest'        
         steps:
           - template: azure-templates/make-build-steps.yml
             parameters:
@@ -79,6 +79,8 @@ stages:
 
       # A3) Validate API definitions
       - job: lint_api
+        pool:
+          vmImage: 'ubuntu-latest'      
         steps:
           - task: UseNode@1
             inputs:
@@ -91,6 +93,8 @@ stages:
 
       # A4) Check source code with danger (ignore when master)
       - job: danger
+        pool:
+          vmImage: 'ubuntu-latest'      
         condition: and(succeeded(),
             and(
               variables['DANGER_GITHUB_API_TOKEN'], 
@@ -110,25 +114,22 @@ stages:
   # B) Run unit tests: TODO no test available
 
 
-  # C) Deploy to STAGE environment if the following conditions apply (use Windows OS):
+  # C) Deploy to STAGE environment: if the following conditions apply (use Windows OS):
   #    - continuos deployment (automatic):
-  #       - $DO_DEPLOY == true and
+  #       - $STAGING_DO_DEPLOY == true and
   #       - there is a push on 'master' branch 
   #    - manual deployment:
-  #       - $DO_DEPLOY == true and
+  #       - $STAGING_DO_DEPLOY == true and
   #       - $STAGING_ENABLE_MANUAL_DEPLOY == true
-  # The following alternative deployment modes are supported:
-  #   a) $STAGING_DEPLOY_MODE == 'deploy_standard': deploy to 'prodution' slot
-  #   b) $STAGING_DEPLOY_MODE == 'deploy_to_slots': deploy to 'staging' slot and
-  #      then swap 'staging' slot with 'production' slot
+  # The deployment consists in uploading the files that the build produces in /dist 
+  # directory to the a blob container. If a container with the given name does not exist 
+  # in the specified storage account, it will automatically be created. 
   - stage: Deploy_staging
-    pool:
-      vmImage: 'windows-2019'
     condition: 
       and(
         succeeded(),
         and (
-          eq(variables['DO_DEPLOY'], true),
+          eq(variables['STAGING_DO_DEPLOY'], true),
           or(
             and(
               eq(variables['Build.SourceBranch'], 'refs/heads/master'),
