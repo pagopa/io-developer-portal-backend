@@ -13,6 +13,9 @@ import * as morgan from "morgan";
 import * as passport from "passport";
 
 import cookieSession = require("cookie-session");
+// tslint:disable-next-line: no-var-requires
+const packageJson = require("../package.json");
+
 /*
  * Useful for testing the web application locally.
  * 'local.env' file does not need to exists in the
@@ -98,6 +101,12 @@ const ouathVerifier = (
     session: false
   } as {})(req, res, next);
 };
+
+app.get("/info", (_, res) => {
+  res.json({
+    version: packageJson.version
+  });
+});
 
 app.get("/logout", (req: express.Request, res: express.Response) => {
   req.logout();
