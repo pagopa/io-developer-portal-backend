@@ -16,7 +16,7 @@ const msalConfig = {
   audience: `https://${config.tenantName}/${config.creds.clientID}`,
   authority: `https://${config.tenantName}.b2clogin.com/${config.tenantName}/${config.policyName}`,
   b2cScopes: [
-    `https://${config.tenantName}/${config.clientName}/user_impersonation`
+    `https://${config.tenantName}.onmicrosoft.com/${config.clientName}/user_impersonation`
   ],
   changePasswordLink: `https://${config.tenantName}.b2clogin.com/${config.tenantName}/oauth2/v2.0/authorize?p=${config.resetPasswordPolicyName}&client_id=${config.creds.clientID}&nonce=defaultNonce&redirect_uri=${config.creds.redirectUrl}&scope=openid&response_type=id_token&prompt=login`,
   clientID: config.creds.clientID
