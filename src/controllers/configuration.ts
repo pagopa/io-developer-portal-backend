@@ -13,8 +13,8 @@ import * as config from "../config";
  * All public data to share with client
  */
 const msalConfig = {
-  audience: `https://${config.tenantName}/${config.creds.clientID}`,
-  authority: `https://${config.tenantName}.b2clogin.com/${config.tenantName}/${config.policyName}`,
+  audience: `https://${config.tenantName}.onmicrosoft.com/${config.creds.clientID}`,
+  authority: `https://${config.tenantName}.b2clogin.com/${config.tenantName}.onmicrosoft.com/${config.policyName}`,
   b2cScopes: [
     `https://${config.tenantName}.onmicrosoft.com/${config.clientName}/user_impersonation`
   ],
