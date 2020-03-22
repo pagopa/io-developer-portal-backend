@@ -4,10 +4,7 @@
 export const creds = {
   // Required. It must be tenant-specific endpoint, common endpoint
   // is not supported to use B2C feature.
-  identityMetadata:
-    "https://login.microsoftonline.com/" +
-    process.env.TENANT_ID +
-    "/v2.0/.well-known/openid-configuration",
+  identityMetadata: `https://${process.env.TENANT_NAME}.b2clogin.com/${process.env.TENANT_NAME}.onmicrosoft.com/v2.0/.well-known/openid-configuration`,
 
   // Required, the client ID of your app in AAD
   clientID: process.env.CLIENT_ID as string,
@@ -76,18 +73,13 @@ export const creds = {
 
 export const policyName = process.env.POLICY_NAME;
 export const resetPasswordPolicyName = process.env.RESET_PASSWORD_POLICY_NAME;
-export const tenantId = process.env.TENANT_ID;
+export const tenantName = process.env.TENANT_NAME;
 export const clientName = process.env.CLIENT_NAME;
 
 // The url you need to go to destroy the session with AAD,
 // replace <tenant_name> with your tenant name, and
 // replace <signin_policy_name> with your signin policy name.
-export const destroySessionUrl = ((((("https://login.microsoftonline.com/" +
-  process.env.TENANT_ID) as string) +
-  "/oauth2/v2.0/logout?p=" +
-  process.env.POLICY_NAME) as string) +
-  "&post_logout_redirect_uri=" +
-  process.env.POST_LOGOUT_URL) as string;
+export const destroySessionUrl = `https://${process.env.TENANT_NAME}.b2clogin.com/${process.env.TENANT_NAME}.onmicrosoft.com/oauth2/v2.0/logout?p=${process.env.POLICY_NAME}&post_logout_redirect_uri=${process.env.POST_LOGOUT_URL}`;
 
 export const apimUrl = process.env.POST_LOGIN_URL as string;
 

@@ -13,18 +13,18 @@ import * as config from "../config";
  * All public data to share with client
  */
 const msalConfig = {
-  audience: `https://${config.tenantId}/${config.creds.clientID}`,
-  authority: `https://login.microsoftonline.com/tfp/${config.tenantId}/${
-    config.policyName
-  }`,
+  audience: `https://${config.tenantName}/${config.creds.clientID}`,
+  authority: `https://${config.tenantName?.split(".")[0]}.b2clogin.com/${
+    config.tenantName
+  }/${config.policyName}`,
   b2cScopes: [
-    `https://${config.tenantId}/${config.clientName}/user_impersonation`
+    `https://${config.tenantName}/${config.clientName}/user_impersonation`
   ],
-  changePasswordLink: `https://login.microsoftonline.com/${
-    config.tenantId
-  }/oauth2/v2.0/authorize?p=${config.resetPasswordPolicyName}&client_id=${
-    config.creds.clientID
-  }&nonce=defaultNonce&redirect_uri=${
+  changePasswordLink: `https://${
+    config.tenantName?.split(".")[0]
+  }.b2clogin.com/${config.tenantName}/oauth2/v2.0/authorize?p=${
+    config.resetPasswordPolicyName
+  }&client_id=${config.creds.clientID}&nonce=defaultNonce&redirect_uri=${
     config.creds.redirectUrl
   }&scope=openid&response_type=id_token&prompt=login`,
   clientID: config.creds.clientID
