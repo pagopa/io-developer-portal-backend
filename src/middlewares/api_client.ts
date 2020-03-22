@@ -25,7 +25,7 @@ export function getApiClientMiddleware(): IRequestMiddleware<
       config.useServicePrincipal === "1" &&
       config.servicePrincipalClientId &&
       config.servicePrincipalSecret &&
-      config.tenantId
+      config.servicePrincipalTenantId
         ? await loginToApim(tokenCreds, {
             servicePrincipalClientId: config.servicePrincipalClientId,
             servicePrincipalSecret: config.servicePrincipalSecret,
