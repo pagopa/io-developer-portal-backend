@@ -23,11 +23,9 @@ import * as config from "./config";
 import * as appinsights from "applicationinsights";
 import {
   EmailString,
-  FiscalCode,
   NonEmptyString,
   OrganizationFiscalCode
 } from "italia-ts-commons/lib/strings";
-import randomstring = require("randomstring");
 import { APIClient, toEither } from "./api_client";
 import { logger } from "./logger";
 
