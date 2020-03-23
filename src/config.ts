@@ -1,3 +1,5 @@
+import { FiscalCode } from "italia-ts-commons/lib/strings";
+
 /**
  * Globals and OAuth configuration for the Active Directory B2C tenant / application.
  */
@@ -104,3 +106,5 @@ export const servicePrincipalSecret = process.env
   .SERVICE_PRINCIPAL_SECRET as string;
 export const servicePrincipalTenantId = process.env
   .SERVICE_PRINCIPAL_TENANT_ID as string;
+
+export const sandboxFiscalCode = process.env.SANDBOX_FISCAL_CODE as FiscalCode;

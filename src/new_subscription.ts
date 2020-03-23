@@ -39,26 +39,6 @@ const telemetryClient = new appinsights.TelemetryClient();
 
 const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 
-/**
- * Generate a fake fiscal code.
- * Avoids collisions with real ones as we use
- * a literal "Y" for the location field.
- */
-function generateFakeFiscalCode(): FiscalCode {
-  const s = randomstring.generate({
-    capitalization: "uppercase",
-    charset: "alphabetic",
-    length: 6
-  });
-  const d = randomstring.generate({
-    charset: "numeric",
-    length: 7
-  });
-  return [s, d[0], d[1], "A", d[2], d[3], "Y", d[4], d[5], d[6], "X"].join(
-    ""
-  ) as FiscalCode;
-}
-
 export const SubscriptionData = t.interface({
   department_name: NonEmptyString,
   new_user: t.union([
@@ -87,6 +67,8 @@ export async function subscribeApimUser(
   subscriptionData: SubscriptionData
 ): Promise<Either<Error, SubscriptionContract>> {
   try {
+    const sandboxFiscalCode = config.sandboxFiscalCode;
+
     // apimUser must exists
     // creates a new subscription every time !
     logger.debug("subscribeApimUser|addUserSubscriptionToProduct");
@@ -110,33 +92,11 @@ export async function subscribeApimUser(
       );
     }
 
-    logger.debug("subscribeApimUser|createDevelopmentProfile");
-    const fakeFiscalCode = generateFakeFiscalCode();
-
-    const errorOrProfileResponse = toEither(
-      await notificationApiClient.createDevelopmentProfile({
-        fiscalCode: fakeFiscalCode,
-        newProfile: {
-          email: apimUser.email as EmailString
-        }
-      })
-    );
-
-    if (isLeft(errorOrProfileResponse)) {
-      return left(
-        new Error(
-          `createDevelopmentProfile|response|${
-            errorOrProfileResponse.value.message
-          }`
-        )
-      );
-    }
-
     logger.debug("subscribeApimUser|upsertService");
 
     const errorOrService = Service.decode({
       authorized_cidrs: [],
-      authorized_recipients: [fakeFiscalCode],
+      authorized_recipients: [sandboxFiscalCode],
       department_name: subscriptionData.department_name || "department",
       organization_fiscal_code:
         subscriptionData.organization_fiscal_code || "00000000000",
@@ -174,7 +134,7 @@ export async function subscribeApimUser(
         markdown: [
           `Hello,`,
           `this is a bogus fiscal code you can use to start testing the Digital Citizenship API:\n`,
-          fakeFiscalCode,
+          sandboxFiscalCode,
           `\nYou can start in the developer portal here:`,
           config.apimUrl
         ].join("\n"),
@@ -191,12 +151,12 @@ export async function subscribeApimUser(
     const message = errorOrMessage.value;
 
     logger.debug(
-      "sendMessage|message|" + fakeFiscalCode + "|" + JSON.stringify(message)
+      "sendMessage|message|" + sandboxFiscalCode + "|" + JSON.stringify(message)
     );
 
     const errorOrMessageResponse = toEither(
       await notificationApiClient.sendMessage({
-        fiscalCode: fakeFiscalCode,
+        fiscalCode: sandboxFiscalCode,
         message
       })
     );
