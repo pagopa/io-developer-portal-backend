@@ -30,7 +30,6 @@ import { APIClient, toEither } from "./api_client";
 import { logger } from "./logger";
 
 import { readableReport } from "italia-ts-commons/lib/reporters";
-import { NewMessage } from "../generated/api/NewMessage";
 import { Service } from "../generated/api/Service";
 
 const telemetryClient = new appinsights.TelemetryClient();
@@ -124,47 +123,6 @@ export async function subscribeApimUser(
         )
       );
     }
-
-    logger.debug("subscribeApimUser|sending message");
-
-    const errorOrMessage = NewMessage.decode({
-      content: {
-        markdown: [
-          `Hello,`,
-          `this is a bogus fiscal code you can use to start testing the Digital Citizenship API:\n`,
-          sandboxFiscalCode,
-          `\nYou can start in the developer portal here:`,
-          config.apimUrl
-        ].join("\n"),
-        subject: `Welcome ${apimUser.firstName} ${apimUser.lastName} !`
-      }
-    });
-    if (isLeft(errorOrMessage)) {
-      return left(
-        new Error(
-          "sendMessage|decode error|" + readableReport(errorOrMessage.value)
-        )
-      );
-    }
-    const message = errorOrMessage.value;
-
-    logger.debug(
-      "sendMessage|message|" + sandboxFiscalCode + "|" + JSON.stringify(message)
-    );
-
-    const errorOrMessageResponse = toEither(
-      await notificationApiClient.sendMessage({
-        fiscalCode: sandboxFiscalCode,
-        message
-      })
-    );
-    if (isLeft(errorOrMessageResponse)) {
-      return left(
-        new Error("sendMessage|error|" + errorOrMessageResponse.value.message)
-      );
-    }
-
-    logger.debug("sendMessage|message sent");
 
     telemetryClient.trackEvent({
       name: "onboarding.success",
