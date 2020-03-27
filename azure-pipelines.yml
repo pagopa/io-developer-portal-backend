@@ -1,7 +1,8 @@
 # Azure DevOps pipeline to build, check source codes, and deploy.
 #
-# To enable the check of source code with Danger JS you need to configure a valid
-# GitHub token by setting the following variable: 
+# To make Danger JS run on a pull request you need to add the following pipeline 
+# variable and set it with a GitHub access token (scope public_repo); otherwise 
+# set its value to 'skip' without marking it secret: 
 # - DANGER_GITHUB_API_TOKEN
 #
 # To enable the deployment you need to configure the following variables otherwise 
@@ -91,14 +92,16 @@ stages:
               npx oval validate -p definitions.yaml
             displayName: 'Validate openAPI'
 
-      # A4) Check source code with danger (ignore when master)
+      # A4) Run Danger (skipping if not executing on a PR)
       - job: danger
         pool:
-          vmImage: 'ubuntu-latest'      
-        condition: and(succeeded(),
+          vmImage: 'ubuntu-latest'
+        condition: 
+          and(
+            succeeded(), 
             and(
-              variables['DANGER_GITHUB_API_TOKEN'], 
-              ne(variables['Build.SourceBranch'], 'refs/heads/master')
+              eq(variables['Build.Reason'], 'PullRequest'),
+              ne(variables['DANGER_GITHUB_API_TOKEN'], 'skip')
             )
           )
         steps:
@@ -108,6 +111,8 @@ stages:
 
           - bash: |
               yarn danger ci
+            env:
+              DANGER_GITHUB_API_TOKEN: '$(DANGER_GITHUB_API_TOKEN)'
             displayName: 'Danger CI'
 
 
