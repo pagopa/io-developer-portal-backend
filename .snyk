@@ -1,0 +1,18 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.14.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - passport-azure-ad > lodash:
+        patched: '2020-04-30T23:17:14.128Z'
+    - ms-rest-azure > async > lodash:
+        patched: '2020-04-30T23:17:14.128Z'
+    - winston > async > lodash:
+        patched: '2020-04-30T23:17:14.128Z'
+    - azure-arm-apimanagement > ms-rest-azure > async > lodash:
+        patched: '2020-04-30T23:17:14.128Z'
+    - azure-graph > ms-rest-azure > async > lodash:
+        patched: '2020-04-30T23:17:14.128Z'
+    - italia-ts-commons > winston > async > lodash:
+        patched: '2020-04-30T23:17:14.128Z'
