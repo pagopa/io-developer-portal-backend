@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "node build/src/app",
-    "prepare": "patch-package",
+    "prepare": "npm run snyk-protect && patch-package",
     "build:clean": "rimraf build",
     "build:tsc": "tsc",
     "build": "npm-run-all -s generate:api-models build:clean build:tsc",
@@ -19,7 +19,8 @@
     "generate:api-models:admin": "gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-functions-admin/master/openapi/index.yaml --no-strict --out-dir generated/api",
     "generate:api-models": "npm-run-all -s clean:api-models generate:api-models:*",
     "dist:modules": "modclean -r -n default:safe && npm prune --production",
-    "predeploy": "npm-run-all build dist:modules"
+    "predeploy": "npm-run-all build dist:modules",
+    "snyk-protect": "snyk protect"
   },
   "dependencies": {
     "@types/memoizee": "^0.4.2",
@@ -51,7 +52,8 @@
     "referrer-policy": "^1.1.0",
     "request": "^2.83.0",
     "ulid": "^2.3.0",
-    "winston": "^3.0.0"
+    "winston": "^3.0.0",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.1",
@@ -81,5 +83,6 @@
     "tslint-immutable": "^4.4.0",
     "tslint-plugin-prettier": "^2.0.1",
     "typescript": "^3.0.1"
-  }
+  },
+  "snyk": true
 }
