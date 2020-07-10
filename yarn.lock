@@ -500,12 +500,12 @@ aws4@^1.8.0:
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.9.1.tgz#7e33d8f7d449b3f673cd72deb9abdc552dbe528e"
   integrity sha512-wMHVg2EOHaMRxbzgFJ9gtjOOCrI80OHLG14rxi28XwOW8ux6IiEbRCGGGqCtdAIg4FQCbW20k9RsT4y3gJlFug==
 
-azure-arm-apimanagement@^2.1.1-preview:
-  version "2.1.1-preview"
-  resolved "https://registry.yarnpkg.com/azure-arm-apimanagement/-/azure-arm-apimanagement-2.1.1-preview.tgz#a836e6e19819806d77b9c06a2be1b9d4165ce46a"
-  integrity sha512-Q5Q+yaTiHshyJXnfy/PxCFHLiEKXlZozR+QM/OrVhp7PT4NOTAFhsDnHFxEIMLOC6uHbiWb1aQ7nOnVD6rcdwQ==
+azure-arm-apimanagement@^5.0.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/azure-arm-apimanagement/-/azure-arm-apimanagement-5.1.0.tgz#028adbae811e7b50e12186feb7979543b866c373"
+  integrity sha512-ndqVlisdYXyWIo+/gzY6NTvgkl9wFQF9VmVgNqqnKUpwCMFaO0T491OIshRJ+PDb1vthTXzNGRlLjnmf74Rhcg==
   dependencies:
-    ms-rest "^2.3.2"
+    ms-rest "^2.5.0"
     ms-rest-azure "^2.5.5"
 
 azure-graph@^3.1.0:
@@ -2727,6 +2727,20 @@ ms-rest@^2.2.4, ms-rest@^2.3.2, ms-rest@^2.3.3:
   version "2.5.3"
   resolved "https://registry.yarnpkg.com/ms-rest/-/ms-rest-2.5.3.tgz#ae36fc46c1c60a90511d2f29246fe0f5b55297b3"
   integrity sha512-p0CnzrTzEkS8UTEwgCqT2O5YVK9E8KGBBlJVm3hFtMZvf0dmncKYXWFPyUa4PAsfBL7h4jfu39tOIFTu6exntg==
+  dependencies:
+    duplexer "^0.1.1"
+    is-buffer "^1.1.6"
+    is-stream "^1.1.0"
+    moment "^2.21.0"
+    request "^2.88.0"
+    through "^2.3.8"
+    tunnel "0.0.5"
+    uuid "^3.2.1"
+
+ms-rest@^2.5.0:
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/ms-rest/-/ms-rest-2.5.4.tgz#57b42299cf302e45d5e1a734220bf7d4a110167a"
+  integrity sha512-VeqCbawxRM6nhw0RKNfj7TWL7SL8PB6MypqwgylXCi+u412uvYoyY/kSmO8n06wyd8nIcnTbYToCmSKFMI1mCg==
   dependencies:
     duplexer "^0.1.1"
     is-buffer "^1.1.6"
