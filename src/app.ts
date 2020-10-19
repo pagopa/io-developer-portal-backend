@@ -32,11 +32,10 @@ import {
 } from "italia-ts-commons/lib/request_middleware";
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 
-import { ServicePayload } from "io-functions-commons/dist/generated/definitions/ServicePayload";
 import { setupBearerStrategy } from "./bearer_strategy";
 import { initCacheStats } from "./cache";
 import { getConfiguration } from "./controllers/configuration";
-import { getService, putService } from "./controllers/services";
+import { getService, putService, ServicePayload } from "./controllers/services";
 import {
   getSubscriptions,
   postSubscriptions,
@@ -50,7 +49,6 @@ import { OptionalParamMiddleware } from "./middlewares/optional_param";
 import { RequiredParamMiddleware } from "./middlewares/required_param";
 import { getUserFromRequestMiddleware } from "./middlewares/user";
 
-import { RequiredBodyPayloadMiddleware } from "io-functions-commons/dist/src/utils/middlewares/required_body_payload";
 import { SubscriptionData } from "./new_subscription";
 
 import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
@@ -175,7 +173,7 @@ app.put(
       getApiClientMiddleware(),
       getUserFromRequestMiddleware(),
       RequiredParamMiddleware("serviceId", NonEmptyString),
-      RequiredBodyPayloadMiddleware(ServicePayload)
+      ExtractFromPayloadMiddleware(ServicePayload)
     )(putService)
   )
 );

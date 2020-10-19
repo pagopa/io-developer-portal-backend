@@ -10,7 +10,12 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessJson
 } from "italia-ts-commons/lib/responses";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import {
+  CIDR,
+  FiscalCode,
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "italia-ts-commons/lib/strings";
 import { ServicePublic } from "../../generated/api/ServicePublic";
 import { APIClient, toEither } from "../api_client";
 import {
@@ -21,11 +26,30 @@ import {
 import { AdUser } from "../bearer_strategy";
 import * as config from "../config";
 
-import { pick } from "italia-ts-commons/lib/types";
+import { pick, withDefault } from "italia-ts-commons/lib/types";
+import { Service } from "../../generated/api/Service";
 import { logger } from "../logger";
 
-import { ServicePayload } from "io-functions-commons/dist/generated/definitions/ServicePayload";
-import { Service } from "../../generated/api/Service";
+import * as t from "io-ts";
+import { DepartmentName } from "../../generated/api/DepartmentName";
+import { MaxAllowedPaymentAmount } from "../../generated/api/MaxAllowedPaymentAmount";
+import { OrganizationName } from "../../generated/api/OrganizationName";
+
+import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
+import { ServiceName } from "../../generated/api/ServiceName";
+
+export const ServicePayload = t.partial({
+  authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
+  authorized_recipients: t.readonlyArray(FiscalCode, "array of FiscalCode"),
+  department_name: DepartmentName,
+  is_visible: withDefault(t.boolean, false),
+  max_allowed_payment_amount: MaxAllowedPaymentAmount,
+  organization_fiscal_code: OrganizationFiscalCode,
+  organization_name: OrganizationName,
+  service_metadata: ServiceMetadata,
+  service_name: ServiceName
+});
+export type ServicePayload = t.TypeOf<typeof ServicePayload>;
 
 const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 
