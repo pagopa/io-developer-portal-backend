@@ -35,6 +35,7 @@ import { DepartmentName } from "../../generated/api/DepartmentName";
 import { MaxAllowedPaymentAmount } from "../../generated/api/MaxAllowedPaymentAmount";
 import { OrganizationName } from "../../generated/api/OrganizationName";
 
+import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
 export const ServicePayload = t.partial({
@@ -45,6 +46,7 @@ export const ServicePayload = t.partial({
   max_allowed_payment_amount: MaxAllowedPaymentAmount,
   organization_fiscal_code: OrganizationFiscalCode,
   organization_name: OrganizationName,
+  service_metadata: ServiceMetadata,
   service_name: ServiceName
 });
 export type ServicePayload = t.TypeOf<typeof ServicePayload>;
@@ -164,7 +166,6 @@ export async function putService(
     "updating service %s",
     JSON.stringify({ ...service, ...servicePayload })
   );
-
   const payload = !isAdminUser(authenticatedApimUser)
     ? pick(
         [

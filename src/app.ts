@@ -45,11 +45,13 @@ import { getUser, getUsers } from "./controllers/user";
 import { secureExpressApp } from "./express";
 import { logger } from "./logger";
 import { getApiClientMiddleware } from "./middlewares/api_client";
-import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 import { OptionalParamMiddleware } from "./middlewares/optional_param";
 import { RequiredParamMiddleware } from "./middlewares/required_param";
 import { getUserFromRequestMiddleware } from "./middlewares/user";
+
 import { SubscriptionData } from "./new_subscription";
+
+import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
