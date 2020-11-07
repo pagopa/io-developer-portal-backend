@@ -1,14 +1,17 @@
 import ApiManagementClient from "azure-arm-apimanagement";
-import { isLeft } from "fp-ts/lib/Either";
+import { isLeft, toError } from "fp-ts/lib/Either";
 import { isNone } from "fp-ts/lib/Option";
 import {
   IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
   IResponseErrorNotFound,
   IResponseSuccessJson,
+  IResponseSuccessRedirectToResource,
+  ResponseErrorForbiddenNotAuthorized,
   ResponseErrorInternal,
   ResponseErrorNotFound,
-  ResponseSuccessJson
+  ResponseSuccessJson,
+  ResponseSuccessRedirectToResource
 } from "italia-ts-commons/lib/responses";
 import {
   CIDR,
@@ -21,6 +24,7 @@ import { APIClient, toEither } from "../api_client";
 import {
   getApimUser,
   getUserSubscription,
+  IExtendedUserContract,
   isAdminUser
 } from "../apim_operations";
 import { AdUser } from "../bearer_strategy";
@@ -38,6 +42,18 @@ import { OrganizationName } from "../../generated/api/OrganizationName";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
+import { Logo as ApiLogo } from "../../generated/api/Logo";
+
+import {
+  fromLeft,
+  fromPredicate,
+  taskEither,
+  TaskEither,
+  tryCatch
+} from "fp-ts/lib/TaskEither";
+
+import { identity } from "fp-ts/lib/function";
+
 export const ServicePayload = t.partial({
   authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
   authorized_recipients: t.readonlyArray(FiscalCode, "array of FiscalCode"),
@@ -52,6 +68,89 @@ export const ServicePayload = t.partial({
 export type ServicePayload = t.TypeOf<typeof ServicePayload>;
 
 const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
+
+export type ErrorResponses =
+  | IResponseErrorNotFound
+  | IResponseErrorForbiddenNotAuthorized
+  | IResponseErrorInternal;
+
+const getApimUserTask = (
+  apiClient: ApiManagementClient,
+  authenticatedUser: AdUser
+): TaskEither<ErrorResponses, IExtendedUserContract> =>
+  tryCatch(
+    () => getApimUser(apiClient, authenticatedUser.emails[0]),
+    errors => ResponseErrorInternal(toError(errors).message)
+  ).foldTaskEither<ErrorResponses, IExtendedUserContract>(
+    error => fromLeft(error),
+    response =>
+      response.isSome()
+        ? taskEither.of(response.value)
+        : fromLeft(
+            ResponseErrorNotFound(
+              "API user not found",
+              "Cannot find a user in the API management with the provided email address"
+            )
+          )
+  );
+
+const checkAdminTask = (
+  userAdmin: IExtendedUserContract
+): TaskEither<ErrorResponses, IExtendedUserContract> =>
+  fromPredicate(
+    (user: IExtendedUserContract) => isAdminUser(user),
+    _ => ResponseErrorForbiddenNotAuthorized
+  )(userAdmin);
+
+const uploadServiceLogoTask = (
+  serviceId: NonEmptyString,
+  serviceLogo: ApiLogo
+): TaskEither<ErrorResponses, IResponseSuccessRedirectToResource<{}, {}>> =>
+  tryCatch(
+    () =>
+      notificationApiClient.uploadServiceLogo({
+        logo: serviceLogo,
+        serviceId
+      }),
+    errors => ResponseErrorInternal(toError(errors).message)
+  ).foldTaskEither(
+    error => fromLeft(error),
+    errorOrResponse =>
+      errorOrResponse && errorOrResponse.status === 201
+        ? taskEither.of(
+            ResponseSuccessRedirectToResource(
+              {},
+              `${config.logoUrl}/services/${serviceId}.png`,
+              {}
+            )
+          )
+        : fromLeft(ResponseErrorInternal(toError(errorOrResponse).message))
+  );
+
+const uploadOrganizationLogoTask = (
+  organizationfiscalcode: NonEmptyString,
+  serviceLogo: ApiLogo
+): TaskEither<ErrorResponses, IResponseSuccessRedirectToResource<{}, {}>> =>
+  tryCatch(
+    () =>
+      notificationApiClient.uploadOrganizationLogo({
+        logo: serviceLogo,
+        organizationfiscalcode
+      }),
+    errors => ResponseErrorInternal(toError(errors).message)
+  ).foldTaskEither(
+    err => fromLeft(err),
+    errorOrResponse =>
+      errorOrResponse && errorOrResponse.status === 201
+        ? taskEither.of(
+            ResponseSuccessRedirectToResource(
+              {},
+              `${config.logoUrl}/services/${organizationfiscalcode}.png`,
+              {}
+            )
+          )
+        : fromLeft(ResponseErrorInternal(toError(errorOrResponse).message))
+  );
 
 /**
  * Get service data for a specific serviceId.
@@ -191,4 +290,50 @@ export async function putService(
     errs => ResponseErrorInternal("Error updating service: " + errs.message),
     ResponseSuccessJson
   );
+}
+
+/**
+ * Upload service logo for/with a specific serviceId.
+ */
+export async function putServiceLogo(
+  apiClient: ApiManagementClient,
+  authenticatedUser: AdUser,
+  serviceId: NonEmptyString,
+  serviceLogo: ApiLogo
+): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
+  return getApimUserTask(apiClient, authenticatedUser)
+    .chain(user =>
+      checkAdminTask(user).chain(() =>
+        uploadServiceLogoTask(serviceId, serviceLogo).map(result => result)
+      )
+    )
+    .fold<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses>(
+      identity,
+      identity
+    )
+    .run();
+}
+
+/**
+ * Upload organization logo for/with a specific serviceId.
+ */
+export async function putOrganizationLogo(
+  apiClient: ApiManagementClient,
+  authenticatedUser: AdUser,
+  organizationfiscalcode: NonEmptyString,
+  serviceLogo: ApiLogo
+): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
+  return getApimUserTask(apiClient, authenticatedUser)
+    .chain(user =>
+      checkAdminTask(user).chain(() =>
+        uploadOrganizationLogoTask(organizationfiscalcode, serviceLogo).map(
+          result => result
+        )
+      )
+    )
+    .fold<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses>(
+      identity,
+      identity
+    )
+    .run();
 }

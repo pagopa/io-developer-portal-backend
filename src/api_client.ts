@@ -7,6 +7,7 @@ import * as t from "io-ts";
 
 // A basic response type that also include 401
 import { Either, left, right } from "fp-ts/lib/Either";
+
 import {
   ApiHeaderJson,
   basicErrorResponseDecoder,
@@ -34,6 +35,8 @@ import { LimitedProfile } from "../generated/api/LimitedProfile";
 import { NewMessage } from "../generated/api/NewMessage";
 import { Service } from "../generated/api/Service";
 import { ServicePublic } from "../generated/api/ServicePublic";
+
+import { Logo } from "../generated/api/Logo";
 
 const OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 type OcpApimSubscriptionKey = typeof OcpApimSubscriptionKey;
@@ -119,6 +122,26 @@ export type UpdateServiceT = IPutApiRequestType<
   ApiResponseType<ServicePublic>
 >;
 
+export type UploadServiceLogoT = IPutApiRequestType<
+  {
+    readonly logo: Logo;
+    readonly serviceId: string;
+  },
+  OcpApimSubscriptionKey | "Content-Type",
+  never,
+  ApiResponseType<undefined>
+>;
+
+export type UploadOrganizationLogoT = IPutApiRequestType<
+  {
+    readonly logo: Logo;
+    readonly organizationfiscalcode: string;
+  },
+  OcpApimSubscriptionKey | "Content-Type",
+  never,
+  ApiResponseType<undefined>
+>;
+
 export function APIClient(
   baseUrl: string,
   token: string,
@@ -130,6 +153,8 @@ export function APIClient(
   readonly updateService: TypeofApiCall<UpdateServiceT>;
   readonly getService: TypeofApiCall<GetServiceT>;
   readonly sendMessage: TypeofApiCall<SendMessageT>;
+  readonly uploadServiceLogo: TypeofApiCall<UploadServiceLogoT>;
+  readonly uploadOrganizationLogo: TypeofApiCall<UploadOrganizationLogoT>;
 } {
   const options = {
     baseUrl,
@@ -182,6 +207,24 @@ export function APIClient(
     url: params => `/adm/services/${params.serviceId}`
   };
 
+  const uploadServiceLogoT: UploadServiceLogoT = {
+    body: params => JSON.stringify(params.logo),
+    headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
+    method: "put",
+    query: _ => ({}),
+    response_decoder: apiResponseDecoder(t.undefined),
+    url: params => `/adm/services/${params.serviceId}/logo`
+  };
+
+  const uploadOrganizationLogoT: UploadOrganizationLogoT = {
+    body: params => JSON.stringify(params.logo),
+    headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
+    method: "put",
+    query: _ => ({}),
+    response_decoder: apiResponseDecoder(t.undefined),
+    url: params => `/adm/organizations/${params.organizationfiscalcode}/logo`
+  };
+
   return {
     createDevelopmentProfile: createFetchRequestForApi(
       createDevelopmentProfileT,
@@ -190,7 +233,12 @@ export function APIClient(
     createService: createFetchRequestForApi(createServiceT, options),
     getService: createFetchRequestForApi(getServiceT, options),
     sendMessage: createFetchRequestForApi(sendMessageT, options),
-    updateService: createFetchRequestForApi(updateServiceT, options)
+    updateService: createFetchRequestForApi(updateServiceT, options),
+    uploadOrganizationLogo: createFetchRequestForApi(
+      uploadOrganizationLogoT,
+      options
+    ),
+    uploadServiceLogo: createFetchRequestForApi(uploadServiceLogoT, options)
   };
 }
 
