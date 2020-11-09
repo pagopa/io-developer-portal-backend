@@ -8,11 +8,12 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessRedirectToResource
 } from "italia-ts-commons/lib/responses";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { Logo } from "../../../generated/api/Logo";
 import { AdUser } from "../../bearer_strategy";
 import { putOrganizationLogo, putServiceLogo } from "../services";
 
+import { ServiceId } from "../../../generated/api/ServiceId";
 import { IExtendedUserContract } from "../../apim_operations";
 
 afterEach(() => {
@@ -20,9 +21,9 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-const serviceId = "s123" as NonEmptyString;
+const serviceId = "s123" as ServiceId;
 
-const organizationFiscalCode = "0123455" as NonEmptyString;
+const organizationFiscalCode = "0123455" as OrganizationFiscalCode;
 
 const userContract: IExtendedUserContract = {
   email: "test@test.it",

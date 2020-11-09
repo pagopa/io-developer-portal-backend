@@ -9,7 +9,7 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessRedirectToResource
 } from "italia-ts-commons/lib/responses";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import {
   getApimUser,
   IExtendedUserContract,
@@ -31,6 +31,7 @@ import {
 import { ErrorResponses, notificationApiClient } from "../controllers/services";
 
 import { toError } from "fp-ts/lib/Either";
+import { ServiceId } from "../../generated/api/ServiceId";
 
 export const getApimUserTask = (
   apiClient: ApiManagementClient,
@@ -41,15 +42,17 @@ export const getApimUserTask = (
     errors => ResponseErrorInternal(toError(errors).message)
   ).foldTaskEither<ErrorResponses, IExtendedUserContract>(
     error => fromLeft(error),
-    response =>
-      response.isSome()
-        ? taskEither.of(response.value)
-        : fromLeft(
+    maybeResponse =>
+      maybeResponse.foldL(
+        () =>
+          fromLeft(
             ResponseErrorNotFound(
               "API user not found",
               "Cannot find a user in the API management with the provided email address"
             )
-          )
+          ),
+        response => taskEither.of(response)
+      )
   );
 
 export const checkAdminTask = (
@@ -61,7 +64,7 @@ export const checkAdminTask = (
   )(userAdmin);
 
 export const uploadServiceLogoTask = (
-  serviceId: NonEmptyString,
+  serviceId: ServiceId,
   serviceLogo: ApiLogo
 ): TaskEither<ErrorResponses, IResponseSuccessRedirectToResource<{}, {}>> =>
   tryCatch(
@@ -86,7 +89,7 @@ export const uploadServiceLogoTask = (
   );
 
 export const uploadOrganizationLogoTask = (
-  organizationfiscalcode: NonEmptyString,
+  organizationfiscalcode: OrganizationFiscalCode,
   serviceLogo: ApiLogo
 ): TaskEither<ErrorResponses, IResponseSuccessRedirectToResource<{}, {}>> =>
   tryCatch(

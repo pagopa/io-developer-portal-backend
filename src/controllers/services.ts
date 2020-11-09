@@ -32,14 +32,14 @@ import { Service } from "../../generated/api/Service";
 import { logger } from "../logger";
 
 import * as t from "io-ts";
+
 import { DepartmentName } from "../../generated/api/DepartmentName";
+import { Logo as ApiLogo } from "../../generated/api/Logo";
 import { MaxAllowedPaymentAmount } from "../../generated/api/MaxAllowedPaymentAmount";
 import { OrganizationName } from "../../generated/api/OrganizationName";
-
+import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
-
-import { Logo as ApiLogo } from "../../generated/api/Logo";
 
 import { identity } from "fp-ts/lib/function";
 import {
@@ -218,15 +218,12 @@ export async function putService(
 export async function putServiceLogo(
   apiClient: ApiManagementClient,
   authenticatedUser: AdUser,
-  serviceId: NonEmptyString,
+  serviceId: ServiceId,
   serviceLogo: ApiLogo
 ): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
   return getApimUserTask(apiClient, authenticatedUser)
-    .chain(user =>
-      checkAdminTask(user).chain(() =>
-        uploadServiceLogoTask(serviceId, serviceLogo).map(result => result)
-      )
-    )
+    .chain(user => checkAdminTask(user))
+    .chain(() => uploadServiceLogoTask(serviceId, serviceLogo))
     .fold<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses>(
       identity,
       identity
@@ -240,16 +237,13 @@ export async function putServiceLogo(
 export async function putOrganizationLogo(
   apiClient: ApiManagementClient,
   authenticatedUser: AdUser,
-  organizationFiscalCode: NonEmptyString,
+  organizationFiscalCode: OrganizationFiscalCode,
   serviceLogo: ApiLogo
 ): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
   return getApimUserTask(apiClient, authenticatedUser)
-    .chain(user =>
-      checkAdminTask(user).chain(() =>
-        uploadOrganizationLogoTask(organizationFiscalCode, serviceLogo).map(
-          result => result
-        )
-      )
+    .chain(user => checkAdminTask(user))
+    .chain(() =>
+      uploadOrganizationLogoTask(organizationFiscalCode, serviceLogo)
     )
     .fold<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses>(
       identity,

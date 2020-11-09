@@ -30,7 +30,7 @@ import {
   withRequestMiddlewares,
   wrapRequestHandler
 } from "italia-ts-commons/lib/request_middleware";
-import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
+import { EmailString, NonEmptyString, OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 
 import { setupBearerStrategy } from "./bearer_strategy";
 import { initCacheStats } from "./cache";
@@ -60,6 +60,7 @@ import { SubscriptionData } from "./new_subscription";
 import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 
 import { Logo } from "../generated/api/Logo";
+import { ServiceId } from "../generated/api/ServiceId";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
@@ -193,7 +194,7 @@ app.put(
     withRequestMiddlewares(
       getApiClientMiddleware(),
       getUserFromRequestMiddleware(),
-      RequiredParamMiddleware("serviceId", NonEmptyString),
+      RequiredParamMiddleware("serviceId", ServiceId),
       ExtractFromPayloadMiddleware(Logo)
     )(putServiceLogo)
   )
@@ -206,7 +207,7 @@ app.put(
     withRequestMiddlewares(
       getApiClientMiddleware(),
       getUserFromRequestMiddleware(),
-      RequiredParamMiddleware("organizationFiscalCode", NonEmptyString),
+      RequiredParamMiddleware("organizationFiscalCode", OrganizationFiscalCode),
       ExtractFromPayloadMiddleware(Logo)
     )(putOrganizationLogo)
   )

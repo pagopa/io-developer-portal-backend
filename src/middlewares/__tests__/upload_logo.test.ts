@@ -14,7 +14,8 @@ import {
 
 import { Logo } from "../../../generated/api/Logo";
 
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
+import { ServiceId } from "../../../generated/api/ServiceId";
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -47,9 +48,9 @@ const adUser = {
 
 const logo = { logo: "logo_base_64" } as Logo;
 
-const serviceId = "s123" as NonEmptyString;
+const serviceId = "s123" as ServiceId;
 
-const organizationFiscalCode = "0123455" as NonEmptyString;
+const organizationFiscalCode = "0123455" as OrganizationFiscalCode;
 
 const apiManagementClientMock = ({} as unknown) as ApiManagementClient;
 

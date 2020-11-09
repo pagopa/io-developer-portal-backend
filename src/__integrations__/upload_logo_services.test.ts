@@ -2,7 +2,7 @@ import * as apim from "../apim_operations";
 import * as services from "../controllers/services";
 
 import ApiManagementClient from "azure-arm-apimanagement";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { Logo } from "../../generated/api/Logo";
 import { AdUser } from "../bearer_strategy";
 import { putOrganizationLogo, putServiceLogo } from "../controllers/services";
@@ -11,14 +11,16 @@ import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
 import { IExtendedUserContract } from "../apim_operations";
 
+import { ServiceId } from "../../generated/api/ServiceId";
+
 afterEach(() => {
   jest.resetAllMocks();
   jest.restoreAllMocks();
 });
 
-const serviceId = "s123" as NonEmptyString;
+const serviceId = "s123" as ServiceId;
 
-const organizationFiscalCode = "0123455" as NonEmptyString;
+const organizationFiscalCode = "0123455" as OrganizationFiscalCode;
 
 const userContract: IExtendedUserContract = {
   email: "test@test.it",
