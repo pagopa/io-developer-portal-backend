@@ -187,7 +187,7 @@ app.put(
 );
 
 app.put(
-  "/services/:serviceid/logo",
+  "/services/:serviceId/logo",
   ouathVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
@@ -200,13 +200,13 @@ app.put(
 );
 
 app.put(
-  "/organizations/:organizationfiscalcode/logo",
+  "/organizations/:organizationFiscalCode/logo",
   ouathVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
       getUserFromRequestMiddleware(),
-      RequiredParamMiddleware("organizationfiscalcode", NonEmptyString),
+      RequiredParamMiddleware("organizationFiscalCode", NonEmptyString),
       ExtractFromPayloadMiddleware(Logo)
     )(putOrganizationLogo)
   )
