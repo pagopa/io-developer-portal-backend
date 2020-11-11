@@ -21,6 +21,7 @@ import * as config from "../config";
 import { Logo as ApiLogo } from "../../generated/api/Logo";
 
 import {
+  fromEither,
   fromLeft,
   fromPredicate,
   taskEither,
@@ -30,7 +31,7 @@ import {
 
 import { ErrorResponses, notificationApiClient } from "../controllers/services";
 
-import { toError } from "fp-ts/lib/Either";
+import { fromNullable, toError } from "fp-ts/lib/Either";
 import { ServiceId } from "../../generated/api/ServiceId";
 
 export const getApimUserTask = (
@@ -74,19 +75,23 @@ export const uploadServiceLogoTask = (
         serviceId
       }),
     errors => ResponseErrorInternal(toError(errors).message)
-  ).foldTaskEither(
-    error => fromLeft(error),
-    errorOrResponse =>
-      errorOrResponse && errorOrResponse.status === 201
-        ? taskEither.of(
-            ResponseSuccessRedirectToResource(
-              {},
-              `${config.logoUrl}/services/${serviceId}.png`,
-              {}
+  )
+    .chain(uploadRespose =>
+      fromEither(fromNullable(ResponseErrorInternal("Error"))(uploadRespose))
+    )
+    .foldTaskEither(
+      error => fromLeft(error),
+      errorOrResponse =>
+        errorOrResponse.status === 201
+          ? taskEither.of(
+              ResponseSuccessRedirectToResource(
+                {},
+                `${config.logoUrl}/services/${serviceId}.png`,
+                {}
+              )
             )
-          )
-        : fromLeft(ResponseErrorInternal(toError(errorOrResponse).message))
-  );
+          : fromLeft(ResponseErrorInternal(toError(errorOrResponse).message))
+    );
 
 export const uploadOrganizationLogoTask = (
   organizationfiscalcode: OrganizationFiscalCode,
@@ -99,16 +104,20 @@ export const uploadOrganizationLogoTask = (
         organizationfiscalcode
       }),
     errors => ResponseErrorInternal(toError(errors).message)
-  ).foldTaskEither(
-    err => fromLeft(err),
-    errorOrResponse =>
-      errorOrResponse && errorOrResponse.status === 201
-        ? taskEither.of(
-            ResponseSuccessRedirectToResource(
-              {},
-              `${config.logoUrl}/services/${organizationfiscalcode}.png`,
-              {}
+  )
+    .chain(uploadRespose =>
+      fromEither(fromNullable(ResponseErrorInternal("Error"))(uploadRespose))
+    )
+    .foldTaskEither(
+      err => fromLeft(err),
+      errorOrResponse =>
+        errorOrResponse.status === 201
+          ? taskEither.of(
+              ResponseSuccessRedirectToResource(
+                {},
+                `${config.logoUrl}/services/${organizationfiscalcode}.png`,
+                {}
+              )
             )
-          )
-        : fromLeft(ResponseErrorInternal(toError(errorOrResponse).message))
-  );
+          : fromLeft(ResponseErrorInternal(toError(errorOrResponse).message))
+    );

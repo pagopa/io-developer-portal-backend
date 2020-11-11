@@ -30,7 +30,11 @@ import {
   withRequestMiddlewares,
   wrapRequestHandler
 } from "italia-ts-commons/lib/request_middleware";
-import { EmailString, NonEmptyString, OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
+import {
+  EmailString,
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "italia-ts-commons/lib/strings";
 
 import { setupBearerStrategy } from "./bearer_strategy";
 import { initCacheStats } from "./cache";
