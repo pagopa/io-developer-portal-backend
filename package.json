@@ -20,11 +20,14 @@
     "generate:api-models": "npm-run-all -s clean:api-models generate:api-models:*",
     "dist:modules": "modclean -r -n default:safe && npm prune --production",
     "predeploy": "npm-run-all build dist:modules",
-    "test": "jest"
+    "test": "jest",
+    "preversion": "auto-changelog  --config .auto-changelog.json --unreleased --commit-limit false --stdout --template preview.hbs",
+    "version": "auto-changelog -p --config .auto-changelog.json --unreleased && git add CHANGELOG.md"
   },
   "dependencies": {
     "@types/memoizee": "^0.4.2",
     "applicationinsights": "^1.0.3",
+    "auto-changelog": "^2.2.1",
     "azure-arm-apimanagement": "^2.1.1-preview",
     "azure-graph": "^3.1.0",
     "body-parser": "^1.18.2",
@@ -71,6 +74,7 @@
     "@types/winston": "^2.3.7",
     "danger": "^4.0.2",
     "danger-plugin-digitalcitizenship": "^0.3.1",
+    "io-functions-commons": "^15.0.0",
     "italia-utils": "^4.1.0",
     "jest": "^23.6.0",
     "modclean": "^3.0.0-beta.1",
@@ -81,7 +85,6 @@
     "ts-node": "^6.1.1",
     "ts-jest": "^23.10.4",
     "tslint": "^5.8.0",
-    "io-functions-commons": "^15.0.0",
     "tslint-config-prettier": "^1.6.0",
     "tslint-immutable": "^4.4.0",
     "tslint-plugin-prettier": "^2.0.1",
