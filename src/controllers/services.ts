@@ -6,6 +6,7 @@ import {
   IResponseErrorInternal,
   IResponseErrorNotFound,
   IResponseSuccessJson,
+  IResponseSuccessRedirectToResource,
   ResponseErrorInternal,
   ResponseErrorNotFound,
   ResponseSuccessJson
@@ -31,12 +32,22 @@ import { Service } from "../../generated/api/Service";
 import { logger } from "../logger";
 
 import * as t from "io-ts";
+
 import { DepartmentName } from "../../generated/api/DepartmentName";
+import { Logo as ApiLogo } from "../../generated/api/Logo";
 import { MaxAllowedPaymentAmount } from "../../generated/api/MaxAllowedPaymentAmount";
 import { OrganizationName } from "../../generated/api/OrganizationName";
-
+import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
+
+import { identity } from "fp-ts/lib/function";
+import {
+  checkAdminTask,
+  getApimUserTask,
+  uploadOrganizationLogoTask,
+  uploadServiceLogoTask
+} from "../middlewares/upload_logo";
 
 export const ServicePayload = t.partial({
   authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
@@ -51,7 +62,15 @@ export const ServicePayload = t.partial({
 });
 export type ServicePayload = t.TypeOf<typeof ServicePayload>;
 
-const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
+export const notificationApiClient = APIClient(
+  config.adminApiUrl,
+  config.adminApiKey
+);
+
+export type ErrorResponses =
+  | IResponseErrorNotFound
+  | IResponseErrorForbiddenNotAuthorized
+  | IResponseErrorInternal;
 
 /**
  * Get service data for a specific serviceId.
@@ -191,4 +210,44 @@ export async function putService(
     errs => ResponseErrorInternal("Error updating service: " + errs.message),
     ResponseSuccessJson
   );
+}
+
+/**
+ * Upload service logo for/with a specific serviceId.
+ */
+export async function putServiceLogo(
+  apiClient: ApiManagementClient,
+  authenticatedUser: AdUser,
+  serviceId: ServiceId,
+  serviceLogo: ApiLogo
+): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
+  return getApimUserTask(apiClient, authenticatedUser)
+    .chain(user => checkAdminTask(user))
+    .chain(() => uploadServiceLogoTask(serviceId, serviceLogo))
+    .fold<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses>(
+      identity,
+      identity
+    )
+    .run();
+}
+
+/**
+ * Upload organization logo for/with a specific serviceId.
+ */
+export async function putOrganizationLogo(
+  apiClient: ApiManagementClient,
+  authenticatedUser: AdUser,
+  organizationFiscalCode: OrganizationFiscalCode,
+  serviceLogo: ApiLogo
+): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
+  return getApimUserTask(apiClient, authenticatedUser)
+    .chain(user => checkAdminTask(user))
+    .chain(() =>
+      uploadOrganizationLogoTask(organizationFiscalCode, serviceLogo)
+    )
+    .fold<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses>(
+      identity,
+      identity
+    )
+    .run();
 }

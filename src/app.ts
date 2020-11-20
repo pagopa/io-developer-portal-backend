@@ -30,12 +30,22 @@ import {
   withRequestMiddlewares,
   wrapRequestHandler
 } from "italia-ts-commons/lib/request_middleware";
-import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
+import {
+  EmailString,
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "italia-ts-commons/lib/strings";
 
 import { setupBearerStrategy } from "./bearer_strategy";
 import { initCacheStats } from "./cache";
 import { getConfiguration } from "./controllers/configuration";
-import { getService, putService, ServicePayload } from "./controllers/services";
+import {
+  getService,
+  putOrganizationLogo,
+  putService,
+  putServiceLogo,
+  ServicePayload
+} from "./controllers/services";
 import {
   getSubscriptions,
   postSubscriptions,
@@ -52,6 +62,9 @@ import { getUserFromRequestMiddleware } from "./middlewares/user";
 import { SubscriptionData } from "./new_subscription";
 
 import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
+
+import { Logo } from "../generated/api/Logo";
+import { ServiceId } from "../generated/api/ServiceId";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
@@ -175,6 +188,32 @@ app.put(
       RequiredParamMiddleware("serviceId", NonEmptyString),
       ExtractFromPayloadMiddleware(ServicePayload)
     )(putService)
+  )
+);
+
+app.put(
+  "/services/:serviceId/logo",
+  ouathVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getUserFromRequestMiddleware(),
+      RequiredParamMiddleware("serviceId", ServiceId),
+      ExtractFromPayloadMiddleware(Logo)
+    )(putServiceLogo)
+  )
+);
+
+app.put(
+  "/organizations/:organizationFiscalCode/logo",
+  ouathVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getUserFromRequestMiddleware(),
+      RequiredParamMiddleware("organizationFiscalCode", OrganizationFiscalCode),
+      ExtractFromPayloadMiddleware(Logo)
+    )(putOrganizationLogo)
   )
 );
 

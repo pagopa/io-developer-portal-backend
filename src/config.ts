@@ -108,3 +108,5 @@ export const servicePrincipalTenantId = process.env
   .SERVICE_PRINCIPAL_TENANT_ID as string;
 
 export const sandboxFiscalCode = process.env.SANDBOX_FISCAL_CODE as FiscalCode;
+
+export const logoUrl = process.env.LOGO_URL;
