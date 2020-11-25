@@ -1,6 +1,6 @@
 import ApiManagementClient from "azure-arm-apimanagement";
-import { isLeft } from "fp-ts/lib/Either";
-import { isNone } from "fp-ts/lib/Option";
+import { toError } from "fp-ts/lib/Either";
+import { fromNullable } from "fp-ts/lib/Option";
 import {
   IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
@@ -11,21 +11,15 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessJson
 } from "italia-ts-commons/lib/responses";
-import {
-  CIDR,
-  FiscalCode,
-  NonEmptyString,
-  OrganizationFiscalCode
-} from "italia-ts-commons/lib/strings";
+
 import { ServicePublic } from "../../generated/api/ServicePublic";
-import { APIClient, toEither } from "../api_client";
 import {
   getApimUser,
   getUserSubscription,
+  IExtendedUserContract,
   isAdminUser
 } from "../apim_operations";
 import { AdUser } from "../bearer_strategy";
-import * as config from "../config";
 
 import { pick, withDefault } from "italia-ts-commons/lib/types";
 import { Service } from "../../generated/api/Service";
@@ -33,6 +27,15 @@ import { logger } from "../logger";
 
 import * as t from "io-ts";
 
+import { identity } from "fp-ts/lib/function";
+import { fromLeft, taskEither, tryCatch } from "fp-ts/lib/TaskEither";
+import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
+import {
+  CIDR,
+  FiscalCode,
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "italia-ts-commons/lib/strings";
 import { DepartmentName } from "../../generated/api/DepartmentName";
 import { Logo as ApiLogo } from "../../generated/api/Logo";
 import { MaxAllowedPaymentAmount } from "../../generated/api/MaxAllowedPaymentAmount";
@@ -40,8 +43,7 @@ import { OrganizationName } from "../../generated/api/OrganizationName";
 import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
-
-import { identity } from "fp-ts/lib/function";
+import { notificationApiClient } from "../api_client";
 import {
   checkAdminTask,
   getApimUserTask,
@@ -50,7 +52,7 @@ import {
 } from "../middlewares/upload_logo";
 
 export const ServicePayload = t.partial({
-  authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
+  authorized_cidrs: t.readonlyArray(CIDR),
   authorized_recipients: t.readonlyArray(FiscalCode, "array of FiscalCode"),
   department_name: DepartmentName,
   is_visible: withDefault(t.boolean, false),
@@ -62,15 +64,102 @@ export const ServicePayload = t.partial({
 });
 export type ServicePayload = t.TypeOf<typeof ServicePayload>;
 
-export const notificationApiClient = APIClient(
-  config.adminApiUrl,
-  config.adminApiKey
-);
-
 export type ErrorResponses =
   | IResponseErrorNotFound
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorInternal;
+
+const ServiceAndIsAdminUser = t.interface({
+  isAdmin: t.boolean,
+  service: Service
+});
+
+type ServiceAndIsAdminUser = t.TypeOf<typeof ServiceAndIsAdminUser>;
+
+const getServiceTask = (
+  apiClient: ApiManagementClient,
+  authenticatedUser: AdUser,
+  serviceId: NonEmptyString
+) =>
+  tryCatch(() => getApimUser(apiClient, authenticatedUser.emails[0]), toError)
+    .foldTaskEither<
+      IResponseErrorInternal | IResponseErrorNotFound,
+      IExtendedUserContract
+    >(
+      e =>
+        fromLeft(ResponseErrorInternal(`Cannot get APIM user| ${e.message}`)),
+      maybeApimUser =>
+        maybeApimUser.foldL(
+          () =>
+            fromLeft(
+              ResponseErrorNotFound(
+                "API user not found",
+                "Cannot find a user in the API management with the provided email address"
+              )
+            ),
+          _ => taskEither.of(_)
+        )
+    )
+    .chain(apimUser =>
+      // Authenticates this request against the logged in user
+      // checking that serviceId = subscriptionId
+      // if the user is an admin we skip the check on userId
+      tryCatch(
+        () =>
+          getUserSubscription(
+            apiClient,
+            serviceId,
+            isAdminUser(apimUser) ? undefined : apimUser.id
+          ),
+        toError
+      )
+        .mapLeft(_ =>
+          ResponseErrorInternal(`Cannot get user Subscription| ${_.message}`)
+        )
+        .foldTaskEither<IResponseErrorInternal, boolean>(
+          fromLeft,
+          maybeSubscription =>
+            maybeSubscription.foldL(
+              () =>
+                fromLeft(ResponseErrorInternal("No user subscription found")),
+              _ => taskEither.of(isAdminUser(apimUser))
+            )
+        )
+    )
+    .chain(isAdmin =>
+      tryCatch(
+        () =>
+          notificationApiClient.getService({
+            service_id: serviceId
+          }),
+        toError
+      )
+        .mapLeft(_ => ResponseErrorInternal(`Cannot get Service| ${_.message}`))
+        .foldTaskEither<
+          IResponseErrorInternal | IResponseErrorNotFound,
+          ServiceAndIsAdminUser
+        >(fromLeft, errorOrResponse =>
+          errorOrResponse.fold(
+            errs =>
+              fromLeft(
+                ResponseErrorInternal(
+                  `Cannot get Service| ${errorsToReadableMessages(errs).join(
+                    "/"
+                  )}`
+                )
+              ),
+            response =>
+              response.status !== 200
+                ? fromLeft(
+                    ResponseErrorNotFound(
+                      "Cannot get service",
+                      "Cannot get existing service"
+                    )
+                  )
+                : taskEither.of({ service: response.value, isAdmin })
+          )
+        )
+    );
 
 /**
  * Get service data for a specific serviceId.
@@ -85,45 +174,15 @@ export async function getService(
   | IResponseErrorInternal
   | IResponseErrorNotFound
 > {
-  const maybeApimUser = await getApimUser(
-    apiClient,
-    authenticatedUser.emails[0]
-  );
-  if (isNone(maybeApimUser)) {
-    return ResponseErrorNotFound(
-      "API user not found",
-      "Cannot find a user in the API management with the provided email address"
-    );
-  }
-  const apimUser = maybeApimUser.value;
-
-  // Authenticates this request against the logged in user
-  // checking that serviceId = subscriptionId
-  // if the user is an admin we skip the check on userId
-  const maybeSubscription = await getUserSubscription(
-    apiClient,
-    serviceId,
-    isAdminUser(apimUser) ? undefined : apimUser.id
-  );
-
-  if (isNone(maybeSubscription)) {
-    return ResponseErrorInternal("Cannot get user subscription");
-  }
-
-  const errorOrServiceResponse = toEither(
-    await notificationApiClient.getService({
-      id: serviceId
-    })
-  );
-
-  if (isLeft(errorOrServiceResponse)) {
-    return ResponseErrorNotFound(
-      "Cannot get service",
-      "Cannot get existing service"
-    );
-  }
-  const service = errorOrServiceResponse.value;
-  return ResponseSuccessJson(service);
+  return getServiceTask(apiClient, authenticatedUser, serviceId)
+    .map(_ => ResponseSuccessJson(_.service))
+    .fold<
+      | IResponseSuccessJson<Service>
+      | IResponseErrorForbiddenNotAuthorized
+      | IResponseErrorInternal
+      | IResponseErrorNotFound
+    >(identity, identity)
+    .run();
 }
 
 /**
@@ -140,76 +199,79 @@ export async function putService(
   | IResponseErrorInternal
   | IResponseErrorNotFound
 > {
-  const maybeApimUser = await getApimUser(
-    apiClient,
-    authenticatedUser.emails[0]
-  );
-  if (isNone(maybeApimUser)) {
-    return ResponseErrorNotFound(
-      "API user not found",
-      "Cannot find a user in the API management with the provided email address"
-    );
-  }
-  const authenticatedApimUser = maybeApimUser.value;
-
-  // Authenticates this request against the logged in user
-  // checking that serviceId = subscriptionId
-  // if the user is an admin we skip the check on userId
-  const maybeSubscription = await getUserSubscription(
-    apiClient,
-    serviceId,
-    isAdminUser(authenticatedApimUser) ? undefined : authenticatedApimUser.id
-  );
-  if (isNone(maybeSubscription)) {
-    return ResponseErrorNotFound(
-      "Subscription not found",
-      "Cannot get a subscription for the logged in user"
-    );
-  }
-
   // Get old service data
-  const errorOrService = toEither(
-    await notificationApiClient.getService({
-      id: serviceId
+  return getServiceTask(apiClient, authenticatedUser, serviceId)
+    .map(({ service, isAdmin }) => {
+      logger.debug(
+        "updating service %s",
+        JSON.stringify({ ...service, ...servicePayload })
+      );
+      return !isAdmin
+        ? {
+            payload: pick(
+              [
+                "department_name",
+                "organization_fiscal_code",
+                "organization_name",
+                "service_name"
+              ],
+              servicePayload
+            ),
+            service
+          }
+        : { payload: servicePayload, service };
     })
-  );
-  if (isLeft(errorOrService)) {
-    return ResponseErrorNotFound(
-      "Service not found",
-      "Cannot get a service with the provided id."
-    );
-  }
-  const service = errorOrService.value;
-
-  logger.debug(
-    "updating service %s",
-    JSON.stringify({ ...service, ...servicePayload })
-  );
-  const payload = !isAdminUser(authenticatedApimUser)
-    ? pick(
-        [
-          "department_name",
-          "organization_fiscal_code",
-          "organization_name",
-          "service_name"
-        ],
-        servicePayload
+    .foldTaskEither<
+      IResponseErrorInternal | IResponseErrorNotFound,
+      IResponseSuccessJson<ServicePublic>
+    >(fromLeft, ({ payload, service }) =>
+      tryCatch(
+        () =>
+          notificationApiClient.updateService({
+            body: { ...service, ...payload },
+            service_id: serviceId
+          }),
+        toError
       )
-    : servicePayload;
-
-  const errorOrUpdatedService = toEither(
-    await notificationApiClient.updateService({
-      service: { ...service, ...payload },
-      serviceId
-    })
-  );
-
-  return errorOrUpdatedService.fold<
-    IResponseErrorInternal | IResponseSuccessJson<ServicePublic>
-  >(
-    errs => ResponseErrorInternal("Error updating service: " + errs.message),
-    ResponseSuccessJson
-  );
+        .mapLeft(err =>
+          ResponseErrorInternal("Error updating service: " + err.message)
+        )
+        .foldTaskEither<
+          IResponseErrorInternal,
+          IResponseSuccessJson<ServicePublic>
+        >(fromLeft, errorOrUpdateResponse =>
+          errorOrUpdateResponse.fold(
+            errs =>
+              fromLeft(
+                ResponseErrorInternal(
+                  `Cannot update Service| ${errorsToReadableMessages(errs).join(
+                    "/"
+                  )}`
+                )
+              ),
+            response =>
+              response.status !== 200
+                ? fromLeft(ResponseErrorInternal("Cannot update service"))
+                : taskEither.of(
+                    ResponseSuccessJson(
+                      ServicePublic.encode({
+                        ...response.value,
+                        version: fromNullable(response.value.version).getOrElse(
+                          0
+                        )
+                      })
+                    )
+                  )
+          )
+        )
+    )
+    .fold<
+      | IResponseSuccessJson<ServicePublic>
+      | IResponseErrorForbiddenNotAuthorized
+      | IResponseErrorInternal
+      | IResponseErrorNotFound
+    >(identity, identity)
+    .run();
 }
 
 /**

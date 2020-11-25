@@ -15,7 +15,7 @@ import { putOrganizationLogo, putServiceLogo } from "../services";
 
 import { ServiceId } from "../../../generated/api/ServiceId";
 import { IExtendedUserContract } from "../../apim_operations";
-
+// tslint:disable: no-any
 afterEach(() => {
   jest.resetAllMocks();
   jest.restoreAllMocks();

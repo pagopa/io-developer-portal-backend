@@ -2,15 +2,9 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
-    "alwaysStrict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "resolveJsonModule": true,
     "sourceMap": true,
+    "alwaysStrict": true,
+    "resolveJsonModule": true,
     "outDir": "build"
   },
   "include": [

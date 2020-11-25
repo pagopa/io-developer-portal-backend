@@ -21,7 +21,6 @@ import * as config from "../config";
 import { Logo as ApiLogo } from "../../generated/api/Logo";
 
 import {
-  fromEither,
   fromLeft,
   fromPredicate,
   taskEither,
@@ -29,10 +28,11 @@ import {
   tryCatch
 } from "fp-ts/lib/TaskEither";
 
-import { ErrorResponses, notificationApiClient } from "../controllers/services";
+import { ErrorResponses } from "../controllers/services";
 
-import { fromNullable, toError } from "fp-ts/lib/Either";
+import { toError } from "fp-ts/lib/Either";
 import { ServiceId } from "../../generated/api/ServiceId";
+import { notificationApiClient } from "../api_client";
 
 export const getApimUserTask = (
   apiClient: ApiManagementClient,
@@ -71,27 +71,27 @@ export const uploadServiceLogoTask = (
   tryCatch(
     () =>
       notificationApiClient.uploadServiceLogo({
-        logo: serviceLogo,
-        serviceId
+        body: serviceLogo,
+        service_id: serviceId
       }),
     errors => ResponseErrorInternal(toError(errors).message)
-  )
-    .chain(uploadRespose =>
-      fromEither(fromNullable(ResponseErrorInternal("Error"))(uploadRespose))
-    )
-    .foldTaskEither(
-      error => fromLeft(error),
-      errorOrResponse =>
-        errorOrResponse.status === 201
-          ? taskEither.of(
-              ResponseSuccessRedirectToResource(
-                {},
-                `${config.logoUrl}/services/${serviceId}.png`,
-                {}
+  ).foldTaskEither<ErrorResponses, IResponseSuccessRedirectToResource<{}, {}>>(
+    fromLeft,
+    _ =>
+      _.fold(
+        errs => fromLeft(ResponseErrorInternal(toError(errs).message)),
+        response =>
+          response.status === 201
+            ? taskEither.of(
+                ResponseSuccessRedirectToResource(
+                  {},
+                  `${config.logoUrl}/services/${serviceId}.png`,
+                  {}
+                )
               )
-            )
-          : fromLeft(ResponseErrorInternal(toError(errorOrResponse).message))
-    );
+            : fromLeft(ResponseErrorInternal(toError(response).message))
+      )
+  );
 
 export const uploadOrganizationLogoTask = (
   organizationfiscalcode: OrganizationFiscalCode,
@@ -100,24 +100,24 @@ export const uploadOrganizationLogoTask = (
   tryCatch(
     () =>
       notificationApiClient.uploadOrganizationLogo({
-        logo: serviceLogo,
-        organizationfiscalcode
+        body: serviceLogo,
+        organization_fiscal_code: organizationfiscalcode
       }),
     errors => ResponseErrorInternal(toError(errors).message)
-  )
-    .chain(uploadRespose =>
-      fromEither(fromNullable(ResponseErrorInternal("Error"))(uploadRespose))
-    )
-    .foldTaskEither(
-      err => fromLeft(err),
-      errorOrResponse =>
-        errorOrResponse.status === 201
-          ? taskEither.of(
-              ResponseSuccessRedirectToResource(
-                {},
-                `${config.logoUrl}/services/${organizationfiscalcode}.png`,
-                {}
+  ).foldTaskEither<ErrorResponses, IResponseSuccessRedirectToResource<{}, {}>>(
+    fromLeft,
+    _ =>
+      _.fold(
+        errs => fromLeft(ResponseErrorInternal(toError(errs).message)),
+        response =>
+          response.status === 201
+            ? taskEither.of(
+                ResponseSuccessRedirectToResource(
+                  {},
+                  `${config.logoUrl}/organizations/${organizationfiscalcode}.png`,
+                  {}
+                )
               )
-            )
-          : fromLeft(ResponseErrorInternal(toError(errorOrResponse).message))
-    );
+            : fromLeft(ResponseErrorInternal(toError(response).message))
+      )
+  );

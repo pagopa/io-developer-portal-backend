@@ -1,5 +1,5 @@
+import * as services from "../api_client";
 import * as apim from "../apim_operations";
-import * as services from "../controllers/services";
 
 import ApiManagementClient from "azure-arm-apimanagement";
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
@@ -11,7 +11,9 @@ import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
 import { IExtendedUserContract } from "../apim_operations";
 
+import { right } from "fp-ts/lib/Either";
 import { ServiceId } from "../../generated/api/ServiceId";
+// tslint:disable: no-any
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -59,11 +61,13 @@ describe("putServiceLogo", () => {
     jest
       .spyOn(services.notificationApiClient, "uploadServiceLogo")
       .mockReturnValueOnce(
-        Promise.resolve({
-          headers: undefined,
-          status: 201,
-          value: undefined
-        } as any)
+        Promise.resolve(
+          right({
+            headers: undefined,
+            status: 201,
+            value: undefined
+          }) as any
+        )
       );
 
     const result = await putServiceLogo(
@@ -111,11 +115,13 @@ describe("putOrganizationLogo", () => {
     jest
       .spyOn(services.notificationApiClient, "uploadOrganizationLogo")
       .mockReturnValueOnce(
-        Promise.resolve({
-          headers: undefined,
-          status: 201,
-          value: undefined
-        } as any)
+        Promise.resolve(
+          right({
+            headers: undefined,
+            status: 201,
+            value: undefined
+          }) as any
+        )
       );
 
     const result = await putOrganizationLogo(
