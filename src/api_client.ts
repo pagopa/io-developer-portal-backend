@@ -129,7 +129,7 @@ export type UploadServiceLogoT = IPutApiRequestType<
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
-  ApiResponseType<undefined>
+  ApiResponseType<{}>
 >;
 
 export type UploadOrganizationLogoT = IPutApiRequestType<
@@ -139,7 +139,7 @@ export type UploadOrganizationLogoT = IPutApiRequestType<
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
-  ApiResponseType<undefined>
+  ApiResponseType<{}>
 >;
 
 export function APIClient(
@@ -212,7 +212,7 @@ export function APIClient(
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
     method: "put",
     query: _ => ({}),
-    response_decoder: apiResponseDecoder(t.undefined),
+    response_decoder: apiResponseDecoder(t.type({})),
     url: params => `/adm/services/${params.serviceId}/logo`
   };
 
@@ -221,7 +221,7 @@ export function APIClient(
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
     method: "put",
     query: _ => ({}),
-    response_decoder: apiResponseDecoder(t.undefined),
+    response_decoder: apiResponseDecoder(t.type({})),
     url: params => `/adm/organizations/${params.organizationfiscalcode}/logo`
   };
 
