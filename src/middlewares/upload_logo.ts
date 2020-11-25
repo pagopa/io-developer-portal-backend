@@ -115,7 +115,7 @@ export const uploadOrganizationLogoTask = (
           ? taskEither.of(
               ResponseSuccessRedirectToResource(
                 {},
-                `${config.logoUrl}/services/${organizationfiscalcode}.png`,
+                `${config.logoUrl}/organizations/${organizationfiscalcode}.png`,
                 {}
               )
             )
