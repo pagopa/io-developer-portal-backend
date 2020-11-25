@@ -87,8 +87,8 @@ secureExpressApp(app);
 
 app.use(cors());
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
-app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "5mb" }));
+app.use(bodyParser.json({ limit: "5mb" }));
 app.use(passport.initialize());
 app.use(morgan("combined"));
 
@@ -242,7 +242,7 @@ app.get(
 
 app.get("/configuration", toExpressHandler(getConfiguration));
 
-const port = config.port || 3000;
+const port = config.port || 3999;
 app.listen(port);
 
 logger.debug("Listening on port %s", port.toString());
