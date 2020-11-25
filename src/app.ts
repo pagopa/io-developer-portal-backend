@@ -88,7 +88,7 @@ secureExpressApp(app);
 app.use(cors());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "50mb" }));
 app.use(passport.initialize());
 app.use(morgan("combined"));
 
