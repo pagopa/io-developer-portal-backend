@@ -9,7 +9,7 @@
 import ApiManagementClient from "azure-arm-apimanagement";
 import * as t from "io-ts";
 
-import { Either, isLeft, left, right } from "fp-ts/lib/Either";
+import { Either, isLeft, left, right, toError } from "fp-ts/lib/Either";
 
 import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 
@@ -26,15 +26,14 @@ import {
   NonEmptyString,
   OrganizationFiscalCode
 } from "italia-ts-commons/lib/strings";
-import { APIClient, toEither } from "./api_client";
 import { logger } from "./logger";
 
+import { tryCatch } from "fp-ts/lib/TaskEither";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { Service } from "../generated/api/Service";
+import { notificationApiClient } from "./api_client";
 
 const telemetryClient = new appinsights.TelemetryClient();
-
-const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 
 export const SubscriptionData = t.interface({
   department_name: NonEmptyString,
@@ -111,11 +110,14 @@ export async function subscribeApimUser(
     const service = errorOrService.value;
 
     // creates a new service every time !
-    const errorOrServiceResponse = toEither(
-      await notificationApiClient.createService({
-        service
-      })
-    );
+    const errorOrServiceResponse = await tryCatch(
+      () =>
+        notificationApiClient.createService({
+          body: service
+        }),
+      toError
+    ).run();
+
     if (isLeft(errorOrServiceResponse)) {
       return left(
         new Error(

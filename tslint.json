@@ -29,5 +29,8 @@
       "no-mixed-interface": true,
       "prettier": true
     },
-    "rulesDirectory": []
+    "rulesDirectory": [],
+    "linterOptions": {
+      "exclude": ["generated/**/*"]
+    }
 }

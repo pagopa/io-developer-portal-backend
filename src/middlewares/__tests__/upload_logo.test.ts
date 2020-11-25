@@ -1,5 +1,5 @@
+import * as services from "../../api_client";
 import * as apim from "../../apim_operations";
-import * as services from "../../controllers/services";
 
 import ApiManagementClient from "azure-arm-apimanagement";
 import { none, option } from "fp-ts/lib/Option";
@@ -14,8 +14,10 @@ import {
 
 import { Logo } from "../../../generated/api/Logo";
 
+import { right } from "fp-ts/lib/Either";
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../../generated/api/ServiceId";
+// tslint:disable: no-any
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -97,11 +99,13 @@ describe("uploadServiceLogoTask", () => {
     jest
       .spyOn(services.notificationApiClient, "uploadServiceLogo")
       .mockReturnValueOnce(
-        Promise.resolve({
-          headers: undefined,
-          status: 201,
-          value: undefined
-        } as any)
+        Promise.resolve(
+          right({
+            headers: undefined,
+            status: 201,
+            value: undefined
+          }) as any
+        )
       );
 
     const result = await uploadServiceLogoTask(serviceId, logo).run();
@@ -114,11 +118,13 @@ describe("uploadServiceLogoTask", () => {
     jest
       .spyOn(services.notificationApiClient, "uploadServiceLogo")
       .mockReturnValueOnce(
-        Promise.resolve({
-          headers: undefined,
-          status: 400,
-          value: undefined
-        } as any)
+        Promise.resolve(
+          right({
+            headers: undefined,
+            status: 400,
+            value: undefined
+          }) as any
+        )
       );
 
     const result = await uploadServiceLogoTask(serviceId, logo).run();
@@ -133,11 +139,13 @@ describe("uploadOrganizationLogoTask", () => {
     jest
       .spyOn(services.notificationApiClient, "uploadOrganizationLogo")
       .mockReturnValueOnce(
-        Promise.resolve({
-          headers: undefined,
-          status: 201,
-          value: undefined
-        } as any)
+        Promise.resolve(
+          right({
+            headers: undefined,
+            status: 201,
+            value: undefined
+          }) as any
+        )
       );
 
     const result = await uploadOrganizationLogoTask(
@@ -153,11 +161,13 @@ describe("uploadOrganizationLogoTask", () => {
     jest
       .spyOn(services.notificationApiClient, "uploadOrganizationLogo")
       .mockReturnValueOnce(
-        Promise.resolve({
-          headers: undefined,
-          status: 400,
-          value: undefined
-        } as any)
+        Promise.resolve(
+          right({
+            headers: undefined,
+            status: 400,
+            value: undefined
+          }) as any
+        )
       );
 
     const result = await uploadOrganizationLogoTask(
