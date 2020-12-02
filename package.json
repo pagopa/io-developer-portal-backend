@@ -21,6 +21,7 @@
     "dist:modules": "modclean -r -n default:safe && npm prune --production",
     "predeploy": "npm-run-all build dist:modules",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "preversion": "auto-changelog  --config .auto-changelog.json --unreleased --commit-limit false --stdout --template preview.hbs",
     "version": "auto-changelog -p --config .auto-changelog.json --unreleased && git add CHANGELOG.md"
   },
