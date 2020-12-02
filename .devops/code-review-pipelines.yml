@@ -39,8 +39,8 @@ stages:
       - job: validate_api_specification     
         steps:
         - script: |
-            npx oval validate -p openapi/index.yaml
-          displayName: 'Validate API specification'
+            npx oval validate -p definitions.yaml
+          displayName: 'Validate definitions specification'
 
       - job: danger
         condition: 
