@@ -121,11 +121,11 @@ stages:
                 !tsconfig.json
             displayName: 'Copy deploy files'
             
-          - task: AzureFunctionApp@1  
+          - task: AzureWebApp@1	
             inputs:
               azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
               resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
-              appType: 'functionApp'
+              appType: 'webApp'
               appName: '$(PRODUCTION_APP_NAME)'
               package: '$(Build.ArtifactStagingDirectory)/'
               deploymentMethod: 'auto'
