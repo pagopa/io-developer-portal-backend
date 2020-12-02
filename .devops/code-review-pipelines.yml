@@ -71,6 +71,10 @@ stages:
             make: install_dependencies
 
         - script: |
+            yarn generate
+          displayName: 'Generate definitions'
+
+        - script: |
             yarn test:coverage
           displayName: 'Unit tests exec'
 
