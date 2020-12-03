@@ -50,10 +50,8 @@ stages:
             ne(variables['DANGER_GITHUB_API_TOKEN'], 'skip')
           )
         steps:
-          - template: azure-templates/make-build-steps.yml
-            parameters:
-              make: install_dependencies
-
+          - template: azure-templates/setup-project.yml
+          
           - bash: |
               yarn danger ci
             env:
