@@ -1,14 +1,9 @@
-# Azure DevOps pipeline template used to checkout, install node dependencies and build the code. 
+# Azure DevOps pipeline template used to setup the Node project:
+# 1. checkout code
+# 2. setup correct node version
+# 3. install node dependencies
 
 parameters:
-- name: 'make'
-  type: string
-  default: install_dependencies
-  values:
-  - install_dependencies
-  - build
-  - predeploy_build
-
 - name: 'cache_version_id'
   type: string
   default: $(CACHE_VERSION_ID)
@@ -21,6 +16,13 @@ parameters:
 steps:
 - checkout: self
   displayName: 'Checkout'
+
+# This is needed because the pipeline may point to a different commit than expected
+# The common case is when the previous stage pushed another commit
+- ${{ if ne(parameters.gitReference, variables['Build.SourceVersion']) }}:
+  - script: |
+      git fetch && git checkout ${{ parameters.gitReference }}
+    displayName: 'Checkout reference'  
 
 - task: Cache@2
   inputs:
@@ -35,23 +37,8 @@ steps:
   inputs:
     version: $(NODE_VERSION)
   displayName: 'Set up Node.js'
-  
-# This is needed because the pipeline may point to a different commit than expected
-# The common case is when the previous stage pushed another commit
-- ${{ if ne(parameters.gitReference, variables['Build.SourceVersion']) }}:
-  - script: |
-      git fetch && git checkout ${{ parameters.gitReference }}
-    displayName: 'Checkout reference'  
 
 - script: |
     yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
   displayName: 'Install node modules'
   condition: ne(variables.CACHE_RESTORED, 'true')
-
-- ${{ if eq(parameters.make, 'build') }}:
-  - bash: yarn build
-    displayName: 'Build code'
-
-- ${{ if eq(parameters.make, 'predeploy_build') }}:
-  - bash: yarn predeploy
-    displayName: 'Predeploy build code'
