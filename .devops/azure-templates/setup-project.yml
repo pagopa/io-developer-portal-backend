@@ -30,6 +30,7 @@ steps:
     restoreKeys: |
       yarn-${{ parameters.cache_version_id }} | "$(Agent.OS)"
     path: $(YARN_CACHE_FOLDER)
+    cacheHitVar: 'CACHE_RESTORED'
   displayName: 'Cache yarn packages'
 
   
