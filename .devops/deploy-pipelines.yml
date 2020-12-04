@@ -74,8 +74,8 @@ stages:
             displayName: 'Skip release bundle'
 
 
-  # Prepare Artifact
-  - stage: Deploy_staging
+  # Prepare Artifact and deploy to prod
+  - stage: Deploy_production
     dependsOn:
       - Release
     jobs:
@@ -93,12 +93,7 @@ stages:
           - script: |
               yarn predeploy
             displayName: 'Build'
-
-          # Install functions extensions
-          - task: DotNetCoreCLI@2
-            inputs:
-              command: "build"
-              arguments: "-o bin"   
+ 
           # Copy application to  
           - task: CopyFiles@2
             inputs:
@@ -131,22 +126,4 @@ stages:
               appName: '$(PRODUCTION_APP_NAME)'
               package: '$(Build.ArtifactStagingDirectory)/'
               deploymentMethod: 'auto'
-              deployToSlotOrASE: true
-              slotName: 'staging'
-            displayName: Deploy to staging slot
-
-  # Promote the staging instance to production
-  - stage: Deploy_production
-    dependsOn:
-      - Deploy_staging
-    jobs:
-      - job: 'do_deploy'       
-        steps:  
-          - task: AzureAppServiceManage@0   
-            inputs:
-              azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
-              resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
-              webAppName: '$(PRODUCTION_APP_NAME)'
-              sourceSlot: staging
-              swapWithProduction: true
-            displayName: Swap with production slot
+            displayName: Deploy to production
