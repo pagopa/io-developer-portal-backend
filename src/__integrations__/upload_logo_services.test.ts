@@ -63,6 +63,7 @@ describe("putServiceLogo", () => {
           headers: undefined,
           status: 201,
           value: undefined
+          // tslint:disable-next-line: no-any
         } as any)
       );
 
@@ -115,6 +116,7 @@ describe("putOrganizationLogo", () => {
           headers: undefined,
           status: 201,
           value: undefined
+          // tslint:disable-next-line: no-any
         } as any)
       );
 

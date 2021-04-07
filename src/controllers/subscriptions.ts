@@ -156,8 +156,8 @@ export async function putSubscriptionKey(
     keyType === "secondary_key"
       ? await regenerateSecondaryKey(apiClient, subscription.name, user.id)
       : keyType === "primary_key"
-        ? await regeneratePrimaryKey(apiClient, subscription.name, user.id)
-        : none;
+      ? await regeneratePrimaryKey(apiClient, subscription.name, user.id)
+      : none;
 
   return maybeUpdatedSubscription.fold<
     IResponseErrorInternal | IResponseSuccessJson<SubscriptionContract>
