@@ -28,11 +28,12 @@ export const getServicePayloadUpdater = (user: IExtendedUserContract) => (
     ...originalService.service_metadata,
     ...payload.service_metadata,
     // Scope for visible services cannot be changed
-    scope: VisibleServicePayload.is(originalService)
-      ? originalService.service_metadata.scope
-      : fromNullable(payload.service_metadata?.scope)
-          .fold(fromNullable(originalService.service_metadata?.scope), some)
-          .getOrElse(ServiceScopeEnum.LOCAL)
+    scope:
+      !VisibleServicePayload.is(originalService) || isAdminUser(user)
+        ? fromNullable(payload.service_metadata?.scope)
+            .fold(fromNullable(originalService.service_metadata?.scope), some)
+            .getOrElse(ServiceScopeEnum.LOCAL)
+        : originalService.service_metadata.scope
   };
 
   return {

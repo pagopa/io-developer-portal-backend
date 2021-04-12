@@ -90,4 +90,24 @@ describe("getServicePayloadUpdater", () => {
     );
     expect(payload.is_visible).toEqual(true);
   });
+  it("should update scope if the service is visible and the user is Admin", () => {
+    const payload = getServicePayloadUpdater({
+      ...userContract,
+      groupNames: new SerializableSet(["apiadmin"])
+    })(
+      {
+        ...aService,
+        is_visible: true,
+        service_metadata: {
+          scope: ServiceScopeEnum.NATIONAL
+        }
+      },
+      aServicePayload
+    );
+    expect(payload.service_metadata).toHaveProperty(
+      "scope",
+      ServiceScopeEnum.LOCAL
+    );
+    expect(payload.is_visible).toEqual(true);
+  });
 });
