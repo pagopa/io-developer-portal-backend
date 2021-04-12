@@ -110,4 +110,42 @@ describe("getServicePayloadUpdater", () => {
     );
     expect(payload.is_visible).toEqual(true);
   });
+
+  it("should doesn't update token_name if the user is not an Admin", () => {
+    const payload = getServicePayloadUpdater(userContract)(aService, {
+      ...aServicePayload,
+      service_metadata: {
+        scope: ServiceScopeEnum.NATIONAL,
+        token_name: "NEW_TOKEN" as NonEmptyString
+      }
+    });
+    expect(payload.service_metadata).toHaveProperty("token_name", undefined);
+  });
+
+  it("should can update token_name if the user is an Admin", () => {
+    const expectedTokenName = "NEW_TOKEN" as NonEmptyString;
+    const payload = getServicePayloadUpdater({
+      ...userContract,
+      groupNames: new SerializableSet(["apiadmin"])
+    })(
+      {
+        ...aService,
+        service_metadata: {
+          scope: ServiceScopeEnum.NATIONAL,
+          token_name: "TOKEN" as NonEmptyString
+        }
+      },
+      {
+        ...aServicePayload,
+        service_metadata: {
+          scope: ServiceScopeEnum.NATIONAL,
+          token_name: expectedTokenName
+        }
+      }
+    );
+    expect(payload.service_metadata).toHaveProperty(
+      "token_name",
+      expectedTokenName
+    );
+  });
 });
