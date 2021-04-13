@@ -13,6 +13,7 @@ import { Logo } from "../../../generated/api/Logo";
 import { AdUser } from "../../bearer_strategy";
 import { putOrganizationLogo, putServiceLogo } from "../services";
 
+import SerializableSet from "json-set-map/build/src/set";
 import { ServiceId } from "../../../generated/api/ServiceId";
 import { IExtendedUserContract } from "../../apim_operations";
 
@@ -27,7 +28,7 @@ const organizationFiscalCode = "0123455" as OrganizationFiscalCode;
 
 const userContract: IExtendedUserContract = {
   email: "test@test.it",
-  groupNames: ["groupp_1", "group_2"] as any,
+  groupNames: new SerializableSet(["groupp_1", "group_2"]),
   id: "124123_id",
   name: "name"
 };

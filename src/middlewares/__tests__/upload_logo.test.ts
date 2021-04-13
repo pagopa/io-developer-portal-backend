@@ -101,6 +101,7 @@ describe("uploadServiceLogoTask", () => {
           headers: undefined,
           status: 201,
           value: undefined
+          // tslint:disable-next-line: no-any
         } as any)
       );
 
@@ -118,6 +119,7 @@ describe("uploadServiceLogoTask", () => {
           headers: undefined,
           status: 400,
           value: undefined
+          // tslint:disable-next-line: no-any
         } as any)
       );
 
@@ -137,6 +139,7 @@ describe("uploadOrganizationLogoTask", () => {
           headers: undefined,
           status: 201,
           value: undefined
+          // tslint:disable-next-line: no-any
         } as any)
       );
 
@@ -157,6 +160,7 @@ describe("uploadOrganizationLogoTask", () => {
           headers: undefined,
           status: 400,
           value: undefined
+          // tslint:disable-next-line: no-any
         } as any)
       );
 

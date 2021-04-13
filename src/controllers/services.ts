@@ -12,7 +12,6 @@ import {
   ResponseSuccessJson
 } from "italia-ts-commons/lib/responses";
 import {
-  CIDR,
   FiscalCode,
   NonEmptyString,
   OrganizationFiscalCode
@@ -27,7 +26,7 @@ import {
 import { AdUser } from "../bearer_strategy";
 import * as config from "../config";
 
-import { pick, withDefault } from "italia-ts-commons/lib/types";
+import { withDefault } from "italia-ts-commons/lib/types";
 import { Service } from "../../generated/api/Service";
 import { logger } from "../logger";
 
@@ -42,12 +41,14 @@ import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
 import { identity } from "fp-ts/lib/function";
+import { CIDR } from "../../generated/api/CIDR";
 import {
   checkAdminTask,
   getApimUserTask,
   uploadOrganizationLogoTask,
   uploadServiceLogoTask
 } from "../middlewares/upload_logo";
+import { getServicePayloadUpdater } from "../utils/conversions";
 
 export const ServicePayload = t.partial({
   authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
@@ -181,25 +182,15 @@ export async function putService(
   }
   const service = errorOrService.value;
 
-  logger.debug(
-    "updating service %s",
-    JSON.stringify({ ...service, ...servicePayload })
+  const updatedService = getServicePayloadUpdater(authenticatedApimUser)(
+    service,
+    servicePayload
   );
-  const payload = !isAdminUser(authenticatedApimUser)
-    ? pick(
-        [
-          "department_name",
-          "organization_fiscal_code",
-          "organization_name",
-          "service_name"
-        ],
-        servicePayload
-      )
-    : servicePayload;
+  logger.debug("updating service %s", JSON.stringify(updatedService));
 
   const errorOrUpdatedService = toEither(
     await notificationApiClient.updateService({
-      service: { ...service, ...payload },
+      service: updatedService,
       serviceId
     })
   );
