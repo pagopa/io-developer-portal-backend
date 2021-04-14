@@ -13,6 +13,7 @@ import { Logo } from "../../../generated/api/Logo";
 import { AdUser } from "../../bearer_strategy";
 import { putOrganizationLogo, putServiceLogo } from "../services";
 
+import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 import SerializableSet from "json-set-map/build/src/set";
 import { ServiceId } from "../../../generated/api/ServiceId";
 import { IExtendedUserContract } from "../../apim_operations";
@@ -33,13 +34,22 @@ const userContract: IExtendedUserContract = {
   name: "name"
 };
 
+const subscriptionContract: SubscriptionContract & { readonly name: string } = {
+  name: "name",
+  primaryKey: "234324",
+  productId: "1234",
+  secondaryKey: "343434",
+  state: "state",
+  userId: "1234"
+};
+
 const responseSuccess = ResponseSuccessRedirectToResource(
   {},
   "services/serviceId.png",
   {}
 );
 
-const responseErrorNotFoaund = ResponseErrorNotFound(
+const responseErrorNotFound = ResponseErrorNotFound(
   "API user not found",
   "Cannot find a user in the API management with the provided email address"
 );
@@ -65,8 +75,8 @@ describe("putServiceLogo", () => {
       .mockReturnValueOnce(taskEither.of(userContract));
 
     jest
-      .spyOn(uploadTasks, "checkAdminTask")
-      .mockReturnValueOnce(taskEither.of(userContract));
+      .spyOn(uploadTasks, "getUserSubscriptionTask")
+      .mockReturnValueOnce(taskEither.of(subscriptionContract));
 
     jest
       .spyOn(uploadTasks, "uploadServiceLogoTask")
@@ -84,7 +94,7 @@ describe("putServiceLogo", () => {
   it("should respond with IResponseErrorNotFound if cannot find a user in the API management", async () => {
     jest
       .spyOn(uploadTasks, "getApimUserTask")
-      .mockReturnValueOnce(fromLeft(responseErrorNotFoaund));
+      .mockReturnValueOnce(fromLeft(responseErrorNotFound));
 
     const result = await putServiceLogo(
       apiManagementClientMock,
@@ -95,13 +105,13 @@ describe("putServiceLogo", () => {
     expect(result.kind).toBe("IResponseErrorNotFound");
   });
 
-  it("should respond with ResponseErrorForbiddenNotAuthorized if user is not admin", async () => {
+  it("should respond with ResponseErrorForbiddenNotAuthorized if user is not admin and is not the service owner", async () => {
     jest
       .spyOn(uploadTasks, "getApimUserTask")
       .mockReturnValueOnce(taskEither.of(userContract));
 
     jest
-      .spyOn(uploadTasks, "checkAdminTask")
+      .spyOn(uploadTasks, "getUserSubscriptionTask")
       .mockReturnValueOnce(fromLeft(ResponseErrorForbiddenNotAuthorized));
 
     const result = await putServiceLogo(
@@ -140,7 +150,7 @@ describe("putOrganizationLogo", () => {
   it("should respond with IResponseErrorNotFound if cannot find a user in the API management", async () => {
     jest
       .spyOn(uploadTasks, "getApimUserTask")
-      .mockReturnValueOnce(fromLeft(responseErrorNotFoaund));
+      .mockReturnValueOnce(fromLeft(responseErrorNotFound));
 
     const result = await putOrganizationLogo(
       apiManagementClientMock,

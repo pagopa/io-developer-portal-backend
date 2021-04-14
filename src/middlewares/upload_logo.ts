@@ -12,6 +12,7 @@ import {
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import {
   getApimUser,
+  getUserSubscription,
   IExtendedUserContract,
   isAdminUser
 } from "../apim_operations";
@@ -29,16 +30,20 @@ import {
   tryCatch
 } from "fp-ts/lib/TaskEither";
 
+import { Option } from "fp-ts/lib/Option";
+
 import { ErrorResponses, notificationApiClient } from "../controllers/services";
 
+import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 import { fromNullable, toError } from "fp-ts/lib/Either";
+import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../generated/api/ServiceId";
 
 export const getApimUserTask = (
   apiClient: ApiManagementClient,
   authenticatedUser: AdUser
 ): TaskEither<ErrorResponses, IExtendedUserContract> =>
-  tryCatch(
+  tryCatch<ErrorResponses, Option<IExtendedUserContract>>(
     () => getApimUser(apiClient, authenticatedUser.emails[0]),
     errors => ResponseErrorInternal(toError(errors).message)
   ).foldTaskEither<ErrorResponses, IExtendedUserContract>(
@@ -121,3 +126,38 @@ export const uploadOrganizationLogoTask = (
             )
           : fromLeft(ResponseErrorInternal(toError(errorOrResponse).message))
     );
+
+export const getUserSubscriptionTask = (
+  apiClient: ApiManagementClient,
+  serviceId: NonEmptyString,
+  authenticatedApimUser: IExtendedUserContract
+): TaskEither<
+  ErrorResponses,
+  SubscriptionContract & { readonly name: string }
+> => {
+  return tryCatch<
+    ErrorResponses,
+    Option<SubscriptionContract & { readonly name: string }>
+  >(
+    () =>
+      getUserSubscription(
+        apiClient,
+        serviceId,
+        isAdminUser(authenticatedApimUser)
+          ? undefined
+          : authenticatedApimUser.id
+      ),
+    errors => ResponseErrorInternal(toError(errors).message)
+  ).chain<SubscriptionContract & { readonly name: string }>(
+    maybeResponse =>
+      maybeResponse.foldL<
+        TaskEither<
+          ErrorResponses,
+          SubscriptionContract & { readonly name: string }
+        >
+      >(
+        () => fromLeft(ResponseErrorForbiddenNotAuthorized),
+        _ => taskEither.of(_)
+      ) // folL,
+  );
+};
