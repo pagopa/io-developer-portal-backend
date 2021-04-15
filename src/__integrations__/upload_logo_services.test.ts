@@ -120,7 +120,7 @@ describe("putServiceLogo", () => {
     expect(result.kind).toBe("IResponseErrorForbiddenNotAuthorized");
   });
 
-  it("should respond with IResponseInternal if getUserSubscription fail", async () => {
+  it("should respond with IResponseErrorInternal if getUserSubscription fail", async () => {
     jest
       .spyOn(apim, "getApimUser")
       .mockReturnValueOnce(Promise.resolve(option.of(adminUserContract)));

@@ -43,7 +43,7 @@ export const getApimUserTask = (
   apiClient: ApiManagementClient,
   authenticatedUser: AdUser
 ): TaskEither<ErrorResponses, IExtendedUserContract> =>
-  tryCatch<ErrorResponses, Option<IExtendedUserContract>>(
+  tryCatch(
     () => getApimUser(apiClient, authenticatedUser.emails[0]),
     errors => ResponseErrorInternal(toError(errors).message)
   ).foldTaskEither<ErrorResponses, IExtendedUserContract>(
@@ -148,16 +148,15 @@ export const getUserSubscriptionTask = (
           : authenticatedApimUser.id
       ),
     errors => ResponseErrorInternal(toError(errors).message)
-  ).chain<SubscriptionContract & { readonly name: string }>(
-    maybeResponse =>
-      maybeResponse.foldL<
-        TaskEither<
-          ErrorResponses,
-          SubscriptionContract & { readonly name: string }
-        >
-      >(
-        () => fromLeft(ResponseErrorForbiddenNotAuthorized),
-        _ => taskEither.of(_)
-      ) // folL,
+  ).chain<SubscriptionContract & { readonly name: string }>(maybeResponse =>
+    maybeResponse.foldL<
+      TaskEither<
+        ErrorResponses,
+        SubscriptionContract & { readonly name: string }
+      >
+    >(
+      () => fromLeft(ResponseErrorForbiddenNotAuthorized),
+      _ => taskEither.of(_)
+    )
   );
 };
