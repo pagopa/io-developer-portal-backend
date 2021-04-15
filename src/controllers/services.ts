@@ -45,6 +45,7 @@ import { CIDR } from "../../generated/api/CIDR";
 import {
   checkAdminTask,
   getApimUserTask,
+  getUserSubscriptionTask,
   uploadOrganizationLogoTask,
   uploadServiceLogoTask
 } from "../middlewares/upload_logo";
@@ -213,7 +214,7 @@ export async function putServiceLogo(
   serviceLogo: ApiLogo
 ): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
   return getApimUserTask(apiClient, authenticatedUser)
-    .chain(user => checkAdminTask(user))
+    .chain(user => getUserSubscriptionTask(apiClient, serviceId, user))
     .chain(() => uploadServiceLogoTask(serviceId, serviceLogo))
     .fold<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses>(
       identity,

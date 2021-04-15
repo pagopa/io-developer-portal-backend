@@ -11,6 +11,7 @@ import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
 import { IExtendedUserContract } from "../apim_operations";
 
+import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 import { ServiceId } from "../../generated/api/ServiceId";
 
 afterEach(() => {
@@ -50,11 +51,24 @@ const logo = { logo: "logo_base_64" } as Logo;
 
 const apiManagementClientMock = ({} as unknown) as ApiManagementClient;
 
+const subscriptionContract: SubscriptionContract & { readonly name: string } = {
+  name: "name",
+  primaryKey: "234324",
+  productId: "1234",
+  secondaryKey: "343434",
+  state: "state",
+  userId: "1234"
+};
+
 describe("putServiceLogo", () => {
   it("should respond with IResponseSuccessRedirectToResource if logo upload was successfull", async () => {
     jest
       .spyOn(apim, "getApimUser")
       .mockReturnValueOnce(Promise.resolve(option.of(adminUserContract)));
+
+    jest
+      .spyOn(apim, "getUserSubscription")
+      .mockReturnValueOnce(Promise.resolve(option.of(subscriptionContract)));
 
     jest
       .spyOn(services.notificationApiClient, "uploadServiceLogo")
@@ -88,10 +102,14 @@ describe("putServiceLogo", () => {
     expect(result.kind).toBe("IResponseErrorNotFound");
   });
 
-  it("should respond with ResponseErrorForbiddenNotAuthorized if user is not admin", async () => {
+  it("should respond with ResponseErrorForbiddenNotAuthorized if user is not the service owner", async () => {
     jest
       .spyOn(apim, "getApimUser")
       .mockReturnValueOnce(Promise.resolve(option.of(userContract)));
+
+    jest
+      .spyOn(apim, "getUserSubscription")
+      .mockReturnValueOnce(Promise.resolve(none));
 
     const result = await putServiceLogo(
       apiManagementClientMock,
@@ -100,6 +118,24 @@ describe("putServiceLogo", () => {
       logo
     );
     expect(result.kind).toBe("IResponseErrorForbiddenNotAuthorized");
+  });
+
+  it("should respond with IResponseErrorInternal if getUserSubscription fail", async () => {
+    jest
+      .spyOn(apim, "getApimUser")
+      .mockReturnValueOnce(Promise.resolve(option.of(adminUserContract)));
+
+    jest
+      .spyOn(apim, "getUserSubscription")
+      .mockReturnValueOnce(Promise.reject(new Error("Api Error")));
+
+    const result = await putServiceLogo(
+      apiManagementClientMock,
+      adUser,
+      serviceId,
+      logo
+    );
+    expect(result.kind).toBe("IResponseErrorInternal");
   });
 });
 
