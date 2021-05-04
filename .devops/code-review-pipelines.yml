@@ -46,7 +46,7 @@ stages:
         - template: templates/node-job-setup/template.yaml@pagopaCommons
         - script: |
             yarn lint
-          displayName: 'Lint
+          displayName: 'Lint'
 '
       - job: validate_api_specification     
         steps:
