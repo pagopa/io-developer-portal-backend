@@ -47,7 +47,7 @@ stages:
         - script: |
             yarn lint
           displayName: 'Lint'
-'
+
       - job: validate_api_specification     
         steps:
         - script: |
