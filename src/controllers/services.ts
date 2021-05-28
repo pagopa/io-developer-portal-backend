@@ -2,11 +2,13 @@ import ApiManagementClient from "azure-arm-apimanagement";
 import { isLeft } from "fp-ts/lib/Either";
 import { isNone } from "fp-ts/lib/Option";
 import {
+  IResponseErrorConflict,
   IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
   IResponseErrorNotFound,
   IResponseSuccessJson,
   IResponseSuccessRedirectToResource,
+  ResponseErrorConflict,
   ResponseErrorInternal,
   ResponseErrorNotFound,
   ResponseSuccessJson
@@ -40,8 +42,15 @@ import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
+import {
+  IResponseSuccessAccepted,
+  ResponseErrorForbiddenNotAuthorized,
+  ResponseSuccessAccepted
+} from "@pagopa/ts-commons/lib/responses";
 import { identity } from "fp-ts/lib/function";
+import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
 import { CIDR } from "../../generated/api/CIDR";
+import { IJiraAPIClient, SearchJiraIssueResponse } from "../jira_client";
 import {
   checkAdminTask,
   getApimUserTask,
@@ -242,4 +251,151 @@ export async function putOrganizationLogo(
       identity
     )
     .run();
+}
+
+export async function newReviewRequest(
+  apiClient: ApiManagementClient,
+  jiraClient: IJiraAPIClient,
+  authenticatedUser: AdUser,
+  serviceId: NonEmptyString,
+  jiraConfig: config.IJIRA_CONFIG
+): Promise<
+  | IResponseSuccessAccepted
+  | IResponseErrorForbiddenNotAuthorized
+  | IResponseErrorConflict
+  | IResponseErrorInternal
+  | IResponseErrorNotFound
+> {
+  const maybeApimUser = await getApimUser(
+    apiClient,
+    authenticatedUser.emails[0]
+  );
+  if (isNone(maybeApimUser)) {
+    return ResponseErrorNotFound(
+      "API user not found",
+      "Cannot find a user in the API management with the provided email address"
+    );
+  }
+  const authenticatedApimUser = maybeApimUser.value;
+
+  // An admin cannot require a Service Review
+  if (isAdminUser(authenticatedApimUser)) {
+    return ResponseErrorForbiddenNotAuthorized;
+  }
+
+  // Authenticates this request against the logged in user
+  // checking that serviceId = subscriptionId
+  // if the user is an admin we skip the check on userId
+  const maybeSubscription = await getUserSubscription(
+    apiClient,
+    serviceId,
+    authenticatedApimUser.id
+  );
+  if (isNone(maybeSubscription)) {
+    return ResponseErrorNotFound(
+      "Subscription not found",
+      "Cannot get a subscription for the logged in user"
+    );
+  }
+
+  // Get old service data
+  const errorOrService = toEither(
+    await notificationApiClient.getService({
+      id: serviceId
+    })
+  );
+  if (isLeft(errorOrService)) {
+    return ResponseErrorNotFound(
+      "Service not found",
+      "Cannot get a service with the provided id."
+    );
+  }
+
+  const service = errorOrService.value;
+
+  // TODO: Check if a Review is still in progress for the service
+  return (
+    jiraClient
+      .getServiceJiraIssuesByStatus({
+        serviceId: service.service_id,
+        status: jiraConfig.JIRA_STATUS_IN_PROGRESS
+      })
+      .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(_ =>
+        ResponseErrorInternal(_.message)
+      )
+      .chain(
+        fromPredicate(
+          _ => _.total === 0,
+          _ =>
+            ResponseErrorConflict(
+              "A review is already in progress for the service"
+            )
+        )
+      )
+      // TODO: If exists Rejected Issue move blocked Jira Issue to NEW status
+      .chainSecond(
+        jiraClient
+          .getServiceJiraIssuesByStatus({
+            serviceId: service.service_id,
+            status: jiraConfig.JIRA_STATUS_REJECTED
+          })
+          .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(_ =>
+            ResponseErrorInternal(_.message)
+          )
+      )
+      .chain(rejectedIssues =>
+        fromPredicate<undefined, SearchJiraIssueResponse>(
+          _ => _.issues.length > 0,
+          _ => void 0
+        )(rejectedIssues).foldTaskEither(
+          _ => taskEither.of(rejectedIssues),
+          _ => {
+            // TODO: Move rejected issue into new
+            return taskEither.of(_);
+          }
+        )
+      )
+      .chainSecond(
+        jiraClient
+          .getServiceJiraIssuesByStatus({
+            serviceId: service.service_id,
+            status: jiraConfig.JIRA_STATUS_NEW
+          })
+          .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(_ =>
+            ResponseErrorInternal(_.message)
+          )
+      )
+      .chain(_ => {
+        if (_.issues.length > 0) {
+          return jiraClient
+            .createJiraIssueComment(
+              _.issues[0].id,
+              "Il delegato ha richiesto una nuova review" as NonEmptyString
+            )
+            .map(__ =>
+              ResponseSuccessAccepted<undefined>(
+                "Created new comment on existing issue"
+              )
+            )
+            .mapLeft(err => ResponseErrorInternal(err.message));
+        } else {
+          return jiraClient
+            .createJiraIssue(
+              `Richiesta di Review servizio ${service.service_id}` as NonEmptyString,
+              `Effettua la review del servizio al link https://developer.io.italia.it/service/${service.service_id}` as NonEmptyString,
+              service.service_id
+            )
+            .map(__ => ResponseSuccessAccepted<undefined>("Create new Issue"))
+            .mapLeft(err => ResponseErrorInternal(err.message));
+        }
+      })
+      .fold<
+        | IResponseSuccessAccepted
+        | IResponseErrorForbiddenNotAuthorized
+        | IResponseErrorConflict
+        | IResponseErrorInternal
+        | IResponseErrorNotFound
+      >(identity, identity)
+      .run()
+  );
 }

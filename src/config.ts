@@ -1,4 +1,8 @@
-import { FiscalCode } from "italia-ts-commons/lib/strings";
+import { fromNullable } from "fp-ts/lib/Option";
+import * as t from "io-ts";
+import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
+import { FiscalCode, NonEmptyString } from "italia-ts-commons/lib/strings";
+import { EmailAddress } from "../generated/api/EmailAddress";
 
 /**
  * Globals and OAuth configuration for the Active Directory B2C tenant / application.
@@ -110,3 +114,36 @@ export const servicePrincipalTenantId = process.env
 export const sandboxFiscalCode = process.env.SANDBOX_FISCAL_CODE as FiscalCode;
 
 export const logoUrl = process.env.LOGO_URL;
+
+export const IJIRA_CONFIG = t.interface({
+  JIRA_USERNAME: EmailAddress,
+
+  JIRA_TOKEN: NonEmptyString,
+
+  JIRA_NAMESPACE_URL: NonEmptyString,
+
+  JIRA_BOARD: NonEmptyString,
+
+  JIRA_STATUS_COMPLETE: NonEmptyString,
+  JIRA_STATUS_IN_PROGRESS: NonEmptyString,
+  JIRA_STATUS_NEW: NonEmptyString,
+  JIRA_STATUS_REJECTED: NonEmptyString
+});
+export type IJIRA_CONFIG = t.TypeOf<typeof IJIRA_CONFIG>;
+
+export const getJiraConfigOrThrow = () =>
+  IJIRA_CONFIG.decode({
+    ...process.env,
+    JIRA_STATUS_COMPLETE: fromNullable(
+      process.env.JIRA_STATUS_COMPLETE
+    ).getOrElse("DONE"),
+    JIRA_STATUS_IN_PROGRESS: fromNullable(
+      process.env.JIRA_STATUS_IN_PROGRESS
+    ).getOrElse("REVIEW"),
+    JIRA_STATUS_NEW: fromNullable(process.env.JIRA_STATUS_NEW).getOrElse("NEW"),
+    JIRA_STATUS_REJECTED: fromNullable(process.env.JIRA_STATUS_NEW).getOrElse(
+      "REJECTED"
+    )
+  }).getOrElseL(err => {
+    throw new Error(errorsToReadableMessages(err).join("|"));
+  });
