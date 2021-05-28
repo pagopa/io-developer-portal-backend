@@ -1,3 +1,4 @@
+import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { fromNullable, some } from "fp-ts/lib/Option";
 import { pick } from "italia-ts-commons/lib/types";
 import { Service } from "../../generated/api/Service";
@@ -25,7 +26,6 @@ export const getServicePayloadUpdater = (user: IExtendedUserContract) => (
     : payload;
 
   const serviceMetadata: ServiceMetadata = {
-    ...originalService.service_metadata,
     ...payload.service_metadata,
     // Scope for visible services cannot be changed
     scope:
@@ -43,6 +43,6 @@ export const getServicePayloadUpdater = (user: IExtendedUserContract) => (
   return {
     ...originalService,
     ...filteredPayload,
-    service_metadata: serviceMetadata
+    service_metadata: withoutUndefinedValues(serviceMetadata)
   };
 };
