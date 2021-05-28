@@ -1,5 +1,4 @@
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import SerializableSet from "json-set-map/build/src/set";
 import { CIDR } from "../../../generated/api/CIDR";
 import { OrganizationFiscalCode } from "../../../generated/api/OrganizationFiscalCode";
@@ -119,7 +118,7 @@ describe("getServicePayloadUpdater", () => {
         token_name: "NEW_TOKEN" as NonEmptyString
       }
     });
-    expect(payload.service_metadata).toHaveProperty("token_name", undefined);
+    expect(payload.service_metadata).not.toHaveProperty("token_name");
   });
 
   it("should can update token_name if the user is an Admin", () => {
@@ -147,5 +146,27 @@ describe("getServicePayloadUpdater", () => {
       "token_name",
       expectedTokenName
     );
+  });
+
+  it("should can delete a metadata field", () => {
+    const payload = getServicePayloadUpdater({
+      ...userContract,
+      groupNames: new SerializableSet(["apiadmin"])
+    })(
+      {
+        ...aService,
+        service_metadata: {
+          email: "email@example.it" as NonEmptyString, // The metadata field we want to delete
+          scope: ServiceScopeEnum.NATIONAL
+        }
+      },
+      {
+        ...aServicePayload,
+        service_metadata: {
+          scope: ServiceScopeEnum.NATIONAL
+        }
+      }
+    );
+    expect(payload.service_metadata).not.toHaveProperty("email");
   });
 });
