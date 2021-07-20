@@ -1,22 +1,34 @@
+import * as apimOperations from "../../apim_operations";
+import * as config from "../../config";
 import * as uploadTasks from "../../middlewares/upload_logo";
 
 import ApiManagementClient from "azure-arm-apimanagement";
-import { taskEither } from "fp-ts/lib/TaskEither";
-import { fromLeft } from "fp-ts/lib/TaskEither";
+import { fromLeft, taskEither } from "fp-ts/lib/TaskEither";
 import {
+  ResponseErrorConflict,
   ResponseErrorForbiddenNotAuthorized,
   ResponseErrorNotFound,
   ResponseSuccessRedirectToResource
 } from "italia-ts-commons/lib/responses";
-import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
+import {
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "italia-ts-commons/lib/strings";
 import { Logo } from "../../../generated/api/Logo";
 import { AdUser } from "../../bearer_strategy";
-import { putOrganizationLogo, putServiceLogo } from "../services";
+import {
+  getReviewStatus,
+  newReviewRequest,
+  putOrganizationLogo,
+  putServiceLogo
+} from "../services";
 
 import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
+import { none, some } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
 import { ServiceId } from "../../../generated/api/ServiceId";
 import { IExtendedUserContract } from "../../apim_operations";
+import { IJiraAPIClient } from "../../jira_client";
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -67,6 +79,17 @@ const adUser = {
 const logo = { logo: "logo_base_64" } as Logo;
 
 const apiManagementClientMock = ({} as unknown) as ApiManagementClient;
+
+const jiraClientFnMock = jest.fn();
+const jiraClientMock: IJiraAPIClient = {
+  applyJiraIssueTransition: jiraClientFnMock,
+  createJiraIssue: jiraClientFnMock,
+  createJiraIssueComment: jiraClientFnMock,
+  getServiceJiraIssuesByStatus: jiraClientFnMock,
+  searchServiceJiraIssue: jiraClientFnMock
+};
+
+const jiraConfigMock = {} as config.IJIRA_CONFIG;
 
 describe("putServiceLogo", () => {
   it("should respond with IResponseSuccessRedirectToResource if logo upload was successfull", async () => {
@@ -177,5 +200,135 @@ describe("putOrganizationLogo", () => {
       logo
     );
     expect(result.kind).toBe("IResponseErrorForbiddenNotAuthorized");
+  });
+});
+
+describe("jiraStatus", () => {
+  it("should respond with Jira Issue Status", async () => {
+    jest.spyOn(apimOperations, "getApimUser").mockReturnValueOnce(
+      new Promise(resolve => {
+        // IExtendedUserContract
+        resolve(some(userContract));
+      })
+    );
+
+    jest.spyOn(apimOperations, "getUserSubscription").mockReturnValueOnce(
+      new Promise(resolve => {
+        // IExtendedUserContract
+        resolve(some(subscriptionContract));
+      })
+    );
+
+    jiraClientFnMock.mockReturnValue(
+      taskEither.of({
+        issues: [
+          {
+            fields: {
+              status: {
+                name: "NEW"
+              }
+            },
+            id: "342" as NonEmptyString,
+            key: "DMT-1" as NonEmptyString,
+            self: "SELF" as NonEmptyString
+          }
+        ],
+        startAt: 0,
+        total: 1
+      })
+    );
+
+    const response = await getReviewStatus(
+      apiManagementClientMock,
+      jiraClientMock,
+      adUser,
+      "DMT-1" as NonEmptyString
+    );
+
+    if (response.kind === "IResponseSuccessJson") {
+      expect(response.value).toEqual("NEW");
+    }
+  });
+
+  it("should respond with Jira Issue Status Not Found", async () => {
+    jest.spyOn(apimOperations, "getApimUser").mockReturnValueOnce(
+      new Promise(resolve => {
+        // IExtendedUserContract
+        resolve(some(userContract));
+      })
+    );
+
+    jest.spyOn(apimOperations, "getUserSubscription").mockReturnValueOnce(
+      new Promise(resolve => {
+        // IExtendedUserContract
+        resolve(some(subscriptionContract));
+      })
+    );
+
+    jiraClientFnMock.mockReturnValue(
+      taskEither.of({
+        issues: [],
+        startAt: 0,
+        total: 0
+      })
+    );
+
+    const response = await getReviewStatus(
+      apiManagementClientMock,
+      jiraClientMock,
+      adUser,
+      "DMT-1" as NonEmptyString
+    );
+
+    expect(response.kind).toEqual("IResponseErrorNotFound");
+  });
+});
+
+describe("jiraRequest", () => {
+  it("should respond with IResponseErrorNotFound", async () => {
+    jest.spyOn(apimOperations, "getApimUser").mockReturnValueOnce(
+      new Promise(resolve => {
+        // IExtendedUserContract
+        resolve(none);
+      })
+    );
+    const response = await newReviewRequest(
+      apiManagementClientMock,
+      jiraClientMock,
+      adUser,
+      "DMT-1" as NonEmptyString,
+      jiraConfigMock
+    );
+    expect(response.kind).toEqual("IResponseErrorNotFound");
+  });
+
+  it("should respond with IResponseErrorInternal", async () => {
+    jest.spyOn(apimOperations, "getApimUser").mockReturnValueOnce(
+      new Promise(resolve => {
+        // IExtendedUserContract
+        resolve(some(userContract));
+      })
+    );
+
+    jest.spyOn(apimOperations, "getUserSubscription").mockReturnValueOnce(
+      new Promise(resolve => {
+        // IExtendedUserContract
+        resolve(some(subscriptionContract));
+      })
+    );
+
+    jiraClientFnMock.mockReturnValueOnce(
+      fromLeft(ResponseErrorConflict("getServiceJiraIssuesByStatus ERROR"))
+    );
+
+    const response = await newReviewRequest(
+      apiManagementClientMock,
+      jiraClientMock,
+      adUser,
+      "DMT-1" as NonEmptyString,
+      jiraConfigMock
+    );
+
+    expect(response.kind).toEqual("IResponseErrorInternal");
   });
 });

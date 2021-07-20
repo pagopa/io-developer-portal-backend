@@ -9,6 +9,7 @@ import {
   IResponseSuccessJson,
   IResponseSuccessRedirectToResource,
   ResponseErrorConflict,
+  ResponseErrorForbiddenNotAuthorized,
   ResponseErrorInternal,
   ResponseErrorNotFound,
   ResponseSuccessJson
@@ -42,11 +43,7 @@ import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
-import {
-  IResponseSuccessAccepted,
-  ResponseErrorForbiddenNotAuthorized,
-  ResponseSuccessAccepted
-} from "@pagopa/ts-commons/lib/responses";
+import { IResponseSuccessAccepted } from "@pagopa/ts-commons/lib/responses";
 import { identity } from "fp-ts/lib/function";
 import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
 import { CIDR } from "../../generated/api/CIDR";
@@ -71,12 +68,23 @@ export const ServicePayload = t.partial({
   service_metadata: ServiceMetadata,
   service_name: ServiceName
 });
+
 export type ServicePayload = t.TypeOf<typeof ServicePayload>;
 
 export const notificationApiClient = APIClient(
   config.adminApiUrl,
   config.adminApiKey
 );
+
+const ReviewStatus = t.partial({
+  comment: t.any,
+  detail: t.string,
+  labels: t.any,
+  status: t.number,
+  title: t.string
+});
+
+type ReviewStatus = t.TypeOf<typeof ReviewStatus>;
 
 export type ErrorResponses =
   | IResponseErrorNotFound
@@ -253,6 +261,193 @@ export async function putOrganizationLogo(
     .run();
 }
 
+export async function getReviewStatus(
+  apiClient: ApiManagementClient,
+  jiraClient: IJiraAPIClient,
+  authenticatedUser: AdUser,
+  serviceId: NonEmptyString
+): Promise<
+  // | IResponseSuccessJson<{ readonly status: string }>
+  | IResponseSuccessJson<ReviewStatus>
+  | IResponseErrorForbiddenNotAuthorized
+  | IResponseErrorConflict
+  | IResponseErrorInternal
+  | IResponseErrorNotFound
+> {
+  const maybeApimUser = await getApimUser(
+    apiClient,
+    authenticatedUser.emails[0]
+  );
+  if (isNone(maybeApimUser)) {
+    return ResponseErrorNotFound(
+      "API user not found",
+      "Cannot find a user in the API management with the provided email address"
+    );
+  }
+  const authenticatedApimUser = maybeApimUser.value;
+
+  // Authenticates this request against the logged in user
+  // checking that serviceId = subscriptionId
+  // if the user is an admin we skip the check on userId
+  const maybeSubscription = await getUserSubscription(
+    apiClient,
+    serviceId,
+    authenticatedApimUser.id
+  );
+  if (isNone(maybeSubscription)) {
+    return ResponseErrorNotFound(
+      "Subscription not found",
+      "Cannot get a subscription for the logged in user"
+    );
+  }
+  return jiraClient
+    .searchServiceJiraIssue({
+      serviceId
+    })
+    .mapLeft<
+      IResponseErrorConflict | IResponseErrorInternal | IResponseErrorNotFound
+    >(_ => ResponseErrorInternal(_.message))
+    .chain(
+      fromPredicate(
+        _ => _.total > 0,
+        _ =>
+          ResponseErrorNotFound(
+            `Review Status: ${serviceId}`,
+            `There isn't a review for this service ${serviceId}`
+          )
+      )
+    )
+    .chain(_ => taskEither.of(_.issues[0].fields))
+    .fold<
+      // | IResponseSuccessJson<{ readonly status: string }>
+      | IResponseSuccessJson<ReviewStatus>
+      | IResponseErrorForbiddenNotAuthorized
+      | IResponseErrorConflict
+      | IResponseErrorInternal
+      | IResponseErrorNotFound
+    >(identity, card =>
+      ResponseSuccessJson<ReviewStatus>({
+        comment: card.comment,
+        detail: card.status.name,
+        labels: card.labels,
+        status: 200,
+        title: `Review Status: ${card.status} for ${serviceId}`
+      })
+    )
+    .run();
+}
+
+export async function newDisableRequest(
+  apiClient: ApiManagementClient,
+  jiraClient: IJiraAPIClient,
+  authenticatedUser: AdUser,
+  serviceId: NonEmptyString,
+  jiraConfig: config.IJIRA_CONFIG
+): Promise<
+  | IResponseSuccessAccepted
+  | IResponseSuccessJson<ReviewStatus>
+  | IResponseErrorForbiddenNotAuthorized
+  | IResponseErrorConflict
+  | IResponseErrorInternal
+  | IResponseErrorNotFound
+> {
+  const maybeApimUser = await getApimUser(
+    apiClient,
+    authenticatedUser.emails[0]
+  );
+  if (isNone(maybeApimUser)) {
+    return ResponseErrorNotFound(
+      "API user not found",
+      "Cannot find a user in the API management with the provided email address"
+    );
+  }
+  const authenticatedApimUser = maybeApimUser.value;
+
+  // Authenticates this request against the logged in user
+  // checking that serviceId = subscriptionId
+  // if the user is an admin we skip the check on userId
+  const maybeSubscription = await getUserSubscription(
+    apiClient,
+    serviceId,
+    authenticatedApimUser.id
+  );
+  if (isNone(maybeSubscription)) {
+    return ResponseErrorNotFound(
+      "Subscription not found",
+      "Cannot get a subscription for the logged in user"
+    );
+  }
+  return jiraClient
+    .getServiceJiraIssuesByStatus({
+      serviceId,
+      status: jiraConfig.JIRA_STATUS_IN_PROGRESS
+    })
+    .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
+      ResponseErrorInternal(err.message)
+    )
+    .chain(
+      fromPredicate(
+        _ => _.total === 0,
+        _ =>
+          ResponseErrorConflict(
+            "A review is already in progress for the service"
+          )
+      )
+    )
+    .chainSecond(
+      jiraClient
+        .getServiceJiraIssuesByStatus({
+          serviceId,
+          status: jiraConfig.JIRA_STATUS_NEW
+        })
+        .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
+          ResponseErrorInternal(err.message)
+        )
+    )
+    .chain(_ => {
+      if (_.issues.length > 0) {
+        return jiraClient
+          .createJiraIssueComment(
+            _.issues[0].id,
+            "Il delegato ha richiesto la disattivazione del servizio" as NonEmptyString
+          )
+          .map(__ =>
+            ResponseSuccessJson<ReviewStatus>({
+              detail: "Created new comment on existing issue",
+              status: 200,
+              title: "Create new comment on Issue"
+            })
+          )
+          .mapLeft(err => ResponseErrorInternal(err.message));
+      } else {
+        return jiraClient
+          .createJiraIssue(
+            `[DISATTIVAZIONE] servizio ${serviceId}` as NonEmptyString,
+            `Effettua la disattivazione del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
+            serviceId,
+            ["DISATTIVAZIONE" as NonEmptyString]
+          )
+          .map(__ =>
+            ResponseSuccessJson<ReviewStatus>({
+              detail: "A new issue is created",
+              status: 200,
+              title: "Create new Issue"
+            })
+          )
+          .mapLeft(err => ResponseErrorInternal(err.message));
+      }
+    })
+    .fold<
+      | IResponseSuccessAccepted
+      | IResponseSuccessJson<ReviewStatus>
+      | IResponseErrorForbiddenNotAuthorized
+      | IResponseErrorConflict
+      | IResponseErrorInternal
+      | IResponseErrorNotFound
+    >(identity, identity)
+    .run();
+}
+
 export async function newReviewRequest(
   apiClient: ApiManagementClient,
   jiraClient: IJiraAPIClient,
@@ -261,6 +456,7 @@ export async function newReviewRequest(
   jiraConfig: config.IJIRA_CONFIG
 ): Promise<
   | IResponseSuccessAccepted
+  | IResponseSuccessJson<ReviewStatus>
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorConflict
   | IResponseErrorInternal
@@ -299,6 +495,9 @@ export async function newReviewRequest(
   }
 
   // Get old service data
+
+  /*
+  // Any idea why we need to check service fields validation?
   const errorOrService = toEither(
     await notificationApiClient.getService({
       id: serviceId
@@ -312,16 +511,16 @@ export async function newReviewRequest(
   }
 
   const service = errorOrService.value;
+  */
 
-  // TODO: Check if a Review is still in progress for the service
   return (
     jiraClient
       .getServiceJiraIssuesByStatus({
-        serviceId: service.service_id,
+        serviceId,
         status: jiraConfig.JIRA_STATUS_IN_PROGRESS
       })
-      .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(_ =>
-        ResponseErrorInternal(_.message)
+      .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
+        ResponseErrorInternal(err.message)
       )
       .chain(
         fromPredicate(
@@ -332,37 +531,46 @@ export async function newReviewRequest(
             )
         )
       )
-      // TODO: If exists Rejected Issue move blocked Jira Issue to NEW status
+      // If exists Rejected Issue move blocked Jira Issue to NEW status
       .chainSecond(
         jiraClient
           .getServiceJiraIssuesByStatus({
-            serviceId: service.service_id,
+            serviceId,
             status: jiraConfig.JIRA_STATUS_REJECTED
           })
-          .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(_ =>
-            ResponseErrorInternal(_.message)
+          .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
+            ResponseErrorInternal(err.message)
           )
       )
       .chain(rejectedIssues =>
-        fromPredicate<undefined, SearchJiraIssueResponse>(
-          _ => _.issues.length > 0,
-          _ => void 0
+        fromPredicate<SearchJiraIssueResponse, SearchJiraIssueResponse>(
+          _ => _.total > 0,
+          _ => _
         )(rejectedIssues).foldTaskEither(
-          _ => taskEither.of(rejectedIssues),
-          _ => {
-            // TODO: Move rejected issue into new
-            return taskEither.of(_);
-          }
+          (_: SearchJiraIssueResponse) => taskEither.of(_),
+          _ =>
+            // Move rejected issue into new
+            jiraClient
+              .applyJiraIssueTransition(
+                _.issues[0].id as NonEmptyString,
+                jiraConfig.JIRA_STATUS_IN_PROGRESS_ID as NonEmptyString,
+                "Il delegato ha richiesto una nuova review" as NonEmptyString
+              )
+              .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
+                ResponseErrorInternal(err.message)
+              )
+              .map(() => _)
         )
       )
-      .chainSecond(
+      .chain(_ =>
         jiraClient
           .getServiceJiraIssuesByStatus({
-            serviceId: service.service_id,
-            status: jiraConfig.JIRA_STATUS_NEW
+            serviceId,
+            status: jiraConfig.JIRA_STATUS_NEW as NonEmptyString,
+            statusTwo: jiraConfig.JIRA_STATUS_REJECTED as NonEmptyString
           })
-          .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(_ =>
-            ResponseErrorInternal(_.message)
+          .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
+            ResponseErrorInternal(err.message)
           )
       )
       .chain(_ => {
@@ -373,24 +581,33 @@ export async function newReviewRequest(
               "Il delegato ha richiesto una nuova review" as NonEmptyString
             )
             .map(__ =>
-              ResponseSuccessAccepted<undefined>(
-                "Created new comment on existing issue"
-              )
+              ResponseSuccessJson<ReviewStatus>({
+                detail: "Created new comment on existing issue",
+                status: 200,
+                title: "Create new comment on Issue"
+              })
             )
             .mapLeft(err => ResponseErrorInternal(err.message));
         } else {
           return jiraClient
             .createJiraIssue(
-              `Richiesta di Review servizio ${service.service_id}` as NonEmptyString,
-              `Effettua la review del servizio al link https://developer.io.italia.it/service/${service.service_id}` as NonEmptyString,
-              service.service_id
+              `Richiesta di Review servizio ${serviceId}` as NonEmptyString,
+              `Effettua la review del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
+              serviceId
             )
-            .map(__ => ResponseSuccessAccepted<undefined>("Create new Issue"))
+            .map(__ =>
+              ResponseSuccessJson<ReviewStatus>({
+                detail: "A new issue is created",
+                status: 200,
+                title: "Create new Issue"
+              })
+            )
             .mapLeft(err => ResponseErrorInternal(err.message));
         }
       })
       .fold<
         | IResponseSuccessAccepted
+        | IResponseSuccessJson<ReviewStatus>
         | IResponseErrorForbiddenNotAuthorized
         | IResponseErrorConflict
         | IResponseErrorInternal

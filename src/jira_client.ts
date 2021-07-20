@@ -13,6 +13,7 @@ import nodeFetch from "node-fetch";
 import { ServiceId } from "../generated/api/ServiceId";
 
 export const JIRA_SERVICE_TAG_PREFIX = "devportal-service-";
+export const JIRA_DISABLE_LABEL = "DISATTIVAZIONE";
 
 export const SearchJiraIssueResponse = t.interface({
   startAt: t.number,
@@ -26,6 +27,14 @@ export const SearchJiraIssueResponse = t.interface({
 
       fields: t.interface({
         assignee: t.union([t.null, t.any]),
+        comment: t.interface({
+          comments: t.any,
+          maxResults: t.number,
+          self: t.string,
+          startAt: t.number,
+          total: t.number
+        }),
+        labels: t.union([t.null, t.any]),
         status: t.interface({
           name: t.string
         }),
@@ -70,23 +79,21 @@ const jiraIssueSearch = (
   // tslint:disable-next-line:no-any
   fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
 ) =>
-  tryCatch(
-    () =>
-      fetchApi(`${baseUrl}/rest/api/2/search`, {
-        method: "POST",
+  tryCatch(() => {
+    return fetchApi(`${baseUrl}/rest/api/2/search`, {
+      method: "POST",
 
-        headers: {
-          Accept: "application/json",
-          Authorization: `Basic ${Buffer.from(`${jiraEmail}:${token}`).toString(
-            "base64"
-          )}`,
-          "Content-Type": "application/json"
-        },
+      headers: {
+        Accept: "application/json",
+        Authorization: `Basic ${Buffer.from(`${jiraEmail}:${token}`).toString(
+          "base64"
+        )}`,
+        "Content-Type": "application/json"
+      },
 
-        body: JSON.stringify(bodyData)
-      }),
-    toError
-  ).chain<SearchJiraIssueResponse>(_ => {
+      body: JSON.stringify(bodyData)
+    });
+  }, toError).chain<SearchJiraIssueResponse>(_ => {
     if (_.status >= 500) {
       return fromLeft(new Error("Jira API returns an error"));
     }
@@ -99,20 +106,21 @@ const jiraIssueSearch = (
     if (_.status !== 200) {
       return fromLeft(new Error("Unknown status code response error"));
     }
-    return tryCatch(() => _.json(), toError).chain(responseBody =>
-      fromEither(
-        SearchJiraIssueResponse.decode(responseBody).mapLeft(errors =>
-          toError(readableReport(errors))
-        )
-      )
-    );
+    return tryCatch(() => _.json(), toError).chain(responseBody => {
+      return fromEither(
+        SearchJiraIssueResponse.decode(responseBody).mapLeft(errors => {
+          return toError(readableReport(errors));
+        })
+      );
+    });
   });
 
 export interface IJiraAPIClient {
   readonly createJiraIssue: (
     title: NonEmptyString,
     description: NonEmptyString,
-    serviceId: NonEmptyString
+    serviceId: NonEmptyString,
+    labels?: ReadonlyArray<NonEmptyString>
   ) => TaskEither<Error, CreateJiraIssueResponse>;
   readonly createJiraIssueComment: (
     issueId: NonEmptyString,
@@ -121,13 +129,14 @@ export interface IJiraAPIClient {
   readonly getServiceJiraIssuesByStatus: (params: {
     readonly serviceId: ServiceId;
     readonly status: NonEmptyString;
+    readonly statusTwo?: NonEmptyString;
   }) => TaskEither<Error, SearchJiraIssueResponse>;
   readonly searchServiceJiraIssue: (params: {
     readonly serviceId: ServiceId;
   }) => TaskEither<Error, SearchJiraIssueResponse>;
   readonly applyJiraIssueTransition: (
     issueId: NonEmptyString,
-    transitionKey: NonEmptyString,
+    transitionId: NonEmptyString,
     newComment?: NonEmptyString
   ) => TaskEither<Error, "OK">;
 }
@@ -143,9 +152,10 @@ export function JiraAPIClient(
   const createJiraIssue = (
     title: NonEmptyString,
     description: NonEmptyString,
-    serviceId: NonEmptyString
-  ) =>
-    tryCatch(
+    serviceId: NonEmptyString,
+    labels?: ReadonlyArray<NonEmptyString>
+  ) => {
+    return tryCatch(
       () =>
         fetchApi(`${baseUrl}/rest/api/2/issue`, {
           method: "POST",
@@ -161,10 +171,12 @@ export function JiraAPIClient(
           body: JSON.stringify({
             fields: {
               description,
-              issueType: {
+              issuetype: {
                 name: "Task"
               },
-              labels: [`${JIRA_SERVICE_TAG_PREFIX}${serviceId}`],
+              labels: [`${JIRA_SERVICE_TAG_PREFIX}${serviceId}`].concat(
+                labels || []
+              ),
               project: {
                 key: boardId
               },
@@ -194,6 +206,8 @@ export function JiraAPIClient(
         )
       );
     });
+  };
+
   const createJiraIssueComment = (
     issueId: NonEmptyString,
     comment: NonEmptyString
@@ -243,9 +257,9 @@ export function JiraAPIClient(
   }) => {
     const bodyData: JiraIssueSearchPayload = {
       expand: ["names"],
-      fields: ["summary", "status", "assignee"],
+      fields: ["summary", "status", "assignee", "comment"],
       fieldsByKeys: false,
-      jql: `project = ${boardId} AND issuetype = Task AND labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND status = ${params.status} ORDER BY created DESC`,
+      jql: `project = ${boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} OR (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`,
       startAt: 0
     };
     return jiraIssueSearch(baseUrl, jiraEmail, token, bodyData, fetchApi);
@@ -255,8 +269,9 @@ export function JiraAPIClient(
   }) => {
     const bodyData: JiraIssueSearchPayload = {
       expand: ["names"],
-      fields: ["summary", "status", "assignee"],
+      fields: ["summary", "status", "assignee", "comment", "labels"],
       fieldsByKeys: false,
+      // Check if is better without JIRA_SERVICE_TAG_PREFIX
       jql: `project = ${boardId} AND issuetype = Task AND labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} ORDER BY created DESC`,
       startAt: 0
     };
@@ -264,43 +279,41 @@ export function JiraAPIClient(
   };
   const applyJiraIssueTransition = (
     issueId: NonEmptyString,
-    transitionKey: NonEmptyString,
+    transitionId: NonEmptyString,
     newComment?: NonEmptyString
-  ) =>
-    tryCatch(
-      () =>
-        fetchApi(`${baseUrl}/rest/api/2/issue/${issueId}/transitions`, {
-          method: "POST",
+  ) => {
+    return tryCatch(() => {
+      return fetchApi(`${baseUrl}/rest/api/2/issue/${issueId}/transitions`, {
+        method: "POST",
 
-          headers: {
-            Accept: "application/json",
-            Authorization: `Basic ${Buffer.from(
-              `${jiraEmail}:${token}`
-            ).toString("base64")}`,
-            "Content-Type": "application/json"
-          },
+        headers: {
+          Accept: "application/json",
+          Authorization: `Basic ${Buffer.from(`${jiraEmail}:${token}`).toString(
+            "base64"
+          )}`,
+          "Content-Type": "application/json"
+        },
 
-          body: JSON.stringify({
-            ...(newComment
-              ? {
-                  update: {
-                    comment: [
-                      {
-                        add: {
-                          body: newComment
-                        }
+        body: JSON.stringify({
+          ...(newComment
+            ? {
+                update: {
+                  comment: [
+                    {
+                      add: {
+                        body: newComment
                       }
-                    ]
-                  }
+                    }
+                  ]
                 }
-              : {}),
-            transition: {
-              key: transitionKey
-            }
-          })
-        }),
-      toError
-    ).chain<"OK">(_ => {
+              }
+            : {}),
+          transition: {
+            id: transitionId
+          }
+        })
+      });
+    }, toError).chain<"OK">(_ => {
       if (_.status >= 500) {
         return fromLeft(new Error("Jira API returns an error"));
       }
@@ -318,6 +331,8 @@ export function JiraAPIClient(
       }
       return taskEither.of("OK");
     });
+  };
+
   return {
     applyJiraIssueTransition,
     createJiraIssue,

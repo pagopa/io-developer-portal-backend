@@ -125,9 +125,13 @@ export const IJIRA_CONFIG = t.interface({
   JIRA_BOARD: NonEmptyString,
 
   JIRA_STATUS_COMPLETE: NonEmptyString,
+  JIRA_STATUS_COMPLETE_ID: NonEmptyString,
   JIRA_STATUS_IN_PROGRESS: NonEmptyString,
+  JIRA_STATUS_IN_PROGRESS_ID: NonEmptyString,
   JIRA_STATUS_NEW: NonEmptyString,
-  JIRA_STATUS_REJECTED: NonEmptyString
+  JIRA_STATUS_NEW_ID: NonEmptyString,
+  JIRA_STATUS_REJECTED: NonEmptyString,
+  JIRA_STATUS_REJECTED_ID: NonEmptyString
 });
 export type IJIRA_CONFIG = t.TypeOf<typeof IJIRA_CONFIG>;
 
@@ -137,13 +141,25 @@ export const getJiraConfigOrThrow = () =>
     JIRA_STATUS_COMPLETE: fromNullable(
       process.env.JIRA_STATUS_COMPLETE
     ).getOrElse("DONE"),
+    JIRA_STATUS_COMPLETE_ID: fromNullable(
+      process.env.JIRA_STATUS_COMPLETE_ID
+    ).getOrElse("21"),
     JIRA_STATUS_IN_PROGRESS: fromNullable(
       process.env.JIRA_STATUS_IN_PROGRESS
     ).getOrElse("REVIEW"),
+    JIRA_STATUS_IN_PROGRESS_ID: fromNullable(
+      process.env.JIRA_STATUS_IN_PROGRESS_ID
+    ).getOrElse("11"),
     JIRA_STATUS_NEW: fromNullable(process.env.JIRA_STATUS_NEW).getOrElse("NEW"),
-    JIRA_STATUS_REJECTED: fromNullable(process.env.JIRA_STATUS_NEW).getOrElse(
-      "REJECTED"
-    )
+    JIRA_STATUS_NEW_ID: fromNullable(process.env.JIRA_STATUS_NEW_ID).getOrElse(
+      "41"
+    ),
+    JIRA_STATUS_REJECTED: fromNullable(
+      process.env.JIRA_STATUS_REJECTED
+    ).getOrElse("REJECTED"),
+    JIRA_STATUS_REJECTED_ID: fromNullable(
+      process.env.JIRA_STATUS_REJECTED_ID
+    ).getOrElse("31")
   }).getOrElseL(err => {
     throw new Error(errorsToReadableMessages(err).join("|"));
   });
