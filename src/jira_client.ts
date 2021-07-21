@@ -139,6 +139,9 @@ export interface IJiraAPIClient {
     transitionId: NonEmptyString,
     newComment?: NonEmptyString
   ) => TaskEither<Error, "OK">;
+  readonly deleteJiraIssue: (
+    issueId: NonEmptyString
+  ) => TaskEither<Error, "OK">;
 }
 
 export function JiraAPIClient(
@@ -208,6 +211,37 @@ export function JiraAPIClient(
     });
   };
 
+  const deleteJiraIssue = (issueId: NonEmptyString) =>
+    tryCatch(
+      () =>
+        fetchApi(`${baseUrl}/rest/api/2/issue/${issueId}`, {
+          method: "DELETE",
+
+          headers: {
+            Accept: "application/json",
+            Authorization: `Basic ${Buffer.from(
+              `${jiraEmail}:${token}`
+            ).toString("base64")}`,
+            "Content-Type": "application/json"
+          }
+        }),
+      toError
+    ).chain<"OK">(_ => {
+      if (_.status >= 500) {
+        return fromLeft(new Error("Jira API returns an error"));
+      }
+      if (_.status === 401) {
+        return fromLeft(new Error("Jira secrets misconfiguration"));
+      }
+      if (_.status === 400) {
+        return fromLeft(new Error("Invalid request"));
+      }
+      if (_.status !== 204) {
+        return fromLeft(new Error("Unknown status code response error"));
+      }
+      return taskEither.of("OK");
+    });
+
   const createJiraIssueComment = (
     issueId: NonEmptyString,
     comment: NonEmptyString
@@ -251,6 +285,7 @@ export function JiraAPIClient(
         )
       );
     });
+
   const getServiceJiraIssuesByStatus = (params: {
     readonly serviceId: ServiceId;
     readonly status: NonEmptyString;
@@ -337,6 +372,7 @@ export function JiraAPIClient(
     applyJiraIssueTransition,
     createJiraIssue,
     createJiraIssueComment,
+    deleteJiraIssue,
     getServiceJiraIssuesByStatus,
     searchServiceJiraIssue
   };

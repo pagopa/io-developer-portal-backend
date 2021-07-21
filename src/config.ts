@@ -117,13 +117,9 @@ export const logoUrl = process.env.LOGO_URL;
 
 export const IJIRA_CONFIG = t.interface({
   JIRA_USERNAME: EmailAddress,
-
   JIRA_TOKEN: NonEmptyString,
-
   JIRA_NAMESPACE_URL: NonEmptyString,
-
   JIRA_BOARD: NonEmptyString,
-
   JIRA_STATUS_COMPLETE: NonEmptyString,
   JIRA_STATUS_COMPLETE_ID: NonEmptyString,
   JIRA_STATUS_IN_PROGRESS: NonEmptyString,
@@ -131,7 +127,11 @@ export const IJIRA_CONFIG = t.interface({
   JIRA_STATUS_NEW: NonEmptyString,
   JIRA_STATUS_NEW_ID: NonEmptyString,
   JIRA_STATUS_REJECTED: NonEmptyString,
-  JIRA_STATUS_REJECTED_ID: NonEmptyString
+  JIRA_STATUS_REJECTED_ID: NonEmptyString,
+  JIRA_TRANSITION_START_ID: NonEmptyString,
+  JIRA_TRANSITION_REJECT_ID: NonEmptyString,
+  JIRA_TRANSITION_DONE_ID: NonEmptyString,
+  JIRA_TRANSITION_UPDATED_ID: NonEmptyString
 });
 export type IJIRA_CONFIG = t.TypeOf<typeof IJIRA_CONFIG>;
 
@@ -159,7 +159,19 @@ export const getJiraConfigOrThrow = () =>
     ).getOrElse("REJECTED"),
     JIRA_STATUS_REJECTED_ID: fromNullable(
       process.env.JIRA_STATUS_REJECTED_ID
-    ).getOrElse("31")
+    ).getOrElse("31"),
+    JIRA_TRANSITION_START_ID: fromNullable(
+      process.env.JIRA_TRANSITION_START_ID
+    ).getOrElse("21"),
+    JIRA_TRANSITION_REJECT_ID: fromNullable(
+      process.env.JIRA_TRANSITION_REJECt_ID
+    ).getOrElse("31"),
+    JIRA_TRANSITION_DONE_ID: fromNullable(
+      process.env.JIRA_TRANSITION_DONE_ID
+    ).getOrElse("41"),
+    JIRA_TRANSITION_UPDATED_ID: fromNullable(
+      process.env.JIRA_TRANSITION_UPDATED_ID
+    ).getOrElse("11")
   }).getOrElseL(err => {
     throw new Error(errorsToReadableMessages(err).join("|"));
   });

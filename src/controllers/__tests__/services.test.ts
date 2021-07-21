@@ -5,8 +5,9 @@ import * as uploadTasks from "../../middlewares/upload_logo";
 import ApiManagementClient from "azure-arm-apimanagement";
 import { fromLeft, taskEither } from "fp-ts/lib/TaskEither";
 import {
-  ResponseErrorConflict,
   ResponseErrorForbiddenNotAuthorized,
+  ResponseErrorInternal,
+  // ResponseErrorInternal,
   ResponseErrorNotFound,
   ResponseSuccessRedirectToResource
 } from "italia-ts-commons/lib/responses";
@@ -86,7 +87,8 @@ const jiraClientMock: IJiraAPIClient = {
   createJiraIssue: jiraClientFnMock,
   createJiraIssueComment: jiraClientFnMock,
   getServiceJiraIssuesByStatus: jiraClientFnMock,
-  searchServiceJiraIssue: jiraClientFnMock
+  searchServiceJiraIssue: jiraClientFnMock,
+  deleteJiraIssue: jiraClientFnMock
 };
 
 const jiraConfigMock = {} as config.IJIRA_CONFIG;
@@ -246,21 +248,20 @@ describe("jiraStatus", () => {
     );
 
     if (response.kind === "IResponseSuccessJson") {
-      expect(response.value).toEqual("NEW");
+      // We expect to have a detail equal to NEW
+      expect(response.value.detail).toEqual("NEW");
     }
   });
 
   it("should respond with Jira Issue Status Not Found", async () => {
     jest.spyOn(apimOperations, "getApimUser").mockReturnValueOnce(
       new Promise(resolve => {
-        // IExtendedUserContract
         resolve(some(userContract));
       })
     );
 
     jest.spyOn(apimOperations, "getUserSubscription").mockReturnValueOnce(
       new Promise(resolve => {
-        // IExtendedUserContract
         resolve(some(subscriptionContract));
       })
     );
@@ -288,7 +289,6 @@ describe("jiraRequest", () => {
   it("should respond with IResponseErrorNotFound", async () => {
     jest.spyOn(apimOperations, "getApimUser").mockReturnValueOnce(
       new Promise(resolve => {
-        // IExtendedUserContract
         resolve(none);
       })
     );
@@ -305,20 +305,18 @@ describe("jiraRequest", () => {
   it("should respond with IResponseErrorInternal", async () => {
     jest.spyOn(apimOperations, "getApimUser").mockReturnValueOnce(
       new Promise(resolve => {
-        // IExtendedUserContract
         resolve(some(userContract));
       })
     );
 
     jest.spyOn(apimOperations, "getUserSubscription").mockReturnValueOnce(
       new Promise(resolve => {
-        // IExtendedUserContract
         resolve(some(subscriptionContract));
       })
     );
 
-    jiraClientFnMock.mockReturnValueOnce(
-      fromLeft(ResponseErrorConflict("getServiceJiraIssuesByStatus ERROR"))
+    jiraClientFnMock.mockReturnValue(
+      fromLeft(ResponseErrorInternal("getServiceJiraIssuesByStatus ERROR"))
     );
 
     const response = await newReviewRequest(

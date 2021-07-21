@@ -267,7 +267,6 @@ export async function getReviewStatus(
   authenticatedUser: AdUser,
   serviceId: NonEmptyString
 ): Promise<
-  // | IResponseSuccessJson<{ readonly status: string }>
   | IResponseSuccessJson<ReviewStatus>
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorConflict
@@ -512,7 +511,6 @@ export async function newReviewRequest(
 
   const service = errorOrService.value;
   */
-
   return (
     jiraClient
       .getServiceJiraIssuesByStatus({
@@ -553,7 +551,7 @@ export async function newReviewRequest(
             jiraClient
               .applyJiraIssueTransition(
                 _.issues[0].id as NonEmptyString,
-                jiraConfig.JIRA_STATUS_IN_PROGRESS_ID as NonEmptyString,
+                jiraConfig.JIRA_TRANSITION_START_ID as NonEmptyString,
                 "Il delegato ha richiesto una nuova review" as NonEmptyString
               )
               .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
