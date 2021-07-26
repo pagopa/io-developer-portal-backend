@@ -288,6 +288,7 @@ export async function getReviewStatus(
   // Authenticates this request against the logged in user
   // checking that serviceId = subscriptionId
   // if the user is an admin we skip the check on userId
+
   const maybeSubscription = await getUserSubscription(
     apiClient,
     serviceId,
@@ -299,6 +300,7 @@ export async function getReviewStatus(
       "Cannot get a subscription for the logged in user"
     );
   }
+
   return jiraClient
     .searchServiceJiraIssue({
       serviceId
@@ -365,6 +367,7 @@ export async function newDisableRequest(
   // Authenticates this request against the logged in user
   // checking that serviceId = subscriptionId
   // if the user is an admin we skip the check on userId
+
   const maybeSubscription = await getUserSubscription(
     apiClient,
     serviceId,
@@ -376,6 +379,7 @@ export async function newDisableRequest(
       "Cannot get a subscription for the logged in user"
     );
   }
+
   return jiraClient
     .getServiceJiraIssuesByStatus({
       serviceId,
@@ -403,39 +407,32 @@ export async function newDisableRequest(
           ResponseErrorInternal(err.message)
         )
     )
-    .chain(_ => {
-      if (_.issues.length > 0) {
-        return jiraClient
-          .createJiraIssueComment(
-            _.issues[0].id,
-            "Il delegato ha richiesto la disattivazione del servizio" as NonEmptyString
+    .chain(
+      fromPredicate(
+        _ => _.total === 0,
+        _ =>
+          ResponseErrorConflict(
+            "A review is already in progress for the service"
           )
-          .map(__ =>
-            ResponseSuccessJson<ReviewStatus>({
-              detail: "Created new comment on existing issue",
-              status: 200,
-              title: "Create new comment on Issue"
-            })
-          )
-          .mapLeft(err => ResponseErrorInternal(err.message));
-      } else {
-        return jiraClient
-          .createJiraIssue(
-            `[DISATTIVAZIONE] servizio ${serviceId}` as NonEmptyString,
-            `Effettua la disattivazione del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
-            serviceId,
-            ["DISATTIVAZIONE" as NonEmptyString]
-          )
-          .map(__ =>
-            ResponseSuccessJson<ReviewStatus>({
-              detail: "A new issue is created",
-              status: 200,
-              title: "Create new Issue"
-            })
-          )
-          .mapLeft(err => ResponseErrorInternal(err.message));
-      }
-    })
+      )
+    )
+    .chain(_ =>
+      jiraClient
+        .createJiraIssue(
+          `[DISATTIVAZIONE] servizio ${serviceId}` as NonEmptyString,
+          `Effettua la disattivazione del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
+          serviceId,
+          ["DISATTIVAZIONE" as NonEmptyString]
+        )
+        .map(__ =>
+          ResponseSuccessJson<ReviewStatus>({
+            detail: "A new issue is created",
+            status: 200,
+            title: "Create new Issue"
+          })
+        )
+        .mapLeft(err => ResponseErrorInternal(err.message))
+    )
     .fold<
       | IResponseSuccessAccepted
       | IResponseSuccessJson<ReviewStatus>
@@ -474,6 +471,7 @@ export async function newReviewRequest(
   const authenticatedApimUser = maybeApimUser.value;
 
   // An admin cannot require a Service Review
+
   if (isAdminUser(authenticatedApimUser)) {
     return ResponseErrorForbiddenNotAuthorized;
   }
@@ -481,6 +479,7 @@ export async function newReviewRequest(
   // Authenticates this request against the logged in user
   // checking that serviceId = subscriptionId
   // if the user is an admin we skip the check on userId
+
   const maybeSubscription = await getUserSubscription(
     apiClient,
     serviceId,
@@ -515,7 +514,7 @@ export async function newReviewRequest(
     jiraClient
       .getServiceJiraIssuesByStatus({
         serviceId,
-        status: jiraConfig.JIRA_STATUS_IN_PROGRESS
+        status: jiraConfig.JIRA_STATUS_NEW
       })
       .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
         ResponseErrorInternal(err.message)
@@ -528,6 +527,25 @@ export async function newReviewRequest(
               "A review is already in progress for the service"
             )
         )
+      )
+      .chainSecond(
+        jiraClient
+          .getServiceJiraIssuesByStatus({
+            serviceId,
+            status: jiraConfig.JIRA_STATUS_IN_PROGRESS
+          })
+          .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
+            ResponseErrorInternal(err.message)
+          )
+          .chain(
+            fromPredicate(
+              _ => _.total === 0,
+              _ =>
+                ResponseErrorConflict(
+                  "A review is already in progress for the service"
+                )
+            )
+          )
       )
       // If exists Rejected Issue move blocked Jira Issue to NEW status
       .chainSecond(
@@ -547,45 +565,30 @@ export async function newReviewRequest(
         )(rejectedIssues).foldTaskEither(
           (_: SearchJiraIssueResponse) => taskEither.of(_),
           _ =>
-            // Move rejected issue into new
+            // Move rejected issue into new using updated transition id
             jiraClient
               .applyJiraIssueTransition(
                 _.issues[0].id as NonEmptyString,
-                jiraConfig.JIRA_TRANSITION_START_ID as NonEmptyString,
+                jiraConfig.JIRA_TRANSITION_UPDATED_ID as NonEmptyString,
                 "Il delegato ha richiesto una nuova review" as NonEmptyString
               )
               .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
                 ResponseErrorInternal(err.message)
               )
-              .map(() => _)
+              .map(() => {
+                return _;
+              })
         )
-      )
-      .chain(_ =>
-        jiraClient
-          .getServiceJiraIssuesByStatus({
-            serviceId,
-            status: jiraConfig.JIRA_STATUS_NEW as NonEmptyString,
-            statusTwo: jiraConfig.JIRA_STATUS_REJECTED as NonEmptyString
-          })
-          .mapLeft<IResponseErrorConflict | IResponseErrorInternal>(err =>
-            ResponseErrorInternal(err.message)
-          )
       )
       .chain(_ => {
         if (_.issues.length > 0) {
-          return jiraClient
-            .createJiraIssueComment(
-              _.issues[0].id,
-              "Il delegato ha richiesto una nuova review" as NonEmptyString
-            )
-            .map(__ =>
-              ResponseSuccessJson<ReviewStatus>({
-                detail: "Created new comment on existing issue",
-                status: 200,
-                title: "Create new comment on Issue"
-              })
-            )
-            .mapLeft(err => ResponseErrorInternal(err.message));
+          return taskEither.of(
+            ResponseSuccessJson<ReviewStatus>({
+              detail: "Moved",
+              status: 200,
+              title: "Issue Moved"
+            })
+          );
         } else {
           return jiraClient
             .createJiraIssue(
@@ -596,7 +599,7 @@ export async function newReviewRequest(
             .map(__ =>
               ResponseSuccessJson<ReviewStatus>({
                 detail: "A new issue is created",
-                status: 200,
+                status: 201,
                 title: "Create new Issue"
               })
             )
