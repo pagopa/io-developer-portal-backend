@@ -7,7 +7,8 @@ const JIRA_CONFIG = config.getJiraConfigOrThrow();
 const serviceID: ServiceId = "TEST-SERVICE-ID" as ServiceId;
 
 describe("JiraAPIClient#createJiraIssue", () => {
-  let sandbox: { issue: { id: string & NonEmptyString } };
+  // tslint:disable-next-line: no-let
+  let sandbox: { readonly issue: { readonly id: string & NonEmptyString } };
 
   it("should create a Issue with right parameters", async () => {
     const client = JiraAPIClient(
@@ -24,11 +25,13 @@ describe("JiraAPIClient#createJiraIssue", () => {
         ["TEST" as NonEmptyString]
       )
       .run();
-    issue.isRight() ? (sandbox = { issue: issue.value }) : null;
+    // tslint:disable-next-line: no-unused-expression
+    issue.isRight() ? (sandbox = { issue: issue.value }) : undefined;
+    // tslint:disable-next-line: no-unused-expression
     issue.isRight() && expect(issue.value.id).not.toBeUndefined;
   });
   afterAll(async () => {
-    console.log("Deleting jira issue card created:", sandbox.issue.id);
+    // console.log("Deleting jira issue card created:", sandbox.issue.id);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
@@ -41,7 +44,8 @@ describe("JiraAPIClient#createJiraIssue", () => {
 });
 
 describe("JiraAPIClient#search and apply transition", () => {
-  let sandbox: { issue: { id: string & NonEmptyString } };
+  // tslint:disable-next-line: no-let
+  let sandbox: { readonly issue: { readonly id: string & NonEmptyString } };
   beforeAll(async () => {
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
@@ -58,7 +62,8 @@ describe("JiraAPIClient#search and apply transition", () => {
         ["TEST" as NonEmptyString]
       )
       .run();
-    issue.isRight() ? (sandbox = { issue: issue.value }) : null;
+    // tslint:disable-next-line: no-unused-expression
+    issue.isRight() ? (sandbox = { issue: issue.value }) : undefined;
   });
   it("should find an issue with a specific serviceId", async () => {
     const client = JiraAPIClient(
@@ -72,6 +77,7 @@ describe("JiraAPIClient#search and apply transition", () => {
         serviceId: serviceID
       })
       .run();
+    // tslint:disable-next-line: no-unused-expression
     a.isRight() && expect(a.value.total).toBeGreaterThan(0);
   });
   it("should find a serviceId in New", async () => {
@@ -88,6 +94,7 @@ describe("JiraAPIClient#search and apply transition", () => {
       })
       .run();
     // We expect to don't have any total from search issue
+    // tslint:disable-next-line: no-unused-expression
     a.isRight() && expect(a.value.total).toEqual(0);
   });
   it("should move an Issue from New to New cross other states", async () => {
@@ -100,20 +107,20 @@ describe("JiraAPIClient#search and apply transition", () => {
     const a = await client
       .applyJiraIssueTransition(
         sandbox.issue.id as NonEmptyString, // IssueID or Key
-        JIRA_CONFIG.JIRA_TRANSITION_START_ID, // "11" as NonEmptyString, // TransitionId
+        JIRA_CONFIG.JIRA_TRANSITION_START_ID, // TransitionId
         "Da New a In Review" as NonEmptyString // Comment,
       )
       .chain(_ =>
         client.applyJiraIssueTransition(
           sandbox.issue.id as NonEmptyString, // IssueID or Key
-          JIRA_CONFIG.JIRA_TRANSITION_REJECT_ID, // "11" as NonEmptyString, // TransitionId
+          JIRA_CONFIG.JIRA_TRANSITION_REJECT_ID, // TransitionId
           "Da Review a Rejected" as NonEmptyString // Comment,
         )
       )
       .chain(_ =>
         client.applyJiraIssueTransition(
           sandbox.issue.id as NonEmptyString, // IssueID or Key
-          JIRA_CONFIG.JIRA_TRANSITION_UPDATED_ID, // "11" as NonEmptyString, // TransitionId
+          JIRA_CONFIG.JIRA_TRANSITION_UPDATED_ID, // TransitionId
           "Da Rejected a New" as NonEmptyString // Comment,
         )
       )
@@ -122,7 +129,6 @@ describe("JiraAPIClient#search and apply transition", () => {
   });
 
   afterAll(async () => {
-    console.log("Deleting jira issue card created:", sandbox.issue.id);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,

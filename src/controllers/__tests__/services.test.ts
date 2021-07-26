@@ -86,9 +86,9 @@ const jiraClientMock: IJiraAPIClient = {
   applyJiraIssueTransition: jiraClientFnMock,
   createJiraIssue: jiraClientFnMock,
   createJiraIssueComment: jiraClientFnMock,
+  deleteJiraIssue: jiraClientFnMock,
   getServiceJiraIssuesByStatus: jiraClientFnMock,
-  searchServiceJiraIssue: jiraClientFnMock,
-  deleteJiraIssue: jiraClientFnMock
+  searchServiceJiraIssue: jiraClientFnMock
 };
 
 const jiraConfigMock = {} as config.IJIRA_CONFIG;
