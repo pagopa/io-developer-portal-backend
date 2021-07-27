@@ -153,6 +153,13 @@ export function JiraAPIClient(
   // tslint:disable-next-line:no-any
   fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
 ): IJiraAPIClient {
+  const jiraHeaders = {
+    Accept: "application/json",
+    Authorization: `Basic ${Buffer.from(`${jiraEmail}:${token}`).toString(
+      "base64"
+    )}`,
+    "Content-Type": "application/json"
+  };
   const createJiraIssue = (
     title: NonEmptyString,
     description: NonEmptyString,
@@ -162,16 +169,6 @@ export function JiraAPIClient(
     return tryCatch(
       () =>
         fetchApi(`${baseUrl}/rest/api/2/issue`, {
-          method: "POST",
-
-          headers: {
-            Accept: "application/json",
-            Authorization: `Basic ${Buffer.from(
-              `${jiraEmail}:${token}`
-            ).toString("base64")}`,
-            "Content-Type": "application/json"
-          },
-
           body: JSON.stringify({
             fields: {
               description,
@@ -186,7 +183,9 @@ export function JiraAPIClient(
               },
               summary: title
             }
-          })
+          }),
+          headers: jiraHeaders,
+          method: "POST"
         }),
       toError
     ).chain<CreateJiraIssueResponse>(_ => {
@@ -216,15 +215,8 @@ export function JiraAPIClient(
     tryCatch(
       () =>
         fetchApi(`${baseUrl}/rest/api/2/issue/${issueId}`, {
-          method: "DELETE",
-
-          headers: {
-            Accept: "application/json",
-            Authorization: `Basic ${Buffer.from(
-              `${jiraEmail}:${token}`
-            ).toString("base64")}`,
-            "Content-Type": "application/json"
-          }
+          headers: jiraHeaders,
+          method: "DELETE"
         }),
       toError
     ).chain<"OK">(_ => {
@@ -250,19 +242,11 @@ export function JiraAPIClient(
     tryCatch(
       () =>
         fetchApi(`${baseUrl}/rest/api/2/issue/${issueId}/comment`, {
-          method: "POST",
-
-          headers: {
-            Accept: "application/json",
-            Authorization: `Basic ${Buffer.from(
-              `${jiraEmail}:${token}`
-            ).toString("base64")}`,
-            "Content-Type": "application/json"
-          },
-
           body: JSON.stringify({
             body: comment
-          })
+          }),
+          headers: jiraHeaders,
+          method: "POST"
         }),
       toError
     ).chain<CreateJiraCommentIssueResponse>(_ => {
@@ -321,16 +305,6 @@ export function JiraAPIClient(
   ) => {
     return tryCatch(() => {
       return fetchApi(`${baseUrl}/rest/api/2/issue/${issueId}/transitions`, {
-        method: "POST",
-
-        headers: {
-          Accept: "application/json",
-          Authorization: `Basic ${Buffer.from(`${jiraEmail}:${token}`).toString(
-            "base64"
-          )}`,
-          "Content-Type": "application/json"
-        },
-
         body: JSON.stringify({
           ...fromNullable(newComment)
             .map(_ => ({
@@ -348,7 +322,9 @@ export function JiraAPIClient(
           transition: {
             id: transitionId
           }
-        })
+        }),
+        headers: jiraHeaders,
+        method: "POST"
       });
     }, toError).chain<"OK">(_ => {
       if (_.status >= 500) {
