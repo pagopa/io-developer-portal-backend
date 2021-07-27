@@ -1,4 +1,5 @@
 import { toError } from "fp-ts/lib/Either";
+import { fromNullable } from "fp-ts/lib/Option";
 import {
   fromEither,
   fromLeft,
@@ -331,19 +332,19 @@ export function JiraAPIClient(
         },
 
         body: JSON.stringify({
-          ...(newComment
-            ? {
-                update: {
-                  comment: [
-                    {
-                      add: {
-                        body: newComment
-                      }
+          ...fromNullable(newComment)
+            .map(_ => ({
+              update: {
+                comment: [
+                  {
+                    add: {
+                      body: _
                     }
-                  ]
-                }
+                  }
+                ]
               }
-            : {}),
+            }))
+            .toUndefined(),
           transition: {
             id: transitionId
           }
