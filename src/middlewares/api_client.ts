@@ -3,9 +3,8 @@
  * authenticated using MSI.
  */
 import ApiManagementClient from "azure-arm-apimanagement";
-import { left, right } from "fp-ts/lib/Either";
+import { right } from "fp-ts/lib/Either";
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
-import { ResponseErrorInternal } from "italia-ts-commons/lib/responses";
 import { ITokenAndCredentials, loginToApim } from "../apim_operations";
 import * as config from "../config";
 import { IJiraAPIClient, JiraAPIClient } from "../jira_client";
