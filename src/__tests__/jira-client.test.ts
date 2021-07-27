@@ -16,20 +16,61 @@ const JIRA_CONFIG = {
   JIRA_TRANSITION_START_ID: "113",
   JIRA_TRANSITION_UPDATED_ID: "114"
 } as config.IJIRA_CONFIG;
-
+const aJiraCardIssueId = "1" as NonEmptyString;
 const serviceID: ServiceId = "TEST-SERVICE-ID" as ServiceId;
+const mockFetchJson = jest.fn();
+const getMockFetchWithStatus = (status: number) =>
+  jest.fn().mockImplementation(async () => ({
+    json: mockFetchJson,
+    status
+  }));
+
+const aCreateJiraIssueResponse = {
+  id: aJiraCardIssueId,
+  key: "issueCardKey"
+};
+
+const aSearchJiraIssueResponse = {
+  startAt: 0,
+  total: 1,
+
+  issues: [
+    {
+      fields: {
+        assignee: {},
+        comment: {
+          comments: [],
+          maxResults: 50,
+          self: "http://",
+          startAt: 0,
+          total: 0
+        },
+        labels: {},
+        status: {
+          name: "name"
+        },
+        summary: "summary"
+      },
+      id: aJiraCardIssueId,
+      key: "1",
+      self: "http://"
+    }
+  ]
+};
 
 describe("JiraAPIClient#createJiraIssue", () => {
-  // tslint:disable-next-line: no-let
-  let sandbox: { readonly issue: { readonly id: string & NonEmptyString } };
-
   it("should create a Issue with right parameters", async () => {
+    mockFetchJson.mockImplementationOnce(() =>
+      Promise.resolve(aCreateJiraIssueResponse)
+    );
+    const mockFetch = getMockFetchWithStatus(201);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
       JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      mockFetch
     );
     const issue = await client
       .createJiraIssue(
@@ -39,123 +80,92 @@ describe("JiraAPIClient#createJiraIssue", () => {
         ["TEST" as NonEmptyString]
       )
       .run();
-    // tslint:disable-next-line: no-unused-expression
-    issue.isRight() ? (sandbox = { issue: issue.value }) : undefined;
-    // tslint:disable-next-line: no-unused-expression
-    issue.isRight() && expect(issue.value.id).not.toBeUndefined;
-  });
-  afterAll(async () => {
-    // console.log("Deleting jira issue card created:", sandbox.issue.id);
-    const client = JiraAPIClient(
-      JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE
-    );
 
-    await client.deleteJiraIssue(sandbox.issue.id).run();
+    expect(mockFetch).toBeCalledWith(expect.any(String), {
+      body: expect.any(String),
+      headers: expect.any(Object),
+      method: "POST"
+    });
+    expect(issue.isRight()).toBeTruthy();
+    expect(issue.value).toHaveProperty("id", aCreateJiraIssueResponse.id);
+    expect(issue.value).toHaveProperty("key", aCreateJiraIssueResponse.key);
   });
 });
 
 describe("JiraAPIClient#search and apply transition", () => {
-  // tslint:disable-next-line: no-let
-  let sandbox: { readonly issue: { readonly id: string & NonEmptyString } };
-  beforeAll(async () => {
-    const client = JiraAPIClient(
-      JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE
-    );
-    // create a card
-    const issue = await client
-      .createJiraIssue(
-        "Card Test" as NonEmptyString,
-        "Card generata dal test - da rimuovere" as NonEmptyString,
-        serviceID,
-        ["TEST" as NonEmptyString]
-      )
-      .run();
-    // tslint:disable-next-line: no-unused-expression
-    issue.isRight() ? (sandbox = { issue: issue.value }) : undefined;
-  });
   it("should find an issue with a specific serviceId", async () => {
+    mockFetchJson.mockImplementationOnce(() =>
+      Promise.resolve(aSearchJiraIssueResponse)
+    );
+    const mockFetch = getMockFetchWithStatus(200);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
       JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      mockFetch
     );
-    const a = await client
+
+    const searchResponse = await client
       .searchServiceJiraIssue({
         serviceId: serviceID
       })
       .run();
-    // tslint:disable-next-line: no-unused-expression
-    a.isRight() && expect(a.value.total).toBeGreaterThan(0);
+    expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
+      body: expect.any(String),
+      headers: expect.any(Object),
+      method: "POST"
+    });
+    expect(searchResponse.isRight()).toBeTruthy();
+    expect(searchResponse.value).toEqual(aSearchJiraIssueResponse);
   });
   it("should find a serviceId in New", async () => {
+    mockFetchJson.mockImplementationOnce(() =>
+      Promise.resolve(aSearchJiraIssueResponse)
+    );
+    const mockFetch = getMockFetchWithStatus(200);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
       JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      mockFetch
     );
-    const a = await client
+    const searchResponse = await client
       .getServiceJiraIssuesByStatus({
         serviceId: serviceID,
         status: JIRA_CONFIG.JIRA_STATUS_NEW_ID
       })
       .run();
+    expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
+      body: expect.any(String),
+      headers: expect.any(Object),
+      method: "POST"
+    });
     // We expect to don't have any total from search issue
-    // tslint:disable-next-line: no-unused-expression
-    a.isRight() && expect(a.value.total).toEqual(0);
+    expect(searchResponse.isRight()).toBeTruthy();
+    expect(searchResponse.value).toEqual(aSearchJiraIssueResponse);
   });
   it("should move an Issue from New to New cross other states", async () => {
+    const mockFetch = getMockFetchWithStatus(204);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
       JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      mockFetch
     );
-    const a = await client
+    const aJiraIssueTransitionResponse = await client
       .applyJiraIssueTransition(
-        sandbox.issue.id as NonEmptyString, // IssueID or Key
+        aJiraCardIssueId, // IssueID or Key
         JIRA_CONFIG.JIRA_TRANSITION_START_ID, // TransitionId
         "Da New a In Review" as NonEmptyString // Comment,
       )
-      .chain(_ =>
-        client.applyJiraIssueTransition(
-          sandbox.issue.id as NonEmptyString, // IssueID or Key
-          JIRA_CONFIG.JIRA_TRANSITION_REJECT_ID, // TransitionId
-          "Da Review a Rejected" as NonEmptyString // Comment,
-        )
-      )
-      .chain(_ =>
-        client.applyJiraIssueTransition(
-          sandbox.issue.id as NonEmptyString, // IssueID or Key
-          JIRA_CONFIG.JIRA_TRANSITION_UPDATED_ID, // TransitionId
-          "Da Rejected a New" as NonEmptyString // Comment,
-        )
-      )
       .run();
-    expect(a.isRight()).toBeTruthy();
-  });
-
-  afterAll(async () => {
-    const client = JiraAPIClient(
-      JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE
-    );
-
-    await client.deleteJiraIssue(sandbox.issue.id).run();
+    expect(aJiraIssueTransitionResponse.isRight()).toBeTruthy();
+    expect(aJiraIssueTransitionResponse.value).toEqual("OK");
   });
 });

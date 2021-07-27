@@ -20,7 +20,8 @@ import {
   getReviewStatus,
   newReviewRequest,
   putOrganizationLogo,
-  putServiceLogo
+  putServiceLogo,
+  notificationApiClient
 } from "../services";
 
 import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
@@ -31,8 +32,7 @@ import { IExtendedUserContract } from "../../apim_operations";
 import { IJiraAPIClient } from "../../jira_client";
 
 afterEach(() => {
-  jest.resetAllMocks();
-  jest.restoreAllMocks();
+  jest.clearAllMocks();
 });
 
 const serviceId = "s123" as ServiceId;
@@ -107,6 +107,10 @@ jest.spyOn(apimOperations, "getUserSubscription").mockReturnValue(
     resolve(some(subscriptionContract));
   })
 );
+
+jest
+  .spyOn(notificationApiClient, "getService")
+  .mockImplementation(() => Promise.resolve({ status: 200, value: {} } as any));
 describe("putServiceLogo", () => {
   it("should respond with IResponseSuccessRedirectToResource if logo upload was successfull", async () => {
     jest
