@@ -72,50 +72,6 @@ const JiraIssueSearchPayload = t.interface({
 });
 type JiraIssueSearchPayload = t.TypeOf<typeof JiraIssueSearchPayload>;
 
-const jiraIssueSearch = (
-  baseUrl: string,
-  jiraEmail: string,
-  token: string,
-  bodyData: JiraIssueSearchPayload,
-  // tslint:disable-next-line:no-any
-  fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
-) =>
-  tryCatch(() => {
-    return fetchApi(`${baseUrl}/rest/api/2/search`, {
-      method: "POST",
-
-      headers: {
-        Accept: "application/json",
-        Authorization: `Basic ${Buffer.from(`${jiraEmail}:${token}`).toString(
-          "base64"
-        )}`,
-        "Content-Type": "application/json"
-      },
-
-      body: JSON.stringify(bodyData)
-    });
-  }, toError).chain<SearchJiraIssueResponse>(_ => {
-    if (_.status >= 500) {
-      return fromLeft(new Error("Jira API returns an error"));
-    }
-    if (_.status === 401) {
-      return fromLeft(new Error("Jira secrets misconfiguration"));
-    }
-    if (_.status === 400) {
-      return fromLeft(new Error("Wrong Jira JQL"));
-    }
-    if (_.status !== 200) {
-      return fromLeft(new Error("Unknown status code response error"));
-    }
-    return tryCatch(() => _.json(), toError).chain(responseBody => {
-      return fromEither(
-        SearchJiraIssueResponse.decode(responseBody).mapLeft(errors => {
-          return toError(readableReport(errors));
-        })
-      );
-    });
-  });
-
 export interface IJiraAPIClient {
   readonly createJiraIssue: (
     title: NonEmptyString,
@@ -160,6 +116,34 @@ export function JiraAPIClient(
     )}`,
     "Content-Type": "application/json"
   };
+  const jiraIssueSearch = (bodyData: JiraIssueSearchPayload) =>
+    tryCatch(() => {
+      return fetchApi(`${baseUrl}/rest/api/2/search`, {
+        body: JSON.stringify(bodyData),
+        headers: jiraHeaders,
+        method: "POST"
+      });
+    }, toError).chain<SearchJiraIssueResponse>(_ => {
+      if (_.status >= 500) {
+        return fromLeft(new Error("Jira API returns an error"));
+      }
+      if (_.status === 401) {
+        return fromLeft(new Error("Jira secrets misconfiguration"));
+      }
+      if (_.status === 400) {
+        return fromLeft(new Error("Wrong Jira JQL"));
+      }
+      if (_.status !== 200) {
+        return fromLeft(new Error("Unknown status code response error"));
+      }
+      return tryCatch(() => _.json(), toError).chain(responseBody => {
+        return fromEither(
+          SearchJiraIssueResponse.decode(responseBody).mapLeft(errors => {
+            return toError(readableReport(errors));
+          })
+        );
+      });
+    });
   const createJiraIssue = (
     title: NonEmptyString,
     description: NonEmptyString,
@@ -282,7 +266,7 @@ export function JiraAPIClient(
       jql: `project = ${boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} OR (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`,
       startAt: 0
     };
-    return jiraIssueSearch(baseUrl, jiraEmail, token, bodyData, fetchApi);
+    return jiraIssueSearch(bodyData);
   };
 
   const searchServiceJiraIssue = (params: {
@@ -296,7 +280,7 @@ export function JiraAPIClient(
       jql: `project = ${boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND status != ${statusCompleteLabel}) ORDER BY created DESC`,
       startAt: 0
     };
-    return jiraIssueSearch(baseUrl, jiraEmail, token, bodyData, fetchApi);
+    return jiraIssueSearch(bodyData);
   };
   const applyJiraIssueTransition = (
     issueId: NonEmptyString,
