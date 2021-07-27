@@ -43,19 +43,14 @@ export function getApiClientMiddleware(): IRequestMiddleware<
 export function getJiraClientMiddleware(
   jiraConfig: config.IJIRA_CONFIG
 ): IRequestMiddleware<"IResponseErrorInternal", IJiraAPIClient> {
-  return async _ => {
-    try {
-      return right(
-        JiraAPIClient(
-          jiraConfig.JIRA_NAMESPACE_URL,
-          jiraConfig.JIRA_USERNAME,
-          jiraConfig.JIRA_TOKEN,
-          jiraConfig.JIRA_BOARD,
-          jiraConfig.JIRA_STATUS_COMPLETE
-        )
-      );
-    } catch (err) {
-      return left(ResponseErrorInternal("Wrong JIRA configuration"));
-    }
-  };
+  return async _ =>
+    right(
+      JiraAPIClient(
+        jiraConfig.JIRA_NAMESPACE_URL,
+        jiraConfig.JIRA_USERNAME,
+        jiraConfig.JIRA_TOKEN,
+        jiraConfig.JIRA_BOARD,
+        jiraConfig.JIRA_STATUS_COMPLETE
+      )
+    );
 }
