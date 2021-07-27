@@ -50,7 +50,8 @@ export function getJiraClientMiddleware(
           jiraConfig.JIRA_NAMESPACE_URL,
           jiraConfig.JIRA_USERNAME,
           jiraConfig.JIRA_TOKEN,
-          jiraConfig.JIRA_BOARD
+          jiraConfig.JIRA_BOARD,
+          jiraConfig.JIRA_STATUS_COMPLETE
         )
       );
     } catch (err) {

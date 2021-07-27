@@ -28,7 +28,8 @@ describe("JiraAPIClient#createJiraIssue", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD
+      JIRA_CONFIG.JIRA_BOARD,
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE
     );
     const issue = await client
       .createJiraIssue(
@@ -49,7 +50,8 @@ describe("JiraAPIClient#createJiraIssue", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD
+      JIRA_CONFIG.JIRA_BOARD,
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE
     );
 
     await client.deleteJiraIssue(sandbox.issue.id).run();
@@ -64,7 +66,8 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD
+      JIRA_CONFIG.JIRA_BOARD,
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE
     );
     // create a card
     const issue = await client
@@ -83,7 +86,8 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD
+      JIRA_CONFIG.JIRA_BOARD,
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE
     );
     const a = await client
       .searchServiceJiraIssue({
@@ -98,7 +102,8 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD
+      JIRA_CONFIG.JIRA_BOARD,
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE
     );
     const a = await client
       .getServiceJiraIssuesByStatus({
@@ -115,7 +120,8 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD
+      JIRA_CONFIG.JIRA_BOARD,
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE
     );
     const a = await client
       .applyJiraIssueTransition(
@@ -146,7 +152,8 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       JIRA_CONFIG.JIRA_USERNAME,
       JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD
+      JIRA_CONFIG.JIRA_BOARD,
+      JIRA_CONFIG.JIRA_STATUS_COMPLETE
     );
 
     await client.deleteJiraIssue(sandbox.issue.id).run();

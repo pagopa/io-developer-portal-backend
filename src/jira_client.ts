@@ -11,12 +11,9 @@ import { readableReport } from "italia-ts-commons/lib/reporters";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import nodeFetch from "node-fetch";
 import { ServiceId } from "../generated/api/ServiceId";
-import * as config from "./config";
 
 export const JIRA_SERVICE_TAG_PREFIX = "devportal-service-";
 export const JIRA_DISABLE_LABEL = "DISATTIVAZIONE";
-
-const JIRA_CONFIG = config.getJiraConfigOrThrow();
 
 export const SearchJiraIssueResponse = t.interface({
   startAt: t.number,
@@ -151,6 +148,7 @@ export function JiraAPIClient(
   jiraEmail: string,
   token: string,
   boardId: string,
+  statusCompleteLabel: NonEmptyString,
   // tslint:disable-next-line:no-any
   fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
 ): IJiraAPIClient {
@@ -301,6 +299,7 @@ export function JiraAPIClient(
     };
     return jiraIssueSearch(baseUrl, jiraEmail, token, bodyData, fetchApi);
   };
+
   const searchServiceJiraIssue = (params: {
     readonly serviceId: ServiceId;
   }) => {
@@ -309,7 +308,7 @@ export function JiraAPIClient(
       fields: ["summary", "status", "assignee", "comment", "labels"],
       fieldsByKeys: false,
       // Check if is better without JIRA_SERVICE_TAG_PREFIX
-      jql: `project = ${boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND status != ${JIRA_CONFIG.JIRA_STATUS_COMPLETE}) ORDER BY created DESC`,
+      jql: `project = ${boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND status != ${statusCompleteLabel}) ORDER BY created DESC`,
       startAt: 0
     };
     return jiraIssueSearch(baseUrl, jiraEmail, token, bodyData, fetchApi);

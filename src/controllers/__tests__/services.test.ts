@@ -101,14 +101,12 @@ const mockGetApimUser = jest
     })
   );
 
-const mockGetUserSubscription = jest
-  .spyOn(apimOperations, "getUserSubscription")
-  .mockReturnValue(
-    new Promise(resolve => {
-      // SubscriptionContract & { readonly name: string }
-      resolve(some(subscriptionContract));
-    })
-  );
+jest.spyOn(apimOperations, "getUserSubscription").mockReturnValue(
+  new Promise(resolve => {
+    // SubscriptionContract & { readonly name: string }
+    resolve(some(subscriptionContract));
+  })
+);
 describe("putServiceLogo", () => {
   it("should respond with IResponseSuccessRedirectToResource if logo upload was successfull", async () => {
     jest
