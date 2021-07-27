@@ -19,9 +19,9 @@ import { AdUser } from "../../bearer_strategy";
 import {
   getReviewStatus,
   newReviewRequest,
+  notificationApiClient,
   putOrganizationLogo,
-  putServiceLogo,
-  notificationApiClient
+  putServiceLogo
 } from "../services";
 
 import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
@@ -110,6 +110,7 @@ jest.spyOn(apimOperations, "getUserSubscription").mockReturnValue(
 
 jest
   .spyOn(notificationApiClient, "getService")
+  // tslint:disable-next-line: no-any
   .mockImplementation(() => Promise.resolve({ status: 200, value: {} } as any));
 describe("putServiceLogo", () => {
   it("should respond with IResponseSuccessRedirectToResource if logo upload was successfull", async () => {
