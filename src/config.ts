@@ -148,7 +148,7 @@ export const getJiraConfigOrThrow = () =>
       process.env.JIRA_STATUS_REJECTED
     ).getOrElse("REJECTED"),
     JIRA_TRANSITION_REJECT_ID: fromNullable(
-      process.env.JIRA_TRANSITION_REJECt_ID
+      process.env.JIRA_TRANSITION_REJECT_ID
     ).getOrElse("31"),
     JIRA_TRANSITION_START_ID: fromNullable(
       process.env.JIRA_TRANSITION_START_ID

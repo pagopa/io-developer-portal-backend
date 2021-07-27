@@ -3,7 +3,20 @@ import { ServiceId } from "../../generated/api/ServiceId";
 import * as config from "../config";
 import { JiraAPIClient } from "../jira_client";
 
-const JIRA_CONFIG = config.getJiraConfigOrThrow();
+const JIRA_CONFIG = {
+  JIRA_BOARD: "BOARD",
+  JIRA_NAMESPACE_URL: "board.atlassian.com",
+  JIRA_STATUS_COMPLETE: "COMPLETE",
+  JIRA_STATUS_IN_PROGRESS: "REVIEW",
+  JIRA_STATUS_NEW: "NEW",
+  JIRA_STATUS_NEW_ID: "111",
+  JIRA_STATUS_REJECTED: "REJECTED",
+  JIRA_TOKEN: "token",
+  JIRA_TRANSITION_REJECT_ID: "112",
+  JIRA_TRANSITION_START_ID: "113",
+  JIRA_TRANSITION_UPDATED_ID: "114"
+} as config.IJIRA_CONFIG;
+
 const serviceID: ServiceId = "TEST-SERVICE-ID" as ServiceId;
 
 describe("JiraAPIClient#createJiraIssue", () => {

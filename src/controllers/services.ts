@@ -43,7 +43,6 @@ import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
-import { IResponseSuccessAccepted } from "@pagopa/ts-commons/lib/responses";
 import { identity } from "fp-ts/lib/function";
 import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
 import { CIDR } from "../../generated/api/CIDR";
@@ -77,9 +76,16 @@ export const notificationApiClient = APIClient(
 );
 
 const ReviewStatus = t.partial({
-  comment: t.any,
+  comment: t.interface({
+    comments: t.readonlyArray(
+      t.interface({
+        body: t.string, // comment text
+        created: t.string // comment creation date
+      })
+    )
+  }),
   detail: t.string,
-  labels: t.any,
+  labels: t.readonlyArray(NonEmptyString),
   status: t.number,
   title: t.string
 });
@@ -320,7 +326,6 @@ export async function getReviewStatus(
     )
     .chain(_ => taskEither.of(_.issues[0].fields))
     .fold<
-      // | IResponseSuccessJson<{ readonly status: string }>
       | IResponseSuccessJson<ReviewStatus>
       | IResponseErrorForbiddenNotAuthorized
       | IResponseErrorConflict
@@ -345,7 +350,6 @@ export async function newDisableRequest(
   serviceId: NonEmptyString,
   jiraConfig: config.IJIRA_CONFIG
 ): Promise<
-  | IResponseSuccessAccepted
   | IResponseSuccessJson<ReviewStatus>
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorConflict
@@ -434,7 +438,6 @@ export async function newDisableRequest(
         .mapLeft(err => ResponseErrorInternal(err.message))
     )
     .fold<
-      | IResponseSuccessAccepted
       | IResponseSuccessJson<ReviewStatus>
       | IResponseErrorForbiddenNotAuthorized
       | IResponseErrorConflict
@@ -451,7 +454,6 @@ export async function newReviewRequest(
   serviceId: NonEmptyString,
   jiraConfig: config.IJIRA_CONFIG
 ): Promise<
-  | IResponseSuccessAccepted
   | IResponseSuccessJson<ReviewStatus>
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorConflict
@@ -607,7 +609,6 @@ export async function newReviewRequest(
         }
       })
       .fold<
-        | IResponseSuccessAccepted
         | IResponseSuccessJson<ReviewStatus>
         | IResponseErrorForbiddenNotAuthorized
         | IResponseErrorConflict

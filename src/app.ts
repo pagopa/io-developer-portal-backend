@@ -213,11 +213,6 @@ app.get(
   )
 );
 
-/*export const ReviewData = t.interface({
-  visible: NonEmptyString
-});
-export type ReviewData = t.TypeOf<typeof ReviewData>;*/
-
 /* Post a new Review Request for Service Id */
 app.post(
   "/services/:serviceId/review",
