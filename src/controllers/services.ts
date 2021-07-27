@@ -494,10 +494,6 @@ export async function newReviewRequest(
     );
   }
 
-  // Get old service data
-
-  /*
-  // Any idea why we need to check service fields validation?
   const errorOrService = toEither(
     await notificationApiClient.getService({
       id: serviceId
@@ -510,8 +506,6 @@ export async function newReviewRequest(
     );
   }
 
-  const service = errorOrService.value;
-  */
   return (
     jiraClient
       .getServiceJiraIssuesByStatus({
