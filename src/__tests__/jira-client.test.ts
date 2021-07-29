@@ -9,7 +9,6 @@ const JIRA_CONFIG = {
   JIRA_STATUS_COMPLETE: "COMPLETE",
   JIRA_STATUS_IN_PROGRESS: "REVIEW",
   JIRA_STATUS_NEW: "NEW",
-  JIRA_STATUS_NEW_ID: "111",
   JIRA_STATUS_REJECTED: "REJECTED",
   JIRA_TOKEN: "token",
   JIRA_TRANSITION_REJECT_ID: "112",
@@ -136,7 +135,7 @@ describe("JiraAPIClient#search and apply transition", () => {
     const searchResponse = await client
       .getServiceJiraIssuesByStatus({
         serviceId: serviceID,
-        status: JIRA_CONFIG.JIRA_STATUS_NEW_ID
+        status: JIRA_CONFIG.JIRA_STATUS_NEW
       })
       .run();
     expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {

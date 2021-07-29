@@ -121,7 +121,7 @@ export const IJIRA_CONFIG = t.interface({
   JIRA_STATUS_COMPLETE: NonEmptyString,
   JIRA_STATUS_IN_PROGRESS: NonEmptyString,
   JIRA_STATUS_NEW: NonEmptyString,
-  JIRA_STATUS_NEW_ID: NonEmptyString,
+
   JIRA_STATUS_REJECTED: NonEmptyString,
   JIRA_TOKEN: NonEmptyString,
   JIRA_TRANSITION_REJECT_ID: NonEmptyString,
@@ -141,9 +141,6 @@ export const getJiraConfigOrThrow = () =>
       process.env.JIRA_STATUS_IN_PROGRESS
     ).getOrElse("REVIEW"),
     JIRA_STATUS_NEW: fromNullable(process.env.JIRA_STATUS_NEW).getOrElse("NEW"),
-    JIRA_STATUS_NEW_ID: fromNullable(process.env.JIRA_STATUS_NEW_ID).getOrElse(
-      "41"
-    ),
     JIRA_STATUS_REJECTED: fromNullable(
       process.env.JIRA_STATUS_REJECTED
     ).getOrElse("REJECTED"),
