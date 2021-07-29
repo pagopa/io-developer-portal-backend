@@ -40,7 +40,10 @@ import { setupBearerStrategy } from "./bearer_strategy";
 import { initCacheStats } from "./cache";
 import { getConfiguration } from "./controllers/configuration";
 import {
+  getReviewStatus,
   getService,
+  newDisableRequest,
+  newReviewRequest,
   putOrganizationLogo,
   putService,
   putServiceLogo,
@@ -54,7 +57,10 @@ import {
 import { getUser, getUsers } from "./controllers/user";
 import { secureExpressApp } from "./express";
 import { logger } from "./logger";
-import { getApiClientMiddleware } from "./middlewares/api_client";
+import {
+  getApiClientMiddleware,
+  getJiraClientMiddleware
+} from "./middlewares/api_client";
 import { OptionalParamMiddleware } from "./middlewares/optional_param";
 import { RequiredParamMiddleware } from "./middlewares/required_param";
 import { getUserFromRequestMiddleware } from "./middlewares/user";
@@ -63,14 +69,16 @@ import { SubscriptionData } from "./new_subscription";
 
 import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 
+import { right } from "fp-ts/lib/Either";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
-
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
 if (process.env.NODE_ENV === "debug") {
   initCacheStats();
 }
+
+const JIRA_CONFIG = config.getJiraConfigOrThrow();
 
 /**
  * Setup an authentication strategy (oauth) for express endpoints.
@@ -188,6 +196,50 @@ app.put(
       RequiredParamMiddleware("serviceId", NonEmptyString),
       ExtractFromPayloadMiddleware(ServicePayload)
     )(putService)
+  )
+);
+
+/* Get Review Status */
+app.get(
+  "/services/:serviceId/review",
+  ouathVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getJiraClientMiddleware(JIRA_CONFIG),
+      getUserFromRequestMiddleware(),
+      RequiredParamMiddleware("serviceId", NonEmptyString)
+    )(getReviewStatus)
+  )
+);
+
+/* Post a new Review Request for Service Id */
+app.post(
+  "/services/:serviceId/review",
+  ouathVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getJiraClientMiddleware(JIRA_CONFIG),
+      getUserFromRequestMiddleware(),
+      RequiredParamMiddleware("serviceId", NonEmptyString),
+      async _ => right(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware
+    )(newReviewRequest)
+  )
+);
+
+/* Post a disable Request for Service Id */
+app.put(
+  "/services/:serviceId/disable",
+  ouathVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getJiraClientMiddleware(JIRA_CONFIG),
+      getUserFromRequestMiddleware(),
+      RequiredParamMiddleware("serviceId", NonEmptyString),
+      async _ => right(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware
+    )(newDisableRequest)
   )
 );
 

@@ -7,6 +7,7 @@ import { right } from "fp-ts/lib/Either";
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
 import { ITokenAndCredentials, loginToApim } from "../apim_operations";
 import * as config from "../config";
+import { IJiraAPIClient, JiraAPIClient } from "../jira_client";
 
 // Global var needed to cache the
 // API management access token between calls
@@ -36,4 +37,19 @@ export function getApiClientMiddleware(): IRequestMiddleware<
       new ApiManagementClient(tokenCreds.loginCreds, config.subscriptionId)
     );
   };
+}
+
+export function getJiraClientMiddleware(
+  jiraConfig: config.IJIRA_CONFIG
+): IRequestMiddleware<"IResponseErrorInternal", IJiraAPIClient> {
+  return async _ =>
+    right(
+      JiraAPIClient(
+        jiraConfig.JIRA_NAMESPACE_URL,
+        jiraConfig.JIRA_USERNAME,
+        jiraConfig.JIRA_TOKEN,
+        jiraConfig.JIRA_BOARD,
+        jiraConfig.JIRA_STATUS_COMPLETE
+      )
+    );
 }
