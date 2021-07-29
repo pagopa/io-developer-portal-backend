@@ -294,17 +294,18 @@ export async function getReviewStatus(
   // Authenticates this request against the logged in user
   // checking that serviceId = subscriptionId
   // if the user is an admin we skip the check on userId
-
-  const maybeSubscription = await getUserSubscription(
-    apiClient,
-    serviceId,
-    authenticatedApimUser.id
-  );
-  if (isNone(maybeSubscription)) {
-    return ResponseErrorNotFound(
-      "Subscription not found",
-      "Cannot get a subscription for the logged in user"
+  if (!isAdminUser(authenticatedApimUser)) {
+    const maybeSubscription = await getUserSubscription(
+      apiClient,
+      serviceId,
+      authenticatedApimUser.id
     );
+    if (isNone(maybeSubscription)) {
+      return ResponseErrorNotFound(
+        "Subscription not found",
+        "Cannot get a subscription for the logged in user"
+      );
+    }
   }
 
   return jiraClient
