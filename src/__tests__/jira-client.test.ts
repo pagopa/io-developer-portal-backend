@@ -1,11 +1,14 @@
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../generated/api/ServiceId";
 import * as config from "../config";
 import { JiraAPIClient } from "../jira_client";
 
 const JIRA_CONFIG = {
   JIRA_BOARD: "BOARD",
+  JIRA_EMAIL_DELEGATO_TAG_PREFIX: "DELEGATO-",
+  JIRA_ENTE_TAG_PREFIX: "ENTE",
   JIRA_NAMESPACE_URL: "board.atlassian.com",
+  JIRA_SERVICE_TAG_PREFIX: "SERVICE-",
   JIRA_STATUS_COMPLETE: "COMPLETE",
   JIRA_STATUS_IN_PROGRESS: "REVIEW",
   JIRA_STATUS_NEW: "NEW",
@@ -65,17 +68,26 @@ describe("JiraAPIClient#createJiraIssue", () => {
     const mockFetch = getMockFetchWithStatus(201);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      {
+        boardId: JIRA_CONFIG.JIRA_BOARD,
+        email_tag_prefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
+        ente_tag_prefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        service_tag_prefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
+        status_complete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        token: JIRA_CONFIG.JIRA_TOKEN
+      },
       mockFetch
     );
     const issue = await client
       .createJiraIssue(
         "Titolo della Card" as NonEmptyString,
         "Descrizione della card" as NonEmptyString,
-        serviceID,
+        {
+          email: "test@email.com" as EmailString,
+          organization_name: "MyOrganizationName" as NonEmptyString,
+          serviceId: (ServiceId as unknown) as NonEmptyString
+        },
         ["TEST" as NonEmptyString]
       )
       .run();
@@ -99,10 +111,15 @@ describe("JiraAPIClient#search and apply transition", () => {
     const mockFetch = getMockFetchWithStatus(200);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      {
+        boardId: JIRA_CONFIG.JIRA_BOARD,
+        email_tag_prefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
+        ente_tag_prefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        service_tag_prefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
+        status_complete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        token: JIRA_CONFIG.JIRA_TOKEN
+      },
       mockFetch
     );
 
@@ -126,10 +143,15 @@ describe("JiraAPIClient#search and apply transition", () => {
     const mockFetch = getMockFetchWithStatus(200);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      {
+        boardId: JIRA_CONFIG.JIRA_BOARD,
+        email_tag_prefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
+        ente_tag_prefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        service_tag_prefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
+        status_complete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        token: JIRA_CONFIG.JIRA_TOKEN
+      },
       mockFetch
     );
     const searchResponse = await client
@@ -151,10 +173,15 @@ describe("JiraAPIClient#search and apply transition", () => {
     const mockFetch = getMockFetchWithStatus(204);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      {
+        boardId: JIRA_CONFIG.JIRA_BOARD,
+        email_tag_prefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
+        ente_tag_prefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        service_tag_prefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
+        status_complete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        token: JIRA_CONFIG.JIRA_TOKEN
+      },
       mockFetch
     );
     const aJiraIssueTransitionResponse = await client

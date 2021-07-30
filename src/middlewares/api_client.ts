@@ -5,6 +5,7 @@
 import ApiManagementClient from "azure-arm-apimanagement";
 import { right } from "fp-ts/lib/Either";
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
+import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ITokenAndCredentials, loginToApim } from "../apim_operations";
 import * as config from "../config";
 import { IJiraAPIClient, JiraAPIClient } from "../jira_client";
@@ -44,12 +45,14 @@ export function getJiraClientMiddleware(
 ): IRequestMiddleware<"IResponseErrorInternal", IJiraAPIClient> {
   return async _ =>
     right(
-      JiraAPIClient(
-        jiraConfig.JIRA_NAMESPACE_URL,
-        jiraConfig.JIRA_USERNAME,
-        jiraConfig.JIRA_TOKEN,
-        jiraConfig.JIRA_BOARD,
-        jiraConfig.JIRA_STATUS_COMPLETE
-      )
+      JiraAPIClient(jiraConfig.JIRA_NAMESPACE_URL, {
+        boardId: jiraConfig.JIRA_BOARD,
+        email_tag_prefix: jiraConfig.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
+        ente_tag_prefix: jiraConfig.JIRA_ENTE_TAG_PREFIX,
+        jiraEmail: (jiraConfig.JIRA_USERNAME as unknown) as NonEmptyString,
+        service_tag_prefix: jiraConfig.JIRA_SERVICE_TAG_PREFIX,
+        status_complete: jiraConfig.JIRA_STATUS_COMPLETE,
+        token: jiraConfig.JIRA_TOKEN
+      })
     );
 }

@@ -9,11 +9,10 @@ import {
 } from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
 import { readableReport } from "italia-ts-commons/lib/reporters";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import nodeFetch from "node-fetch";
 import { ServiceId } from "../generated/api/ServiceId";
 
-export const JIRA_SERVICE_TAG_PREFIX = "devportal-service-";
 export const JIRA_DISABLE_LABEL = "DISATTIVAZIONE";
 
 export const SearchJiraIssueResponse = t.interface({
@@ -76,7 +75,11 @@ export interface IJiraAPIClient {
   readonly createJiraIssue: (
     title: NonEmptyString,
     description: NonEmptyString,
-    serviceId: NonEmptyString,
+    serviceData: {
+      readonly email: EmailString;
+      readonly organization_name: NonEmptyString;
+      readonly serviceId: NonEmptyString;
+    },
     labels?: ReadonlyArray<NonEmptyString>
   ) => TaskEither<Error, CreateJiraIssueResponse>;
   readonly createJiraIssueComment: (
@@ -101,19 +104,24 @@ export interface IJiraAPIClient {
 }
 
 export function JiraAPIClient(
-  baseUrl: string,
-  jiraEmail: string,
-  token: string,
-  boardId: string,
-  statusCompleteLabel: NonEmptyString,
+  baseUrl: NonEmptyString,
+  config: {
+    readonly boardId: NonEmptyString;
+    readonly email_tag_prefix: NonEmptyString;
+    readonly ente_tag_prefix: NonEmptyString;
+    readonly jiraEmail: NonEmptyString;
+    readonly service_tag_prefix: NonEmptyString;
+    readonly status_complete: NonEmptyString;
+    readonly token: NonEmptyString;
+  },
   // tslint:disable-next-line:no-any
   fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
 ): IJiraAPIClient {
   const jiraHeaders = {
     Accept: "application/json",
-    Authorization: `Basic ${Buffer.from(`${jiraEmail}:${token}`).toString(
-      "base64"
-    )}`,
+    Authorization: `Basic ${Buffer.from(
+      `${config.jiraEmail}:${config.token}`
+    ).toString("base64")}`,
     "Content-Type": "application/json"
   };
   const jiraIssueSearch = (bodyData: JiraIssueSearchPayload) =>
@@ -147,7 +155,11 @@ export function JiraAPIClient(
   const createJiraIssue = (
     title: NonEmptyString,
     description: NonEmptyString,
-    serviceId: NonEmptyString,
+    serviceData: {
+      readonly email: EmailString;
+      readonly organization_name: NonEmptyString;
+      readonly serviceId: NonEmptyString;
+    },
     labels?: ReadonlyArray<NonEmptyString>
   ) => {
     return tryCatch(
@@ -159,11 +171,13 @@ export function JiraAPIClient(
               issuetype: {
                 name: "Task"
               },
-              labels: [`${JIRA_SERVICE_TAG_PREFIX}${serviceId}`].concat(
-                labels || []
-              ),
+              labels: [
+                `${config.service_tag_prefix}${serviceData.serviceId}`,
+                `${config.email_tag_prefix}${serviceData.email}`,
+                `${config.ente_tag_prefix}${serviceData.organization_name}`
+              ].concat(labels || []),
               project: {
-                key: boardId
+                key: config.boardId
               },
               summary: title
             }
@@ -263,7 +277,7 @@ export function JiraAPIClient(
       expand: ["names"],
       fields: ["summary", "status", "assignee", "comment"],
       fieldsByKeys: false,
-      jql: `project = ${boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} OR (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`,
+      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${config.service_tag_prefix}${params.serviceId} OR (labels = ${config.service_tag_prefix}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`,
       startAt: 0
     };
     return jiraIssueSearch(bodyData);
@@ -277,7 +291,7 @@ export function JiraAPIClient(
       fields: ["summary", "status", "assignee", "comment", "labels"],
       fieldsByKeys: false,
       // Check if is better without JIRA_SERVICE_TAG_PREFIX
-      jql: `project = ${boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND status != ${statusCompleteLabel}) ORDER BY created DESC`,
+      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${config.service_tag_prefix}${params.serviceId} AND status != ${config.status_complete}) ORDER BY created DESC`,
       startAt: 0
     };
     return jiraIssueSearch(bodyData);
