@@ -170,10 +170,10 @@ export const getJiraConfigOrThrow = () =>
 
 export interface IJiraConfig {
   readonly boardId: NonEmptyString;
-  readonly email_tag_prefix: NonEmptyString;
-  readonly ente_tag_prefix: NonEmptyString;
+  readonly emailTagPrefix: NonEmptyString;
+  readonly enteTagPrefix: NonEmptyString;
   readonly jiraEmail: NonEmptyString;
-  readonly service_tag_prefix: NonEmptyString;
-  readonly status_complete: NonEmptyString;
+  readonly serviceTagPrefix: NonEmptyString;
+  readonly statusComplete: NonEmptyString;
   readonly token: NonEmptyString;
 }

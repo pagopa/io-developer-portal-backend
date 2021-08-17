@@ -70,11 +70,11 @@ describe("JiraAPIClient#createJiraIssue", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       {
         boardId: JIRA_CONFIG.JIRA_BOARD,
-        email_tag_prefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
-        ente_tag_prefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        emailTagPrefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
+        enteTagPrefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
         jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
-        service_tag_prefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
-        status_complete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        serviceTagPrefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
+        statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
       },
       mockFetch
@@ -113,11 +113,11 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       {
         boardId: JIRA_CONFIG.JIRA_BOARD,
-        email_tag_prefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
-        ente_tag_prefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        emailTagPrefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
+        enteTagPrefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
         jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
-        service_tag_prefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
-        status_complete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        serviceTagPrefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
+        statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
       },
       mockFetch
@@ -145,11 +145,11 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       {
         boardId: JIRA_CONFIG.JIRA_BOARD,
-        email_tag_prefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
-        ente_tag_prefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        emailTagPrefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
+        enteTagPrefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
         jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
-        service_tag_prefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
-        status_complete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        serviceTagPrefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
+        statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
       },
       mockFetch
@@ -175,11 +175,11 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       {
         boardId: JIRA_CONFIG.JIRA_BOARD,
-        email_tag_prefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
-        ente_tag_prefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        emailTagPrefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
+        enteTagPrefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
         jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
-        service_tag_prefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
-        status_complete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        serviceTagPrefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
+        statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
       },
       mockFetch

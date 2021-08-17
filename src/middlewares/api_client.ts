@@ -47,11 +47,11 @@ export function getJiraClientMiddleware(
     right(
       JiraAPIClient(jiraConfig.JIRA_NAMESPACE_URL, {
         boardId: jiraConfig.JIRA_BOARD,
-        email_tag_prefix: jiraConfig.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
-        ente_tag_prefix: jiraConfig.JIRA_ENTE_TAG_PREFIX,
+        emailTagPrefix: jiraConfig.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
+        enteTagPrefix: jiraConfig.JIRA_ENTE_TAG_PREFIX,
         jiraEmail: (jiraConfig.JIRA_USERNAME as unknown) as NonEmptyString,
-        service_tag_prefix: jiraConfig.JIRA_SERVICE_TAG_PREFIX,
-        status_complete: jiraConfig.JIRA_STATUS_COMPLETE,
+        serviceTagPrefix: jiraConfig.JIRA_SERVICE_TAG_PREFIX,
+        statusComplete: jiraConfig.JIRA_STATUS_COMPLETE,
         token: jiraConfig.JIRA_TOKEN
       })
     );

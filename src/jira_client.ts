@@ -165,9 +165,9 @@ export function JiraAPIClient(
                 name: "Task"
               },
               labels: [
-                `${config.service_tag_prefix}${serviceData.serviceId}`,
-                `${config.email_tag_prefix}${serviceData.email}`,
-                `${config.ente_tag_prefix}${serviceData.organization_name}`
+                `${config.serviceTagPrefix}${serviceData.serviceId}`,
+                `${config.emailTagPrefix}${serviceData.email}`,
+                `${config.enteTagPrefix}${serviceData.organization_name}`
               ].concat(labels || []),
               project: {
                 key: config.boardId
@@ -270,7 +270,7 @@ export function JiraAPIClient(
       expand: ["names"],
       fields: ["summary", "status", "assignee", "comment"],
       fieldsByKeys: false,
-      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${config.service_tag_prefix}${params.serviceId} OR (labels = ${config.service_tag_prefix}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`,
+      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${config.serviceTagPrefix}${params.serviceId} OR (labels = ${config.serviceTagPrefix}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`,
       startAt: 0
     };
     return jiraIssueSearch(bodyData);
@@ -284,7 +284,7 @@ export function JiraAPIClient(
       fields: ["summary", "status", "assignee", "comment", "labels"],
       fieldsByKeys: false,
       // Check if is better without JIRA_SERVICE_TAG_PREFIX
-      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${config.service_tag_prefix}${params.serviceId} AND status != ${config.status_complete}) ORDER BY created DESC`,
+      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${config.serviceTagPrefix}${params.serviceId} AND status != ${config.statusComplete}) ORDER BY created DESC`,
       startAt: 0
     };
     return jiraIssueSearch(bodyData);
