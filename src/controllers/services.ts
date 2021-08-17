@@ -441,7 +441,7 @@ export async function newDisableRequest(
           `Effettua la disattivazione del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
           {
             email: authenticatedUser.emails[0],
-            organization_name: errorOrService.value.organization_name,
+            organizationName: errorOrService.value.organization_name,
             serviceId
           },
           ["DISATTIVAZIONE" as NonEmptyString]
@@ -610,7 +610,7 @@ export async function newReviewRequest(
               `Effettua la review del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
               {
                 email: authenticatedUser.emails[0],
-                organization_name: errorOrService.value.organization_name,
+                organizationName: errorOrService.value.organization_name,
                 serviceId
               }
             )

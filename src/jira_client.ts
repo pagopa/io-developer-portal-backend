@@ -78,7 +78,7 @@ export interface IJiraAPIClient {
     description: NonEmptyString,
     serviceData: {
       readonly email: EmailString;
-      readonly organization_name: NonEmptyString;
+      readonly organizationName: NonEmptyString;
       readonly serviceId: NonEmptyString;
     },
     labels?: ReadonlyArray<NonEmptyString>
@@ -150,7 +150,7 @@ export function JiraAPIClient(
     description: NonEmptyString,
     serviceData: {
       readonly email: EmailString;
-      readonly organization_name: NonEmptyString;
+      readonly organizationName: NonEmptyString;
       readonly serviceId: NonEmptyString;
     },
     labels?: ReadonlyArray<NonEmptyString>
@@ -167,7 +167,7 @@ export function JiraAPIClient(
               labels: [
                 `${config.serviceTagPrefix}${serviceData.serviceId}`,
                 `${config.emailTagPrefix}${serviceData.email}`,
-                `${config.enteTagPrefix}${serviceData.organization_name}`
+                `${config.enteTagPrefix}${serviceData.organizationName}`
               ].concat(labels || []),
               project: {
                 key: config.boardId

@@ -85,7 +85,7 @@ describe("JiraAPIClient#createJiraIssue", () => {
         "Descrizione della card" as NonEmptyString,
         {
           email: "test@email.com" as EmailString,
-          organization_name: "MyOrganizationName" as NonEmptyString,
+          organizationName: "MyOrganizationName" as NonEmptyString,
           serviceId: (ServiceId as unknown) as NonEmptyString
         },
         ["TEST" as NonEmptyString]
