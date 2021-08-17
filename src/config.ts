@@ -167,3 +167,13 @@ export const getJiraConfigOrThrow = () =>
   }).getOrElseL(err => {
     throw new Error(errorsToReadableMessages(err).join("|"));
   });
+
+export interface IJiraConfig {
+  readonly boardId: NonEmptyString;
+  readonly email_tag_prefix: NonEmptyString;
+  readonly ente_tag_prefix: NonEmptyString;
+  readonly jiraEmail: NonEmptyString;
+  readonly service_tag_prefix: NonEmptyString;
+  readonly status_complete: NonEmptyString;
+  readonly token: NonEmptyString;
+}

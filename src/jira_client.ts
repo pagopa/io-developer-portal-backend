@@ -12,6 +12,7 @@ import { readableReport } from "italia-ts-commons/lib/reporters";
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import nodeFetch from "node-fetch";
 import { ServiceId } from "../generated/api/ServiceId";
+import { IJiraConfig } from "./config";
 
 export const JIRA_DISABLE_LABEL = "DISATTIVAZIONE";
 
@@ -105,15 +106,7 @@ export interface IJiraAPIClient {
 
 export function JiraAPIClient(
   baseUrl: NonEmptyString,
-  config: {
-    readonly boardId: NonEmptyString;
-    readonly email_tag_prefix: NonEmptyString;
-    readonly ente_tag_prefix: NonEmptyString;
-    readonly jiraEmail: NonEmptyString;
-    readonly service_tag_prefix: NonEmptyString;
-    readonly status_complete: NonEmptyString;
-    readonly token: NonEmptyString;
-  },
+  config: IJiraConfig,
   // tslint:disable-next-line:no-any
   fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
 ): IJiraAPIClient {
