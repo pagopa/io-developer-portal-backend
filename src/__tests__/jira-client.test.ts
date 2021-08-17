@@ -5,9 +5,10 @@ import { JiraAPIClient } from "../jira_client";
 
 const JIRA_CONFIG = {
   JIRA_BOARD: "BOARD",
-  JIRA_EMAIL_DELEGATO_TAG_PREFIX: "DELEGATO-",
-  JIRA_ENTE_TAG_PREFIX: "ENTE",
+  JIRA_DELEGATE_ID_FIELD: "",
+  JIRA_EMAIL_ID_FIELD: "",
   JIRA_NAMESPACE_URL: "board.atlassian.com",
+  JIRA_ORGANIZATION_ID_FIELD: "",
   JIRA_SERVICE_TAG_PREFIX: "SERVICE-",
   JIRA_STATUS_COMPLETE: "COMPLETE",
   JIRA_STATUS_IN_PROGRESS: "REVIEW",
@@ -70,9 +71,10 @@ describe("JiraAPIClient#createJiraIssue", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       {
         boardId: JIRA_CONFIG.JIRA_BOARD,
-        emailTagPrefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
-        enteTagPrefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
+        emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         serviceTagPrefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -84,6 +86,7 @@ describe("JiraAPIClient#createJiraIssue", () => {
         "Titolo della Card" as NonEmptyString,
         "Descrizione della card" as NonEmptyString,
         {
+          delegateName: "firstName lastName" as NonEmptyString,
           email: "test@email.com" as EmailString,
           organizationName: "MyOrganizationName" as NonEmptyString,
           serviceId: (ServiceId as unknown) as NonEmptyString
@@ -113,9 +116,10 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       {
         boardId: JIRA_CONFIG.JIRA_BOARD,
-        emailTagPrefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
-        enteTagPrefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
+        emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         serviceTagPrefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -145,9 +149,10 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       {
         boardId: JIRA_CONFIG.JIRA_BOARD,
-        emailTagPrefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
-        enteTagPrefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
+        emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         serviceTagPrefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -175,9 +180,10 @@ describe("JiraAPIClient#search and apply transition", () => {
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
       {
         boardId: JIRA_CONFIG.JIRA_BOARD,
-        emailTagPrefix: JIRA_CONFIG.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
-        enteTagPrefix: JIRA_CONFIG.JIRA_ENTE_TAG_PREFIX,
+        delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
+        emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         serviceTagPrefix: JIRA_CONFIG.JIRA_SERVICE_TAG_PREFIX,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN

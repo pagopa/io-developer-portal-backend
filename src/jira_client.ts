@@ -77,6 +77,7 @@ export interface IJiraAPIClient {
     title: NonEmptyString,
     description: NonEmptyString,
     serviceData: {
+      readonly delegateName: NonEmptyString;
       readonly email: EmailString;
       readonly organizationName: NonEmptyString;
       readonly serviceId: NonEmptyString;
@@ -149,6 +150,7 @@ export function JiraAPIClient(
     title: NonEmptyString,
     description: NonEmptyString,
     serviceData: {
+      readonly delegateName: NonEmptyString;
       readonly email: EmailString;
       readonly organizationName: NonEmptyString;
       readonly serviceId: NonEmptyString;
@@ -164,10 +166,11 @@ export function JiraAPIClient(
               issuetype: {
                 name: "Task"
               },
+              [`${config.delegateIdField}`]: `${serviceData.delegateName}`,
+              [`${config.emailIdField}`]: `${serviceData.email}`,
+              [`${config.organizationIdField}`]: `${serviceData.organizationName}`,
               labels: [
-                `${config.serviceTagPrefix}${serviceData.serviceId}`,
-                `${config.emailTagPrefix}${serviceData.email}`,
-                `${config.enteTagPrefix}${serviceData.organizationName}`
+                `${config.serviceTagPrefix}${serviceData.serviceId}`
               ].concat(labels || []),
               project: {
                 key: config.boardId

@@ -117,9 +117,10 @@ export const logoUrl = process.env.LOGO_URL;
 
 export const IJIRA_CONFIG = t.interface({
   JIRA_BOARD: NonEmptyString,
-  JIRA_EMAIL_DELEGATO_TAG_PREFIX: NonEmptyString,
-  JIRA_ENTE_TAG_PREFIX: NonEmptyString,
+  JIRA_DELEGATE_ID_FIELD: NonEmptyString,
+  JIRA_EMAIL_ID_FIELD: NonEmptyString,
   JIRA_NAMESPACE_URL: NonEmptyString,
+  JIRA_ORGANIZATION_ID_FIELD: NonEmptyString,
   JIRA_SERVICE_TAG_PREFIX: NonEmptyString,
   JIRA_STATUS_COMPLETE: NonEmptyString,
   JIRA_STATUS_IN_PROGRESS: NonEmptyString,
@@ -136,12 +137,15 @@ export type IJIRA_CONFIG = t.TypeOf<typeof IJIRA_CONFIG>;
 export const getJiraConfigOrThrow = () =>
   IJIRA_CONFIG.decode({
     ...process.env,
-    JIRA_EMAIL_DELEGATO_TAG_PREFIX: fromNullable(
-      process.env.JIRA_EMAIL_DELEGATO_TAG_PREFIX
-    ).getOrElse("DELEGATO-"),
-    JIRA_ENTE_TAG_PREFIX: fromNullable(
-      process.env.JIRA_ENTE_TAG_PREFIX
-    ).getOrElse("ENTE-"),
+    JIRA_DELEGATE_ID_FIELD: fromNullable(
+      process.env.JIRA_DELEGATE_ID_FIELD
+    ).getOrElse(""),
+    JIRA_EMAIL_ID_FIELD: fromNullable(
+      process.env.JIRA_EMAIL_ID_FIELD
+    ).getOrElse(""),
+    JIRA_ORGANIZATION_ID_FIELD: fromNullable(
+      process.env.JIRA_ORGANIZATION_ID_FIELD
+    ).getOrElse(""),
     JIRA_SERVICE_TAG_PREFIX: fromNullable(
       process.env.JIRA_SERVICE_TAG_PREFIX
     ).getOrElse("SERVICE-"),
@@ -170,8 +174,9 @@ export const getJiraConfigOrThrow = () =>
 
 export interface IJiraConfig {
   readonly boardId: NonEmptyString;
-  readonly emailTagPrefix: NonEmptyString;
-  readonly enteTagPrefix: NonEmptyString;
+  readonly delegateIdField: NonEmptyString;
+  readonly emailIdField: NonEmptyString;
+  readonly organizationIdField: NonEmptyString;
   readonly jiraEmail: NonEmptyString;
   readonly serviceTagPrefix: NonEmptyString;
   readonly statusComplete: NonEmptyString;

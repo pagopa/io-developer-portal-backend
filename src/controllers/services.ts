@@ -440,6 +440,7 @@ export async function newDisableRequest(
           `[DISATTIVAZIONE] servizio ${serviceId}` as NonEmptyString,
           `Effettua la disattivazione del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
           {
+            delegateName: `${authenticatedUser.given_name} ${authenticatedUser.family_name}` as NonEmptyString,
             email: authenticatedUser.emails[0],
             organizationName: errorOrService.value.organization_name,
             serviceId
@@ -606,9 +607,10 @@ export async function newReviewRequest(
         } else {
           return jiraClient
             .createJiraIssue(
-              `Review servizio ${serviceId} - ${authenticatedUser.given_name} (${authenticatedUser.emails[0]})` as NonEmptyString,
+              `Review servizio ${serviceId}` as NonEmptyString,
               `Effettua la review del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
               {
+                delegateName: `${authenticatedUser.given_name} ${authenticatedUser.family_name}` as NonEmptyString,
                 email: authenticatedUser.emails[0],
                 organizationName: errorOrService.value.organization_name,
                 serviceId

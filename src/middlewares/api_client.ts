@@ -47,9 +47,10 @@ export function getJiraClientMiddleware(
     right(
       JiraAPIClient(jiraConfig.JIRA_NAMESPACE_URL, {
         boardId: jiraConfig.JIRA_BOARD,
-        emailTagPrefix: jiraConfig.JIRA_EMAIL_DELEGATO_TAG_PREFIX,
-        enteTagPrefix: jiraConfig.JIRA_ENTE_TAG_PREFIX,
+        delegateIdField: jiraConfig.JIRA_DELEGATE_ID_FIELD,
+        emailIdField: jiraConfig.JIRA_EMAIL_ID_FIELD,
         jiraEmail: (jiraConfig.JIRA_USERNAME as unknown) as NonEmptyString,
+        organizationIdField: jiraConfig.JIRA_ORGANIZATION_ID_FIELD,
         serviceTagPrefix: jiraConfig.JIRA_SERVICE_TAG_PREFIX,
         statusComplete: jiraConfig.JIRA_STATUS_COMPLETE,
         token: jiraConfig.JIRA_TOKEN
