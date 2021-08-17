@@ -14,6 +14,8 @@ import nodeFetch from "node-fetch";
 import { ServiceId } from "../generated/api/ServiceId";
 import { IJiraConfig } from "./config";
 
+export const JIRA_SERVICE_TAG_PREFIX = "devportal-service-";
+
 export const JIRA_DISABLE_LABEL = "DISATTIVAZIONE";
 
 export const SearchJiraIssueResponse = t.interface({
@@ -170,7 +172,7 @@ export function JiraAPIClient(
               [`${config.emailIdField}`]: `${serviceData.email}`,
               [`${config.organizationIdField}`]: `${serviceData.organizationName}`,
               labels: [
-                `${config.serviceTagPrefix}${serviceData.serviceId}`
+                `${JIRA_SERVICE_TAG_PREFIX}${serviceData.serviceId}`
               ].concat(labels || []),
               project: {
                 key: config.boardId
@@ -273,7 +275,7 @@ export function JiraAPIClient(
       expand: ["names"],
       fields: ["summary", "status", "assignee", "comment"],
       fieldsByKeys: false,
-      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${config.serviceTagPrefix}${params.serviceId} OR (labels = ${config.serviceTagPrefix}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`,
+      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} OR (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`,
       startAt: 0
     };
     return jiraIssueSearch(bodyData);
@@ -287,7 +289,7 @@ export function JiraAPIClient(
       fields: ["summary", "status", "assignee", "comment", "labels"],
       fieldsByKeys: false,
       // Check if is better without JIRA_SERVICE_TAG_PREFIX
-      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${config.serviceTagPrefix}${params.serviceId} AND status != ${config.statusComplete}) ORDER BY created DESC`,
+      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND status != ${config.statusComplete}) ORDER BY created DESC`,
       startAt: 0
     };
     return jiraIssueSearch(bodyData);

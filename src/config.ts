@@ -121,7 +121,6 @@ export const IJIRA_CONFIG = t.interface({
   JIRA_EMAIL_ID_FIELD: NonEmptyString,
   JIRA_NAMESPACE_URL: NonEmptyString,
   JIRA_ORGANIZATION_ID_FIELD: NonEmptyString,
-  JIRA_SERVICE_TAG_PREFIX: NonEmptyString,
   JIRA_STATUS_COMPLETE: NonEmptyString,
   JIRA_STATUS_IN_PROGRESS: NonEmptyString,
   JIRA_STATUS_NEW: NonEmptyString,
@@ -146,9 +145,6 @@ export const getJiraConfigOrThrow = () =>
     JIRA_ORGANIZATION_ID_FIELD: fromNullable(
       process.env.JIRA_ORGANIZATION_ID_FIELD
     ).getOrElse(""),
-    JIRA_SERVICE_TAG_PREFIX: fromNullable(
-      process.env.JIRA_SERVICE_TAG_PREFIX
-    ).getOrElse("SERVICE-"),
     JIRA_STATUS_COMPLETE: fromNullable(
       process.env.JIRA_STATUS_COMPLETE
     ).getOrElse("DONE"),
@@ -178,7 +174,6 @@ export interface IJiraConfig {
   readonly emailIdField: NonEmptyString;
   readonly organizationIdField: NonEmptyString;
   readonly jiraEmail: NonEmptyString;
-  readonly serviceTagPrefix: NonEmptyString;
   readonly statusComplete: NonEmptyString;
   readonly token: NonEmptyString;
 }

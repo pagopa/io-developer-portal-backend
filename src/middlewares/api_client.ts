@@ -51,7 +51,6 @@ export function getJiraClientMiddleware(
         emailIdField: jiraConfig.JIRA_EMAIL_ID_FIELD,
         jiraEmail: (jiraConfig.JIRA_USERNAME as unknown) as NonEmptyString,
         organizationIdField: jiraConfig.JIRA_ORGANIZATION_ID_FIELD,
-        serviceTagPrefix: jiraConfig.JIRA_SERVICE_TAG_PREFIX,
         statusComplete: jiraConfig.JIRA_STATUS_COMPLETE,
         token: jiraConfig.JIRA_TOKEN
       })
