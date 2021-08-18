@@ -117,11 +117,13 @@ export const logoUrl = process.env.LOGO_URL;
 
 export const IJIRA_CONFIG = t.interface({
   JIRA_BOARD: NonEmptyString,
+  JIRA_DELEGATE_ID_FIELD: NonEmptyString,
+  JIRA_EMAIL_ID_FIELD: NonEmptyString,
   JIRA_NAMESPACE_URL: NonEmptyString,
+  JIRA_ORGANIZATION_ID_FIELD: NonEmptyString,
   JIRA_STATUS_COMPLETE: NonEmptyString,
   JIRA_STATUS_IN_PROGRESS: NonEmptyString,
   JIRA_STATUS_NEW: NonEmptyString,
-
   JIRA_STATUS_REJECTED: NonEmptyString,
   JIRA_TOKEN: NonEmptyString,
   JIRA_TRANSITION_REJECT_ID: NonEmptyString,
@@ -134,6 +136,15 @@ export type IJIRA_CONFIG = t.TypeOf<typeof IJIRA_CONFIG>;
 export const getJiraConfigOrThrow = () =>
   IJIRA_CONFIG.decode({
     ...process.env,
+    JIRA_DELEGATE_ID_FIELD: fromNullable(
+      process.env.JIRA_DELEGATE_ID_FIELD
+    ).getOrElse(""),
+    JIRA_EMAIL_ID_FIELD: fromNullable(
+      process.env.JIRA_EMAIL_ID_FIELD
+    ).getOrElse(""),
+    JIRA_ORGANIZATION_ID_FIELD: fromNullable(
+      process.env.JIRA_ORGANIZATION_ID_FIELD
+    ).getOrElse(""),
     JIRA_STATUS_COMPLETE: fromNullable(
       process.env.JIRA_STATUS_COMPLETE
     ).getOrElse("DONE"),

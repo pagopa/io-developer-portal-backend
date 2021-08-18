@@ -1,11 +1,14 @@
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../generated/api/ServiceId";
 import * as config from "../config";
 import { JiraAPIClient } from "../jira_client";
 
 const JIRA_CONFIG = {
   JIRA_BOARD: "BOARD",
+  JIRA_DELEGATE_ID_FIELD: "",
+  JIRA_EMAIL_ID_FIELD: "",
   JIRA_NAMESPACE_URL: "board.atlassian.com",
+  JIRA_ORGANIZATION_ID_FIELD: "",
   JIRA_STATUS_COMPLETE: "COMPLETE",
   JIRA_STATUS_IN_PROGRESS: "REVIEW",
   JIRA_STATUS_NEW: "NEW",
@@ -65,17 +68,27 @@ describe("JiraAPIClient#createJiraIssue", () => {
     const mockFetch = getMockFetchWithStatus(201);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      {
+        boardId: JIRA_CONFIG.JIRA_BOARD,
+        delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
+        emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
+        jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
+        organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
+        statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        token: JIRA_CONFIG.JIRA_TOKEN
+      },
       mockFetch
     );
     const issue = await client
       .createJiraIssue(
         "Titolo della Card" as NonEmptyString,
         "Descrizione della card" as NonEmptyString,
-        serviceID,
+        {
+          delegateName: "firstName lastName" as NonEmptyString,
+          email: "test@email.com" as EmailString,
+          organizationName: "MyOrganizationName" as NonEmptyString,
+          serviceId: (ServiceId as unknown) as NonEmptyString
+        },
         ["TEST" as NonEmptyString]
       )
       .run();
@@ -99,10 +112,15 @@ describe("JiraAPIClient#search and apply transition", () => {
     const mockFetch = getMockFetchWithStatus(200);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      {
+        boardId: JIRA_CONFIG.JIRA_BOARD,
+        delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
+        emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
+        jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
+        organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
+        statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        token: JIRA_CONFIG.JIRA_TOKEN
+      },
       mockFetch
     );
 
@@ -126,10 +144,15 @@ describe("JiraAPIClient#search and apply transition", () => {
     const mockFetch = getMockFetchWithStatus(200);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      {
+        boardId: JIRA_CONFIG.JIRA_BOARD,
+        delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
+        emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
+        jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
+        organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
+        statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        token: JIRA_CONFIG.JIRA_TOKEN
+      },
       mockFetch
     );
     const searchResponse = await client
@@ -151,10 +174,15 @@ describe("JiraAPIClient#search and apply transition", () => {
     const mockFetch = getMockFetchWithStatus(204);
     const client = JiraAPIClient(
       JIRA_CONFIG.JIRA_NAMESPACE_URL,
-      JIRA_CONFIG.JIRA_USERNAME,
-      JIRA_CONFIG.JIRA_TOKEN,
-      JIRA_CONFIG.JIRA_BOARD,
-      JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+      {
+        boardId: JIRA_CONFIG.JIRA_BOARD,
+        delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
+        emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
+        jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
+        organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
+        statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
+        token: JIRA_CONFIG.JIRA_TOKEN
+      },
       mockFetch
     );
     const aJiraIssueTransitionResponse = await client

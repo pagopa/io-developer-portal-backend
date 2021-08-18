@@ -44,12 +44,14 @@ export function getJiraClientMiddleware(
 ): IRequestMiddleware<"IResponseErrorInternal", IJiraAPIClient> {
   return async _ =>
     right(
-      JiraAPIClient(
-        jiraConfig.JIRA_NAMESPACE_URL,
-        jiraConfig.JIRA_USERNAME,
-        jiraConfig.JIRA_TOKEN,
-        jiraConfig.JIRA_BOARD,
-        jiraConfig.JIRA_STATUS_COMPLETE
-      )
+      JiraAPIClient(jiraConfig.JIRA_NAMESPACE_URL, {
+        boardId: jiraConfig.JIRA_BOARD,
+        delegateIdField: jiraConfig.JIRA_DELEGATE_ID_FIELD,
+        emailIdField: jiraConfig.JIRA_EMAIL_ID_FIELD,
+        jiraEmail: jiraConfig.JIRA_USERNAME,
+        organizationIdField: jiraConfig.JIRA_ORGANIZATION_ID_FIELD,
+        statusComplete: jiraConfig.JIRA_STATUS_COMPLETE,
+        token: jiraConfig.JIRA_TOKEN
+      })
     );
 }

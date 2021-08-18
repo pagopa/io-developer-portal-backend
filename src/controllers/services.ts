@@ -125,6 +125,7 @@ export async function getService(
   // Authenticates this request against the logged in user
   // checking that serviceId = subscriptionId
   // if the user is an admin we skip the check on userId
+
   const maybeSubscription = await getUserSubscription(
     apiClient,
     serviceId,
@@ -385,6 +386,18 @@ export async function newDisableRequest(
     );
   }
 
+  const errorOrService = toEither(
+    await notificationApiClient.getService({
+      id: serviceId
+    })
+  );
+  if (isLeft(errorOrService)) {
+    return ResponseErrorNotFound(
+      "Service not found",
+      "Cannot get a service with the provided id."
+    );
+  }
+
   return jiraClient
     .getServiceJiraIssuesByStatus({
       serviceId,
@@ -426,7 +439,12 @@ export async function newDisableRequest(
         .createJiraIssue(
           `[DISATTIVAZIONE] servizio ${serviceId}` as NonEmptyString,
           `Effettua la disattivazione del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
-          serviceId,
+          {
+            delegateName: `${authenticatedUser.given_name} ${authenticatedUser.family_name}` as NonEmptyString,
+            email: authenticatedUser.emails[0],
+            organizationName: errorOrService.value.organization_name,
+            serviceId
+          },
           ["DISATTIVAZIONE" as NonEmptyString]
         )
         .map(__ =>
@@ -589,9 +607,14 @@ export async function newReviewRequest(
         } else {
           return jiraClient
             .createJiraIssue(
-              `Richiesta di Review servizio ${serviceId}` as NonEmptyString,
+              `Review servizio ${serviceId}` as NonEmptyString,
               `Effettua la review del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
-              serviceId
+              {
+                delegateName: `${authenticatedUser.given_name} ${authenticatedUser.family_name}` as NonEmptyString,
+                email: authenticatedUser.emails[0],
+                organizationName: errorOrService.value.organization_name,
+                serviceId
+              }
             )
             .map(__ =>
               ResponseSuccessJson<ReviewStatus>({
