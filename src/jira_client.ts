@@ -11,8 +11,18 @@ import * as t from "io-ts";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import nodeFetch from "node-fetch";
+import { EmailAddress } from "../generated/api/EmailAddress";
 import { ServiceId } from "../generated/api/ServiceId";
-import { IJiraConfig } from "./config";
+
+export interface IJiraConfig {
+  readonly boardId: NonEmptyString;
+  readonly delegateIdField: NonEmptyString;
+  readonly emailIdField: NonEmptyString;
+  readonly organizationIdField: NonEmptyString;
+  readonly jiraEmail: EmailAddress;
+  readonly statusComplete: NonEmptyString;
+  readonly token: NonEmptyString;
+}
 
 export const JIRA_SERVICE_TAG_PREFIX = "devportal-service-";
 

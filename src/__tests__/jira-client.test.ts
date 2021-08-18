@@ -72,7 +72,7 @@ describe("JiraAPIClient#createJiraIssue", () => {
         boardId: JIRA_CONFIG.JIRA_BOARD,
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
-        jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -116,7 +116,7 @@ describe("JiraAPIClient#search and apply transition", () => {
         boardId: JIRA_CONFIG.JIRA_BOARD,
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
-        jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -148,7 +148,7 @@ describe("JiraAPIClient#search and apply transition", () => {
         boardId: JIRA_CONFIG.JIRA_BOARD,
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
-        jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -178,7 +178,7 @@ describe("JiraAPIClient#search and apply transition", () => {
         boardId: JIRA_CONFIG.JIRA_BOARD,
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
-        jiraEmail: (JIRA_CONFIG.JIRA_USERNAME as unknown) as NonEmptyString,
+        jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN

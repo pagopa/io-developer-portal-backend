@@ -5,7 +5,6 @@
 import ApiManagementClient from "azure-arm-apimanagement";
 import { right } from "fp-ts/lib/Either";
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ITokenAndCredentials, loginToApim } from "../apim_operations";
 import * as config from "../config";
 import { IJiraAPIClient, JiraAPIClient } from "../jira_client";
@@ -49,7 +48,7 @@ export function getJiraClientMiddleware(
         boardId: jiraConfig.JIRA_BOARD,
         delegateIdField: jiraConfig.JIRA_DELEGATE_ID_FIELD,
         emailIdField: jiraConfig.JIRA_EMAIL_ID_FIELD,
-        jiraEmail: (jiraConfig.JIRA_USERNAME as unknown) as NonEmptyString,
+        jiraEmail: jiraConfig.JIRA_USERNAME,
         organizationIdField: jiraConfig.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: jiraConfig.JIRA_STATUS_COMPLETE,
         token: jiraConfig.JIRA_TOKEN
