@@ -52,7 +52,7 @@
     "ms-rest-azure": "^2.4.4",
     "node-fetch": "^2.2.0",
     "passport": "*",
-    "passport-azure-ad": "^3.0.8",
+    "passport-azure-ad": "^4.3.0",
     "patch-package": "^5.1.1",
     "randomstring": "^1.1.5",
     "referrer-policy": "^1.1.0",
