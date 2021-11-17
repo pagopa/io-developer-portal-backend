@@ -16,7 +16,7 @@
     "build": "npm-run-all -s generate build:clean build:tsc",
     "clean:api-models": "rimraf generated/api && shx mkdir -p generated/api",
     "generate:api-models:public": "gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-functions/v0.64.0/api/public_api_v1.yaml --no-strict --out-dir generated/api",
-    "generate:api-models:admin": "gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-functions-admin/master/openapi/index.yaml --no-strict --out-dir generated/api",
+    "generate:api-models:admin": "gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-functions-admin/IC-40-special-service-model-upgrade/openapi/index.yaml --no-strict --out-dir generated/api",
     "generate": "npm-run-all -s clean:api-models generate:api-models:*",
     "dist:modules": "modclean -r -n default:safe && npm prune --production",
     "predeploy": "npm-run-all build dist:modules",
