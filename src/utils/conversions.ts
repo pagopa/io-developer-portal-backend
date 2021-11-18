@@ -11,6 +11,11 @@ import { VisibleServicePayload } from "../../generated/api/VisibleServicePayload
 import { IExtendedUserContract, isAdminUser } from "../apim_operations";
 import { ServicePayload } from "../controllers/services";
 
+export const hasCategory = (
+  s?: ServiceMetadata
+): s is SpecialServiceMetadata | StandardServiceMetadata =>
+  SpecialServiceMetadata.is(s) || StandardServiceMetadata.is(s);
+
 export const getServicePayloadUpdater = (user: IExtendedUserContract) => (
   originalService: Service,
   payload: ServicePayload
@@ -30,15 +35,10 @@ export const getServicePayloadUpdater = (user: IExtendedUserContract) => (
 
   const serviceMetadata: ServiceMetadata = {
     ...payload.service_metadata,
-    // Scope for visible services cannot be changed
     category:
-      (SpecialServiceMetadata.is(payload.service_metadata) ||
-        StandardServiceMetadata.is(payload.service_metadata)) &&
-      isAdminUser(user)
+      hasCategory(payload.service_metadata) && isAdminUser(user)
         ? payload.service_metadata.category
-        : (SpecialServiceMetadata.is(originalService.service_metadata) ||
-            StandardServiceMetadata.is(originalService.service_metadata)) &&
-          !isAdminUser(user)
+        : hasCategory(originalService.service_metadata) && !isAdminUser(user)
         ? originalService.service_metadata.category
         : StandardServiceCategoryEnum.STANDARD,
     custom_special_flow:
@@ -48,6 +48,7 @@ export const getServicePayloadUpdater = (user: IExtendedUserContract) => (
           !isAdminUser(user)
         ? originalService.service_metadata.custom_special_flow
         : undefined,
+    // Scope for visible services cannot be changed
     scope:
       !VisibleServicePayload.is(originalService) || isAdminUser(user)
         ? fromNullable(payload.service_metadata?.scope)
