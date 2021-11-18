@@ -1,3 +1,4 @@
+import { IPatternStringTag } from "@pagopa/ts-commons/lib/strings";
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../generated/api/ServiceId";
 import * as config from "../config";
@@ -8,6 +9,7 @@ const JIRA_CONFIG = {
   JIRA_DELEGATE_ID_FIELD: "",
   JIRA_EMAIL_ID_FIELD: "",
   JIRA_NAMESPACE_URL: "board.atlassian.com",
+  JIRA_ORGANIZATION_FISCALCODE: "",
   JIRA_ORGANIZATION_ID_FIELD: "",
   JIRA_STATUS_COMPLETE: "COMPLETE",
   JIRA_STATUS_IN_PROGRESS: "REVIEW",
@@ -73,6 +75,7 @@ describe("JiraAPIClient#createJiraIssue", () => {
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
+        organizationFiscalCode: JIRA_CONFIG.JIRA_ORGANIZATION_FISCALCODE,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -86,6 +89,9 @@ describe("JiraAPIClient#createJiraIssue", () => {
         {
           delegateName: "firstName lastName" as NonEmptyString,
           email: "test@email.com" as EmailString,
+          organizationFiscalCode: ("00000000000" as unknown) as IPatternStringTag<
+            "^[0-9]{11}$"
+          >,
           organizationName: "MyOrganizationName" as NonEmptyString,
           serviceId: (ServiceId as unknown) as NonEmptyString
         },
@@ -117,6 +123,7 @@ describe("JiraAPIClient#search and apply transition", () => {
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
+        organizationFiscalCode: JIRA_CONFIG.JIRA_ORGANIZATION_FISCALCODE,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -149,6 +156,7 @@ describe("JiraAPIClient#search and apply transition", () => {
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
+        organizationFiscalCode: JIRA_CONFIG.JIRA_ORGANIZATION_FISCALCODE,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -179,6 +187,7 @@ describe("JiraAPIClient#search and apply transition", () => {
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
+        organizationFiscalCode: JIRA_CONFIG.JIRA_ORGANIZATION_FISCALCODE,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN

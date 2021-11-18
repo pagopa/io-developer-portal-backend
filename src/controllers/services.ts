@@ -442,6 +442,8 @@ export async function newDisableRequest(
           {
             delegateName: `${authenticatedUser.given_name} ${authenticatedUser.family_name}` as NonEmptyString,
             email: authenticatedUser.emails[0],
+            organizationFiscalCode:
+              errorOrService.value.organization_fiscal_code,
             organizationName: errorOrService.value.organization_name,
             serviceId
           },
@@ -612,6 +614,8 @@ export async function newReviewRequest(
               {
                 delegateName: `${authenticatedUser.given_name} ${authenticatedUser.family_name}` as NonEmptyString,
                 email: authenticatedUser.emails[0],
+                organizationFiscalCode:
+                  errorOrService.value.organization_fiscal_code,
                 organizationName: errorOrService.value.organization_name,
                 serviceId
               }

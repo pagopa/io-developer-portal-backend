@@ -49,6 +49,7 @@ export function getJiraClientMiddleware(
         delegateIdField: jiraConfig.JIRA_DELEGATE_ID_FIELD,
         emailIdField: jiraConfig.JIRA_EMAIL_ID_FIELD,
         jiraEmail: jiraConfig.JIRA_USERNAME,
+        organizationFiscalCode: jiraConfig.JIRA_ORGANIZATION_FISCALCODE,
         organizationIdField: jiraConfig.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: jiraConfig.JIRA_STATUS_COMPLETE,
         token: jiraConfig.JIRA_TOKEN
