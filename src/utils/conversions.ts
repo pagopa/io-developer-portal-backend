@@ -39,14 +39,16 @@ export const getServicePayloadUpdater = (user: IExtendedUserContract) => (
       hasCategory(payload.service_metadata) && isAdminUser(user)
         ? payload.service_metadata.category
         : hasCategory(originalService.service_metadata) && !isAdminUser(user)
-        ? originalService.service_metadata.category
+        ? // Keep original category value if the user is not an admin
+          originalService.service_metadata.category
         : StandardServiceCategoryEnum.STANDARD,
     custom_special_flow:
       SpecialServiceMetadata.is(payload.service_metadata) && isAdminUser(user)
         ? payload.service_metadata.custom_special_flow
         : SpecialServiceMetadata.is(originalService.service_metadata) &&
           !isAdminUser(user)
-        ? originalService.service_metadata.custom_special_flow
+        ? // Keep original custom_special_flow value if the user is not an admin
+          originalService.service_metadata.custom_special_flow
         : undefined,
     // Scope for visible services cannot be changed
     scope:
