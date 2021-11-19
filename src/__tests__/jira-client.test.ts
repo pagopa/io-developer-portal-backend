@@ -1,4 +1,4 @@
-import { IPatternStringTag } from "@pagopa/ts-commons/lib/strings";
+import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../generated/api/ServiceId";
 import * as config from "../config";
@@ -89,9 +89,7 @@ describe("JiraAPIClient#createJiraIssue", () => {
         {
           delegateName: "firstName lastName" as NonEmptyString,
           email: "test@email.com" as EmailString,
-          organizationFiscalCode: ("00000000000" as unknown) as IPatternStringTag<
-            "^[0-9]{11}$"
-          >,
+          organizationFiscalCode: "00000000000" as FiscalCode,
           organizationName: "MyOrganizationName" as NonEmptyString,
           serviceId: (ServiceId as unknown) as NonEmptyString
         },
