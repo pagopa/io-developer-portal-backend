@@ -1,4 +1,4 @@
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
+import { OrganizationFiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { toError } from "fp-ts/lib/Either";
 import { fromNullable } from "fp-ts/lib/Option";
 import {
@@ -19,7 +19,7 @@ export interface IJiraConfig {
   readonly boardId: NonEmptyString;
   readonly delegateIdField: NonEmptyString;
   readonly emailIdField: NonEmptyString;
-  readonly organizationFiscalCode: FiscalCode;
+  readonly organizationFiscalCode: OrganizationFiscalCode;
   readonly organizationIdField: NonEmptyString;
   readonly jiraEmail: EmailAddress;
   readonly statusComplete: NonEmptyString;
@@ -93,7 +93,7 @@ export interface IJiraAPIClient {
     serviceData: {
       readonly delegateName: NonEmptyString;
       readonly email: EmailString;
-      readonly organizationFiscalCode: FiscalCode;
+      readonly organizationFiscalCode: OrganizationFiscalCode;
       readonly organizationName: NonEmptyString;
       readonly serviceId: NonEmptyString;
     },
@@ -167,7 +167,7 @@ export function JiraAPIClient(
     serviceData: {
       readonly delegateName: NonEmptyString;
       readonly email: EmailString;
-      readonly organizationFiscalCode: FiscalCode;
+      readonly organizationFiscalCode: OrganizationFiscalCode;
       readonly organizationName: NonEmptyString;
       readonly serviceId: NonEmptyString;
     },

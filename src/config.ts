@@ -1,3 +1,4 @@
+import { OrganizationFiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { fromNullable } from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
@@ -120,7 +121,7 @@ export const IJIRA_CONFIG = t.interface({
   JIRA_DELEGATE_ID_FIELD: NonEmptyString,
   JIRA_EMAIL_ID_FIELD: NonEmptyString,
   JIRA_NAMESPACE_URL: NonEmptyString,
-  JIRA_ORGANIZATION_FISCALCODE: FiscalCode,
+  JIRA_ORGANIZATION_FISCALCODE: OrganizationFiscalCode,
   JIRA_ORGANIZATION_ID_FIELD: NonEmptyString,
   JIRA_STATUS_COMPLETE: NonEmptyString,
   JIRA_STATUS_IN_PROGRESS: NonEmptyString,

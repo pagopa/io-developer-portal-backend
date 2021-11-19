@@ -1,5 +1,8 @@
-import { FiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
+import {
+  EmailString,
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../generated/api/ServiceId";
 import * as config from "../config";
 import { JiraAPIClient } from "../jira_client";
@@ -89,7 +92,7 @@ describe("JiraAPIClient#createJiraIssue", () => {
         {
           delegateName: "firstName lastName" as NonEmptyString,
           email: "test@email.com" as EmailString,
-          organizationFiscalCode: "00000000000" as FiscalCode,
+          organizationFiscalCode: "00000000000" as OrganizationFiscalCode,
           organizationName: "MyOrganizationName" as NonEmptyString,
           serviceId: (ServiceId as unknown) as NonEmptyString
         },
