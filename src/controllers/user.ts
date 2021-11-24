@@ -19,7 +19,7 @@ import {
   IExtendedUserContract,
   isAdminUser
 } from "../apim_operations";
-import { AdUser } from "../auth-strategies/bearer_strategy";
+import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import { logger } from "../logger";
 import { getActualUser } from "../middlewares/actual_user";
 

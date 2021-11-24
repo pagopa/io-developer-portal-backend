@@ -36,7 +36,7 @@ import {
   OrganizationFiscalCode
 } from "italia-ts-commons/lib/strings";
 
-import { setupBearerStrategy } from "./auth-strategies/bearer_strategy";
+import { setupAzureAdStrategy } from "./auth-strategies/azure_ad_strategy";
 import { initCacheStats } from "./cache";
 import { getConfiguration } from "./controllers/configuration";
 import {
@@ -83,7 +83,7 @@ const JIRA_CONFIG = config.getJiraConfigOrThrow();
 /**
  * Setup an authentication strategy (oauth) for express endpoints.
  */
-setupBearerStrategy(passport, config.creds, async (userId, profile) => {
+setupAzureAdStrategy(passport, config.creds, async (userId, profile) => {
   // executed when the user is logged in
   // userId === profile.oid
   // req.user === profile

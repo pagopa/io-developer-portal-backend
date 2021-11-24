@@ -4,7 +4,7 @@ import * as services from "../../controllers/services";
 import ApiManagementClient from "azure-arm-apimanagement";
 import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
-import { AdUser } from "../../auth-strategies/bearer_strategy";
+import { AdUser } from "../../auth-strategies/azure_ad_strategy";
 import {
   checkAdminTask,
   getApimUserTask,

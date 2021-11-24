@@ -26,7 +26,7 @@ import {
   getUserSubscription,
   isAdminUser
 } from "../apim_operations";
-import { AdUser } from "../auth-strategies/bearer_strategy";
+import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import * as config from "../config";
 
 import { withDefault } from "italia-ts-commons/lib/types";

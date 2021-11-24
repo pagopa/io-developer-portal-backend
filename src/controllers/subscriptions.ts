@@ -24,7 +24,7 @@ import {
   regeneratePrimaryKey,
   regenerateSecondaryKey
 } from "../apim_operations";
-import { AdUser } from "../auth-strategies/bearer_strategy";
+import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
