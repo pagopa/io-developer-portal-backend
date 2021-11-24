@@ -37,14 +37,14 @@ import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 import { fromNullable, toError } from "fp-ts/lib/Either";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../generated/api/ServiceId";
-import { SessionUser } from "../utils/session";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 export const getApimUserTask = (
   apiClient: ApiManagementClient,
   authenticatedUser: SessionUser
 ): TaskEither<ErrorResponses, IExtendedUserContract> =>
   tryCatch(
-    () => getApimUser(apiClient, authenticatedUser.emails[0]),
+    () => getApimUser(apiClient, getApimAccountEmail(authenticatedUser)),
     errors => ResponseErrorInternal(toError(errors).message)
   ).foldTaskEither<ErrorResponses, IExtendedUserContract>(
     error => fromLeft(error),

@@ -17,7 +17,7 @@ import {
   isAdminUser
 } from "../apim_operations";
 import { logger } from "../logger";
-import { SessionUser } from "../utils/session";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 export async function getActualUser(
   apiClient: ApiManagementClient,
@@ -29,7 +29,7 @@ export async function getActualUser(
   // Get API management groups for the authenticated user
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
 
   // Check if the authenticated user is an administrator

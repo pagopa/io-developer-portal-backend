@@ -26,7 +26,7 @@ import {
   getUserSubscription,
   isAdminUser
 } from "../apim_operations";
-import { SessionUser } from "../utils/session";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 import * as config from "../config";
 
 import { withDefault } from "italia-ts-commons/lib/types";
@@ -112,7 +112,7 @@ export async function getService(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
@@ -168,7 +168,7 @@ export async function putService(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
@@ -282,7 +282,7 @@ export async function getReviewStatus(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
@@ -360,7 +360,7 @@ export async function newDisableRequest(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
@@ -441,7 +441,7 @@ export async function newDisableRequest(
           `Effettua la disattivazione del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
           {
             delegateName: `${authenticatedUser.given_name} ${authenticatedUser.family_name}` as NonEmptyString,
-            email: authenticatedUser.emails[0],
+            email: getApimAccountEmail(authenticatedUser),
             organizationName: errorOrService.value.organization_name,
             serviceId
           },
@@ -481,7 +481,7 @@ export async function newReviewRequest(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
@@ -611,7 +611,8 @@ export async function newReviewRequest(
               `Effettua la review del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
               {
                 delegateName: `${authenticatedUser.given_name} ${authenticatedUser.family_name}` as NonEmptyString,
-                email: authenticatedUser.emails[0],
+                // QUESTION: use delegate email?
+                email: getApimAccountEmail(authenticatedUser),
                 organizationName: errorOrService.value.organization_name,
                 serviceId
               }

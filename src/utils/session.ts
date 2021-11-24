@@ -3,6 +3,7 @@
  */
 
 import * as t from "io-ts";
+import { EmailAddress } from "../../generated/api/EmailAddress";
 import { AdUser } from "../auth-strategies/azure_ad_strategy";
 
 /**
@@ -13,3 +14,13 @@ export const SessionUser = t.intersection([
   t.interface({ kind: t.literal("azure-ad") }),
   AdUser
 ]);
+
+/**
+ * Lens that extracts the email address for Session user to bind to an APIM account
+ *
+ * @param user
+ * @returns
+ */
+export const getApimAccountEmail = (user: SessionUser): EmailAddress => {
+  return user.emails[0];
+};

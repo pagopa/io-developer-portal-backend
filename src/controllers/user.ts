@@ -19,7 +19,7 @@ import {
   IExtendedUserContract,
   isAdminUser
 } from "../apim_operations";
-import { SessionUser } from "../utils/session";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 import { logger } from "../logger";
 import { getActualUser } from "../middlewares/actual_user";
 
@@ -68,7 +68,7 @@ export async function getUsers(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(

@@ -24,7 +24,7 @@ import {
   regeneratePrimaryKey,
   regenerateSecondaryKey
 } from "../apim_operations";
-import { SessionUser } from "../utils/session";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
@@ -75,7 +75,7 @@ export async function postSubscriptions(
 > {
   const maybeAuthenticatedApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
 
   const isAuthenticatedAdmin = maybeAuthenticatedApimUser.exists(isAdminUser);
@@ -85,7 +85,9 @@ export async function postSubscriptions(
   // which has the provided 'userMail' in case the logged in user
   // is the administrator.
   const email =
-    isAuthenticatedAdmin && userEmail ? userEmail : authenticatedUser.emails[0];
+    isAuthenticatedAdmin && userEmail
+      ? userEmail
+      : getApimAccountEmail(authenticatedUser);
 
   const errorOrRetrievedApimUser =
     subscriptionData.new_user && subscriptionData.new_user.email === email
@@ -133,7 +135,10 @@ export async function putSubscriptionKey(
   | IResponseErrorInternal
   | IResponseErrorNotFound
 > {
-  const maybeUser = await getApimUser(apiClient, authenticatedUser.emails[0]);
+  const maybeUser = await getApimUser(
+    apiClient,
+    getApimAccountEmail(authenticatedUser)
+  );
   if (isNone(maybeUser)) {
     return ResponseErrorForbiddenNotAuthorized;
   }
