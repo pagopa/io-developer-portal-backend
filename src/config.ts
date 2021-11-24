@@ -7,7 +7,7 @@ import { EmailAddress } from "../generated/api/EmailAddress";
 /**
  * Globals and OAuth configuration for the Active Directory B2C tenant / application.
  */
-export const creds = {
+export const azureAdCreds = {
   // Required. It must be tenant-specific endpoint, common endpoint
   // is not supported to use B2C feature.
   identityMetadata: `https://${process.env.TENANT_NAME}.b2clogin.com/${process.env.TENANT_NAME}.onmicrosoft.com/v2.0/.well-known/openid-configuration`,
