@@ -1,15 +1,16 @@
 import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { fromNullable, some } from "fp-ts/lib/Option";
 import { pick } from "italia-ts-commons/lib/types";
-import { Service } from "../../generated/api/Service";
-import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
-import { ServiceScopeEnum } from "../../generated/api/ServiceScope";
-import { SpecialServiceMetadata } from "../../generated/api/SpecialServiceMetadata";
-import { StandardServiceCategoryEnum } from "../../generated/api/StandardServiceCategory";
-import { StandardServiceMetadata } from "../../generated/api/StandardServiceMetadata";
-import { VisibleServicePayload } from "../../generated/api/VisibleServicePayload";
-import { IExtendedUserContract, isAdminUser } from "../apim_operations";
-import { ServicePayload } from "../controllers/services";
+
+import { Service } from "../generated/api/Service";
+import { ServiceMetadata } from "../generated/api/ServiceMetadata";
+import { ServiceScopeEnum } from "../generated/api/ServiceScope";
+import { SpecialServiceMetadata } from "../generated/api/SpecialServiceMetadata";
+import { StandardServiceCategoryEnum } from "../generated/api/StandardServiceCategory";
+import { StandardServiceMetadata } from "../generated/api/StandardServiceMetadata";
+import { VisibleServicePayload } from "../generated/api/VisibleServicePayload";
+import { IExtendedUserContract, isAdminUser } from "./apim_operations";
+import { ServicePayload } from "./controllers/services";
 
 export const hasCategory = (
   s?: ServiceMetadata

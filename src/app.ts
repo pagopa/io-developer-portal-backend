@@ -36,7 +36,7 @@ import {
   OrganizationFiscalCode
 } from "italia-ts-commons/lib/strings";
 
-import { setupBearerStrategy } from "./bearer_strategy";
+import { setupBearerStrategy } from "./auth-strategies/bearer_strategy";
 import { initCacheStats } from "./cache";
 import { getConfiguration } from "./controllers/configuration";
 import {

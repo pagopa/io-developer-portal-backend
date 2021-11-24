@@ -4,7 +4,7 @@ import * as services from "../controllers/services";
 import ApiManagementClient from "azure-arm-apimanagement";
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { Logo } from "../../generated/api/Logo";
-import { AdUser } from "../bearer_strategy";
+import { AdUser } from "../auth-strategies/bearer_strategy";
 import { putOrganizationLogo, putServiceLogo } from "../controllers/services";
 
 import { none, option } from "fp-ts/lib/Option";

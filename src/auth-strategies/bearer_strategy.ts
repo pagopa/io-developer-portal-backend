@@ -4,7 +4,7 @@
 import * as express from "express";
 import * as t from "io-ts";
 import * as passport from "passport";
-import { logger } from "./logger";
+import { logger } from "../logger";
 
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { BearerStrategy } from "passport-azure-ad";

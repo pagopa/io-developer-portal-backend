@@ -26,7 +26,7 @@ import {
   getUserSubscription,
   isAdminUser
 } from "../apim_operations";
-import { AdUser } from "../bearer_strategy";
+import { AdUser } from "../auth-strategies/bearer_strategy";
 import * as config from "../config";
 
 import { withDefault } from "italia-ts-commons/lib/types";
@@ -54,7 +54,7 @@ import {
   uploadOrganizationLogoTask,
   uploadServiceLogoTask
 } from "../middlewares/upload_logo";
-import { getServicePayloadUpdater } from "../utils/conversions";
+import { getServicePayloadUpdater } from "../conversions";
 
 export const ServicePayload = t.partial({
   authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),

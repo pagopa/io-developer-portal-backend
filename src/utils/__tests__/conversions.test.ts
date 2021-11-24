@@ -10,7 +10,7 @@ import { StandardServiceCategoryEnum } from "../../../generated/api/StandardServ
 import { StandardServiceMetadata } from "../../../generated/api/StandardServiceMetadata";
 import { IExtendedUserContract } from "../../apim_operations";
 import { ServicePayload } from "../../controllers/services";
-import { getServicePayloadUpdater } from "../conversions";
+import { getServicePayloadUpdater } from "../../conversions";
 
 const userContract: IExtendedUserContract = {
   email: "test@test.it",

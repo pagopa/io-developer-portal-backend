@@ -4,7 +4,7 @@
  */
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
 import { ResponseErrorFromValidationErrors } from "italia-ts-commons/lib/responses";
-import { AdUser } from "../bearer_strategy";
+import { AdUser } from "../auth-strategies/bearer_strategy";
 import { logger } from "../logger";
 
 export function getUserFromRequestMiddleware(): IRequestMiddleware<

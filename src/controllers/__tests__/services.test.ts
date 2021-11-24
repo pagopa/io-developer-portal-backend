@@ -15,7 +15,7 @@ import {
   OrganizationFiscalCode
 } from "italia-ts-commons/lib/strings";
 import { Logo } from "../../../generated/api/Logo";
-import { AdUser } from "../../bearer_strategy";
+import { AdUser } from "../../auth-strategies/bearer_strategy";
 import {
   getReviewStatus,
   newReviewRequest,

@@ -16,7 +16,7 @@ import {
   IExtendedUserContract,
   isAdminUser
 } from "../apim_operations";
-import { AdUser } from "../bearer_strategy";
+import { AdUser } from "../auth-strategies/bearer_strategy";
 import * as config from "../config";
 
 import { Logo as ApiLogo } from "../../generated/api/Logo";
