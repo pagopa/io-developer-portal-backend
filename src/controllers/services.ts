@@ -26,7 +26,7 @@ import {
   getUserSubscription,
   isAdminUser
 } from "../apim_operations";
-import { AdUser } from "../auth-strategies/azure_ad_strategy";
+import { SessionUser } from "../utils/session";
 import * as config from "../config";
 
 import { withDefault } from "italia-ts-commons/lib/types";
@@ -102,7 +102,7 @@ export type ErrorResponses =
  */
 export async function getService(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: NonEmptyString
 ): Promise<
   | IResponseSuccessJson<Service>
@@ -157,7 +157,7 @@ export async function getService(
  */
 export async function putService(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: NonEmptyString,
   servicePayload: ServicePayload
 ): Promise<
@@ -233,7 +233,7 @@ export async function putService(
  */
 export async function putServiceLogo(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: ServiceId,
   serviceLogo: ApiLogo
 ): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
@@ -252,7 +252,7 @@ export async function putServiceLogo(
  */
 export async function putOrganizationLogo(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   organizationFiscalCode: OrganizationFiscalCode,
   serviceLogo: ApiLogo
 ): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
@@ -271,7 +271,7 @@ export async function putOrganizationLogo(
 export async function getReviewStatus(
   apiClient: ApiManagementClient,
   jiraClient: IJiraAPIClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: NonEmptyString
 ): Promise<
   | IResponseSuccessJson<ReviewStatus>
@@ -348,7 +348,7 @@ export async function getReviewStatus(
 export async function newDisableRequest(
   apiClient: ApiManagementClient,
   jiraClient: IJiraAPIClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: NonEmptyString,
   jiraConfig: config.IJIRA_CONFIG
 ): Promise<
@@ -469,7 +469,7 @@ export async function newDisableRequest(
 export async function newReviewRequest(
   apiClient: ApiManagementClient,
   jiraClient: IJiraAPIClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: NonEmptyString,
   jiraConfig: config.IJIRA_CONFIG
 ): Promise<

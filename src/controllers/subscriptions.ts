@@ -24,7 +24,7 @@ import {
   regeneratePrimaryKey,
   regenerateSecondaryKey
 } from "../apim_operations";
-import { AdUser } from "../auth-strategies/azure_ad_strategy";
+import { SessionUser } from "../utils/session";
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
@@ -35,7 +35,7 @@ import { getActualUser } from "../middlewares/actual_user";
  */
 export async function getSubscriptions(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   userEmail?: EmailString
 ): Promise<
   | IResponseSuccessJson<SubscriptionCollection>
@@ -65,7 +65,7 @@ export async function getSubscriptions(
  */
 export async function postSubscriptions(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   subscriptionData: SubscriptionData,
   userEmail?: EmailString
 ): Promise<
@@ -124,7 +124,7 @@ export async function postSubscriptions(
  */
 export async function putSubscriptionKey(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   subscriptionId: NonEmptyString,
   keyType: NonEmptyString
 ): Promise<

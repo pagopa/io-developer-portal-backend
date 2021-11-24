@@ -4,7 +4,7 @@ import * as services from "../controllers/services";
 import ApiManagementClient from "azure-arm-apimanagement";
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { Logo } from "../../generated/api/Logo";
-import { AdUser } from "../auth-strategies/bearer_strategy";
+import { SessionUser } from "../utils/session";
 import { putOrganizationLogo, putServiceLogo } from "../controllers/services";
 
 import { none, option } from "fp-ts/lib/Option";
@@ -38,6 +38,7 @@ const adminUserContract: apim.IExtendedUserContract = {
 };
 
 const adUser = {
+  kind: "azure-ad" as const,
   emails: ["test@test.it"],
   extension_Department: "deparment",
   extension_Organization: "organization",
@@ -45,7 +46,7 @@ const adUser = {
   family_name: "name",
   given_name: "given_name",
   oid: "oid"
-} as AdUser;
+} as SessionUser;
 
 const logo = { logo: "logo_base_64" } as Logo;
 

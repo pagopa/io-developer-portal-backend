@@ -15,7 +15,7 @@ import {
   OrganizationFiscalCode
 } from "italia-ts-commons/lib/strings";
 import { Logo } from "../../../generated/api/Logo";
-import { AdUser } from "../../auth-strategies/azure_ad_strategy";
+
 import {
   getReviewStatus,
   newReviewRequest,
@@ -30,6 +30,7 @@ import SerializableSet from "json-set-map/build/src/set";
 import { ServiceId } from "../../../generated/api/ServiceId";
 import { IExtendedUserContract } from "../../apim_operations";
 import { IJiraAPIClient } from "../../jira_client";
+import { SessionUser } from "../../utils/session";
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -67,6 +68,7 @@ const responseErrorNotFound = ResponseErrorNotFound(
 );
 
 const adUser = {
+  kind: "azure-ad" as const,
   emails: ["test@test.it"],
   extension_Department: "deparment",
   extension_Organization: "organization",
@@ -74,7 +76,7 @@ const adUser = {
   family_name: "name",
   given_name: "given_name",
   oid: "oid"
-} as AdUser;
+} as SessionUser;
 
 const logo = { logo: "logo_base_64" } as Logo;
 

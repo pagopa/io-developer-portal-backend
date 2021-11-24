@@ -4,7 +4,6 @@ import * as services from "../../controllers/services";
 import ApiManagementClient from "azure-arm-apimanagement";
 import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
-import { AdUser } from "../../auth-strategies/azure_ad_strategy";
 import {
   checkAdminTask,
   getApimUserTask,
@@ -16,6 +15,7 @@ import { Logo } from "../../../generated/api/Logo";
 
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../../generated/api/ServiceId";
+import { SessionUser } from "../../utils/session";
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -37,6 +37,7 @@ const userContract: apim.IExtendedUserContract = {
 };
 
 const adUser = {
+  kind: "azure-ad" as const,
   emails: ["test@test.it"],
   extension_Department: "deparment",
   extension_Organization: "organization",
@@ -44,7 +45,7 @@ const adUser = {
   family_name: "name",
   given_name: "given_name",
   oid: "oid"
-} as AdUser;
+} as SessionUser;
 
 const logo = { logo: "logo_base_64" } as Logo;
 
