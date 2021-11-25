@@ -37,13 +37,13 @@ const userContract: apim.IExtendedUserContract = {
 };
 
 const adUser = {
-  kind: "azure-ad" as const,
   emails: ["test@test.it"],
   extension_Department: "deparment",
   extension_Organization: "organization",
   extension_Service: "service",
   family_name: "name",
   given_name: "given_name",
+  kind: "azure-ad" as const,
   oid: "oid"
 } as SessionUser;
 

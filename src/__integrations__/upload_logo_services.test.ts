@@ -4,8 +4,8 @@ import * as services from "../controllers/services";
 import ApiManagementClient from "azure-arm-apimanagement";
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { Logo } from "../../generated/api/Logo";
-import { SessionUser } from "../utils/session";
 import { putOrganizationLogo, putServiceLogo } from "../controllers/services";
+import { SessionUser } from "../utils/session";
 
 import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
@@ -38,13 +38,13 @@ const adminUserContract: apim.IExtendedUserContract = {
 };
 
 const adUser = {
-  kind: "azure-ad" as const,
   emails: ["test@test.it"],
   extension_Department: "deparment",
   extension_Organization: "organization",
   extension_Service: "service",
   family_name: "name",
   given_name: "given_name",
+  kind: "azure-ad" as const,
   oid: "oid"
 } as SessionUser;
 

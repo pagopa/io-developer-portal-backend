@@ -24,8 +24,8 @@ import {
   regeneratePrimaryKey,
   regenerateSecondaryKey
 } from "../apim_operations";
-import { getApimAccountEmail, SessionUser } from "../utils/session";
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
 import { getActualUser } from "../middlewares/actual_user";

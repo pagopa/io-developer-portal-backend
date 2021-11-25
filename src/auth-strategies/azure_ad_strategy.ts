@@ -61,7 +61,7 @@ export const setupAzureAdStrategy = (
         profile: AdUser,
         done: (
           err: Error | undefined,
-          user?: AdUser & { kind: "azure-ad" }
+          user?: AdUser & { readonly kind: "azure-ad" }
         ) => void
       ) => {
         const user = {

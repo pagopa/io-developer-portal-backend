@@ -19,9 +19,9 @@ import {
   IExtendedUserContract,
   isAdminUser
 } from "../apim_operations";
-import { getApimAccountEmail, SessionUser } from "../utils/session";
 import { logger } from "../logger";
 import { getActualUser } from "../middlewares/actual_user";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 interface IUserData {
   readonly apimUser: IExtendedUserContract | undefined;
