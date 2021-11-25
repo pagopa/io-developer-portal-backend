@@ -180,9 +180,7 @@ definitions:
   #  which abstracts and encompasses any kind of authenticated user's shape
   # So far we have only one inmplementation, AdUser, thus the seems-to-be-useless alias definition
   SessionUser:
-    type: object
-    schema:
-      $ref: '#/definitions/AdUser'  
+    $ref: '#/definitions/AdUser'  
 
   AdUser:
     type: object
