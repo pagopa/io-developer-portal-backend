@@ -100,7 +100,7 @@ definitions:
       apimUser:
         $ref: "#/definitions/ExtendedUserContract"
       authenticatedUser:
-        $ref: "#/definitions/AdUser"
+        $ref: "#/definitions/SessionUser"
     required:
       - authenticatedUser
 
@@ -175,6 +175,12 @@ definitions:
         type: string
     required:
       - displayName
+
+  # FIXME: this is a temporary solution to introduce a definition, SessionUser
+  #  which abstracts and encompasses any kind of authenticated user's shape
+  # So far we have only one inmplementation, AdUser, thus the seems-to-be-useless alias definition
+  SessionUser:
+    $ref: '#/definitions/AdUser'  
 
   AdUser:
     type: object

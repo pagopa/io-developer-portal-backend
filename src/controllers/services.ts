@@ -26,8 +26,8 @@ import {
   getUserSubscription,
   isAdminUser
 } from "../apim_operations";
-import { AdUser } from "../bearer_strategy";
 import * as config from "../config";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 import { withDefault } from "italia-ts-commons/lib/types";
 import { Service } from "../../generated/api/Service";
@@ -46,6 +46,7 @@ import { ServiceName } from "../../generated/api/ServiceName";
 import { identity } from "fp-ts/lib/function";
 import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
 import { CIDR } from "../../generated/api/CIDR";
+import { getServicePayloadUpdater } from "../conversions";
 import { IJiraAPIClient, SearchJiraIssueResponse } from "../jira_client";
 import {
   checkAdminTask,
@@ -54,7 +55,6 @@ import {
   uploadOrganizationLogoTask,
   uploadServiceLogoTask
 } from "../middlewares/upload_logo";
-import { getServicePayloadUpdater } from "../utils/conversions";
 
 export const ServicePayload = t.partial({
   authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
@@ -102,7 +102,7 @@ export type ErrorResponses =
  */
 export async function getService(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: NonEmptyString
 ): Promise<
   | IResponseSuccessJson<Service>
@@ -112,7 +112,7 @@ export async function getService(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
@@ -157,7 +157,7 @@ export async function getService(
  */
 export async function putService(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: NonEmptyString,
   servicePayload: ServicePayload
 ): Promise<
@@ -168,7 +168,7 @@ export async function putService(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
@@ -233,7 +233,7 @@ export async function putService(
  */
 export async function putServiceLogo(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: ServiceId,
   serviceLogo: ApiLogo
 ): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
@@ -252,7 +252,7 @@ export async function putServiceLogo(
  */
 export async function putOrganizationLogo(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   organizationFiscalCode: OrganizationFiscalCode,
   serviceLogo: ApiLogo
 ): Promise<IResponseSuccessRedirectToResource<{}, {}> | ErrorResponses> {
@@ -271,7 +271,7 @@ export async function putOrganizationLogo(
 export async function getReviewStatus(
   apiClient: ApiManagementClient,
   jiraClient: IJiraAPIClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: NonEmptyString
 ): Promise<
   | IResponseSuccessJson<ReviewStatus>
@@ -282,7 +282,7 @@ export async function getReviewStatus(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
@@ -348,7 +348,7 @@ export async function getReviewStatus(
 export async function newDisableRequest(
   apiClient: ApiManagementClient,
   jiraClient: IJiraAPIClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: NonEmptyString,
   jiraConfig: config.IJIRA_CONFIG
 ): Promise<
@@ -360,7 +360,7 @@ export async function newDisableRequest(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
@@ -441,7 +441,7 @@ export async function newDisableRequest(
           `Effettua la disattivazione del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
           {
             delegateName: `${authenticatedUser.given_name} ${authenticatedUser.family_name}` as NonEmptyString,
-            email: authenticatedUser.emails[0],
+            email: getApimAccountEmail(authenticatedUser),
             organizationName: errorOrService.value.organization_name,
             serviceId
           },
@@ -469,7 +469,7 @@ export async function newDisableRequest(
 export async function newReviewRequest(
   apiClient: ApiManagementClient,
   jiraClient: IJiraAPIClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   serviceId: NonEmptyString,
   jiraConfig: config.IJIRA_CONFIG
 ): Promise<
@@ -481,7 +481,7 @@ export async function newReviewRequest(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
@@ -611,7 +611,8 @@ export async function newReviewRequest(
               `Effettua la review del servizio al link https://developer.io.italia.it/service/${serviceId}` as NonEmptyString,
               {
                 delegateName: `${authenticatedUser.given_name} ${authenticatedUser.family_name}` as NonEmptyString,
-                email: authenticatedUser.emails[0],
+                // QUESTION: use delegate email?
+                email: getApimAccountEmail(authenticatedUser),
                 organizationName: errorOrService.value.organization_name,
                 serviceId
               }

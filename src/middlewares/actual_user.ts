@@ -16,12 +16,12 @@ import {
   IExtendedUserContract,
   isAdminUser
 } from "../apim_operations";
-import { AdUser } from "../bearer_strategy";
 import { logger } from "../logger";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 export async function getActualUser(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   userEmail?: EmailString
 ): Promise<
   Either<IResponseErrorForbiddenNotAuthorized, IExtendedUserContract>
@@ -29,7 +29,7 @@ export async function getActualUser(
   // Get API management groups for the authenticated user
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
 
   // Check if the authenticated user is an administrator

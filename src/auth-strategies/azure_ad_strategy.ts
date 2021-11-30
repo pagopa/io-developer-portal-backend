@@ -1,10 +1,10 @@
 /*
- *  OpenID Connect strategy for passport / express.
+ *  OpenID Connect strategy for passport / express that resolves auth using Azure Active Directory
  */
 import * as express from "express";
 import * as t from "io-ts";
 import * as passport from "passport";
-import { logger } from "./logger";
+import { logger } from "../logger";
 
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { BearerStrategy } from "passport-azure-ad";
@@ -46,7 +46,7 @@ export type AdUser = t.TypeOf<typeof AdUser>;
 /**
  * Calls a callback on the logged in user's profile.
  */
-export const setupBearerStrategy = (
+export const setupAzureAdStrategy = (
   passportInstance: typeof passport,
   // tslint:disable-next-line:no-any
   creds: any,
@@ -59,7 +59,7 @@ export const setupBearerStrategy = (
       (
         _: express.Request,
         profile: AdUser,
-        done: (err: Error | undefined, profile?: AdUser) => void
+        done: (err: Error | undefined, user?: AdUser) => void
       ) => {
         return cb(profile.oid, profile)
           .then(() => {

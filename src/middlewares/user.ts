@@ -4,22 +4,22 @@
  */
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
 import { ResponseErrorFromValidationErrors } from "italia-ts-commons/lib/responses";
-import { AdUser } from "../bearer_strategy";
 import { logger } from "../logger";
+import { SessionUser } from "../utils/session";
 
 export function getUserFromRequestMiddleware(): IRequestMiddleware<
   "IResponseErrorValidation",
-  AdUser
+  SessionUser
 > {
   return request =>
     new Promise(resolve => {
-      const validation = AdUser.decode(request.user);
+      const validation = SessionUser.decode(request.user);
       logger.debug(
         "Trying to get authenticated user: %s",
         JSON.stringify(request.user)
       );
       const result = validation.mapLeft(
-        ResponseErrorFromValidationErrors(AdUser)
+        ResponseErrorFromValidationErrors(SessionUser)
       );
       resolve(result);
     });

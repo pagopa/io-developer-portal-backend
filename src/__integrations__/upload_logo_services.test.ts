@@ -4,8 +4,8 @@ import * as services from "../controllers/services";
 import ApiManagementClient from "azure-arm-apimanagement";
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { Logo } from "../../generated/api/Logo";
-import { AdUser } from "../bearer_strategy";
 import { putOrganizationLogo, putServiceLogo } from "../controllers/services";
+import { SessionUser } from "../utils/session";
 
 import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
@@ -45,7 +45,7 @@ const adUser = {
   family_name: "name",
   given_name: "given_name",
   oid: "oid"
-} as AdUser;
+} as SessionUser;
 
 const logo = { logo: "logo_base_64" } as Logo;
 
