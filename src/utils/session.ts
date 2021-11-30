@@ -10,10 +10,7 @@ import { AdUser } from "../auth-strategies/azure_ad_strategy";
  * Abstract shape for user data stored in session
  */
 export type SessionUser = t.TypeOf<typeof SessionUser>;
-export const SessionUser = t.intersection([
-  t.interface({ kind: t.literal("azure-ad") }),
-  AdUser
-]);
+export const SessionUser = AdUser;
 
 /**
  * Lens that extracts the email address for Session user to bind to an APIM account

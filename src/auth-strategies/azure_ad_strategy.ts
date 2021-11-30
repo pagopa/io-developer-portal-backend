@@ -59,19 +59,12 @@ export const setupAzureAdStrategy = (
       (
         _: express.Request,
         profile: AdUser,
-        done: (
-          err: Error | undefined,
-          user?: AdUser & { readonly kind: "azure-ad" }
-        ) => void
+        done: (err: Error | undefined, user?: AdUser) => void
       ) => {
-        const user = {
-          ...profile,
-          kind: "azure-ad" as const /* to define which strategy the user is extracted by */
-        };
-        return cb(user.oid, user)
+        return cb(profile.oid, profile)
           .then(() => {
-            logger.debug("user authenticated %s", JSON.stringify(user));
-            return done(undefined, user);
+            logger.debug("user authenticated %s", JSON.stringify(profile));
+            return done(undefined, profile);
           })
           .catch(e => {
             logger.error("error during authentication %s", JSON.stringify(e));
