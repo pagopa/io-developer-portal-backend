@@ -80,16 +80,6 @@ if (process.env.NODE_ENV === "debug") {
 
 const JIRA_CONFIG = config.getJiraConfigOrThrow();
 
-/**
- * Setup an authentication strategy (oauth) for express endpoints.
- */
-setupAzureAdStrategy(passport, config.azureAdCreds, async (userId, profile) => {
-  // executed when the user is logged in
-  // userId === profile.oid
-  // req.user === profile
-  logger.debug("setupBearerStrategy %s %s", userId, JSON.stringify(profile));
-});
-
 const app = express();
 secureExpressApp(app);
 
@@ -111,19 +101,7 @@ app.use(
 /**
  * Express middleware that check oauth token.
  */
-const ouathVerifier = (
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) => {
-  // adds policyName in case none is provided
-  // tslint:disable-next-line:no-object-mutation
-  req.query.p = config.policyName;
-  passport.authenticate("oauth-bearer", {
-    response: res,
-    session: false
-  } as {})(req, res, next);
-};
+const ouathVerifier = setupAzureAdStrategy(passport, config.azureAdCreds);
 
 app.get("/info", (_, res) => {
   res.json({
