@@ -78,11 +78,13 @@ export const azureAdCreds = {
   policyName: process.env.POLICY_NAME
 };
 
-export const selfcareIdentityCreds = {
-  // TODO: define params
-};
 export const selfcareSessionCreds = {
-  // TODO: define params
+  // to match session jwt aud
+  audience: process.env.HOSTNAME,
+  // to match session jwt iss
+  issuer: process.env.HOSTNAME,
+  // to check jwt signature
+  secret: process.env.JWT_SIGNATURE_KEY
 };
 
 export const policyName = process.env.POLICY_NAME;
