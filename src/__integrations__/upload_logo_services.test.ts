@@ -44,6 +44,7 @@ const adUser = {
   extension_Service: "service",
   family_name: "name",
   given_name: "given_name",
+  kind: "azure-ad" as const,
   oid: "oid"
 } as SessionUser;
 
