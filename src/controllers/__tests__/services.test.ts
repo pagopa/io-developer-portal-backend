@@ -15,7 +15,6 @@ import {
   OrganizationFiscalCode
 } from "italia-ts-commons/lib/strings";
 import { Logo } from "../../../generated/api/Logo";
-
 import {
   getReviewStatus,
   newReviewRequest,
