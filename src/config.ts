@@ -1,3 +1,4 @@
+import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { fromNullable } from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
@@ -75,6 +76,13 @@ export const azureAdCreds = {
   clockSkew: undefined,
 
   policyName: process.env.POLICY_NAME
+};
+
+export const selfcareIdentityCreds = {
+  // TODO: define params
+};
+export const selfcareSessionCreds = {
+  // TODO: define params
 };
 
 export const policyName = process.env.POLICY_NAME;
@@ -166,4 +174,14 @@ export const getJiraConfigOrThrow = () =>
     ).getOrElse("11")
   }).getOrElseL(err => {
     throw new Error(errorsToReadableMessages(err).join("|"));
+  });
+
+// which Identity provider this instance is configured to work with
+export const IDP = withDefault(
+  t.union([t.literal("azure-ad"), t.literal("selfcare")]),
+  "azure-ad" as const
+)
+  .decode(process.env.IDP)
+  .getOrElseL(_ => {
+    throw new Error(`Invalid IDP configured: ${process.env.IDP}`);
   });
