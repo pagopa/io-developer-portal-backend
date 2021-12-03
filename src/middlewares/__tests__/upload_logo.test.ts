@@ -37,6 +37,7 @@ const userContract: apim.IExtendedUserContract = {
 };
 
 const adUser = {
+  kind: "azure-ad" as const,
   emails: ["test@test.it"],
   extension_Department: "deparment",
   extension_Organization: "organization",
