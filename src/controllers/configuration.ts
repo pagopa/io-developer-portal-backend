@@ -3,7 +3,6 @@
  */
 import * as express from "express";
 import {
-  IResponseErrorInternal,
   IResponseSuccessJson,
   ResponseSuccessJson
 } from "italia-ts-commons/lib/responses";
