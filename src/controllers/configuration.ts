@@ -37,6 +37,6 @@ const publicConfig = (() => {
 
 export async function getConfiguration(
   _: express.Request
-): Promise<IResponseSuccessJson<typeof publicConfig> | IResponseErrorInternal> {
+): Promise<IResponseSuccessJson<typeof publicConfig>> {
   return ResponseSuccessJson(publicConfig);
 }

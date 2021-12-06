@@ -37,7 +37,7 @@ export const JWT = t.partial({
  */
 export const processTokenInfo = <A, O>(codec: t.Type<A, O>) => async (
   tokenInfo: unknown,
-  done: (error: unknown, user?: unknown) => void
+  done: (error: unknown, user?: t.TypeOf<typeof codec>) => void
 ) =>
   codec.decode(tokenInfo).fold(
     err => {
