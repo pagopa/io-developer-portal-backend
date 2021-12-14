@@ -43,6 +43,7 @@ const adUser = {
   extension_Service: "service",
   family_name: "name",
   given_name: "given_name",
+
   oid: "oid"
 } as SessionUser;
 
