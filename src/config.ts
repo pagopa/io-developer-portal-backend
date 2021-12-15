@@ -89,6 +89,16 @@ export const selfcareSessionCreds = {
   secret: process.env.JWT_SIGNATURE_KEY
 };
 
+// To evaluate IdentityToken coming from SelfCare
+export const selfcareIdentityCreds = {
+  // to match session jwt aud
+  audience: process.env.HOSTNAME,
+  // to match session jwt iss
+  issuer: process.env.SELFCARE_IDP_ISSUER,
+  // to check jwt signature
+  secret: process.env.SELFCARE_IDP_ISSUER_JWT_SIGNATURE_KEY
+};
+
 export const policyName = process.env.POLICY_NAME;
 export const resetPasswordPolicyName = process.env.RESET_PASSWORD_POLICY_NAME;
 export const tenantName = process.env.TENANT_NAME;
