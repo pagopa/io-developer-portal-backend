@@ -1,4 +1,3 @@
-import { OrganizationFiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { fromNullable } from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
