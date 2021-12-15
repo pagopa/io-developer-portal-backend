@@ -73,6 +73,8 @@ import { right } from "fp-ts/lib/Either";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
+import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identity_strategy";
+import { selfcareIdentityCreds } from "./config";
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
 if (process.env.NODE_ENV === "debug") {
@@ -100,7 +102,7 @@ app.use(
 );
 
 /**
- * Express middleware that check oauth token.
+ * Express middleware that checks oauth token.
  */
 const sessionTokenVerifier = (() => {
   switch (config.IDP) {
@@ -116,6 +118,14 @@ const sessionTokenVerifier = (() => {
       throw new Error(`Invalid IDP: ${idp}`);
   }
 })();
+
+/**
+ * Express middleware that checks IdentityToken
+ */
+const identityTokenVerifier = setupSelfCareIdentityStrategy(
+  passport,
+  selfcareIdentityCreds
+);
 
 app.get("/info", (_, res) => {
   res.json({
@@ -282,6 +292,14 @@ app.get(
       getUserFromRequestMiddleware()
     )(getUsers)
   )
+);
+
+app.get(
+  "/idp/selfcare/resolve-identity",
+  identityTokenVerifier,
+  (_req, _res) => {
+    console.log("an new identity has been");
+  }
 );
 
 app.get("/configuration", toExpressHandler(getConfiguration));
