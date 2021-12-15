@@ -78,7 +78,8 @@ describe("JiraAPIClient#createJiraIssue", () => {
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
-        organizationFiscalCode: JIRA_CONFIG.JIRA_ORGANIZATION_FISCALCODE,
+        organizationFiscalCodeIdField:
+          JIRA_CONFIG.JIRA_ORGANIZATION_FISCALCODE_ID_FIELD,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -124,7 +125,8 @@ describe("JiraAPIClient#search and apply transition", () => {
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
-        organizationFiscalCode: JIRA_CONFIG.JIRA_ORGANIZATION_FISCALCODE,
+        organizationFiscalCodeIdField:
+          JIRA_CONFIG.JIRA_ORGANIZATION_FISCALCODE_ID_FIELD,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN
@@ -157,7 +159,8 @@ describe("JiraAPIClient#search and apply transition", () => {
         delegateIdField: JIRA_CONFIG.JIRA_DELEGATE_ID_FIELD,
         emailIdField: JIRA_CONFIG.JIRA_EMAIL_ID_FIELD,
         jiraEmail: JIRA_CONFIG.JIRA_USERNAME,
-        organizationFiscalCode: JIRA_CONFIG.JIRA_ORGANIZATION_FISCALCODE,
+        organizationFiscalCodeIdField:
+          JIRA_CONFIG.JIRA_ORGANIZATION_FISCALCODE_ID_FIELD,
         organizationIdField: JIRA_CONFIG.JIRA_ORGANIZATION_ID_FIELD,
         statusComplete: JIRA_CONFIG.JIRA_STATUS_COMPLETE,
         token: JIRA_CONFIG.JIRA_TOKEN

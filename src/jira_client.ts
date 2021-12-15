@@ -19,7 +19,7 @@ export interface IJiraConfig {
   readonly boardId: NonEmptyString;
   readonly delegateIdField: NonEmptyString;
   readonly emailIdField: NonEmptyString;
-  readonly organizationFiscalCode: OrganizationFiscalCode;
+  readonly organizationFiscalCodeIdField: NonEmptyString;
   readonly organizationIdField: NonEmptyString;
   readonly jiraEmail: EmailAddress;
   readonly statusComplete: NonEmptyString;
@@ -184,7 +184,7 @@ export function JiraAPIClient(
               },
               [`${config.delegateIdField}`]: `${serviceData.delegateName}`,
               [`${config.emailIdField}`]: `${serviceData.email}`,
-              [`${config.organizationFiscalCode}`]: `${serviceData.organizationFiscalCode}`,
+              [`${config.organizationFiscalCodeIdField}`]: `${serviceData.organizationFiscalCode}`,
               [`${config.organizationIdField}`]: `${serviceData.organizationName}`,
               labels: [
                 `${JIRA_SERVICE_TAG_PREFIX}${serviceData.serviceId}`
