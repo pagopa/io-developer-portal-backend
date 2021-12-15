@@ -83,6 +83,8 @@ export const selfcareSessionCreds = {
   audience: process.env.HOSTNAME,
   // to match session jwt iss
   issuer: process.env.HOSTNAME,
+  // url to redirect to login
+  login_url: process.env.SELFCARE_LOGIN_URL || "",
   // to check jwt signature
   secret: process.env.JWT_SIGNATURE_KEY
 };

@@ -237,6 +237,12 @@ definitions:
         type: string
 
   #Returned by GET /configuration
+  PublicConfig:
+    x-one-of: true
+    allOf:
+      - $ref: "#/definitions/MsalConfig"
+      - $ref: "#/definitions/SelfCareConfig"
+
   MsalConfig:
     type: object
     properties:
@@ -258,3 +264,11 @@ definitions:
       - b2cScopes
       - changePasswordLink
       - clientID
+  
+  SelfCareConfig:
+    type: object
+    properties:
+      login_url:
+        type: string
+    required:
+      - login_url

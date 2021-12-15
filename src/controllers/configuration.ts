@@ -6,13 +6,14 @@ import {
   IResponseSuccessJson,
   ResponseSuccessJson
 } from "italia-ts-commons/lib/responses";
+import { PublicConfig } from "../../generated/definitions/PublicConfig";
 import * as config from "../config";
 
 /**
  * All public data to share with client
  */
 
-const publicConfig = (() => {
+const publicConfig: PublicConfig = (() => {
   switch (config.IDP) {
     case "azure-ad":
       return {
@@ -26,7 +27,7 @@ const publicConfig = (() => {
       };
     case "selfcare":
       return {
-        // TODO: define public config when IDP is selfcare
+        login_url: config.selfcareSessionCreds.login_url
       };
     default:
       const idp: never = config.IDP;
