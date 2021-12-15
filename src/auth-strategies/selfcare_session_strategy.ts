@@ -9,6 +9,7 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { OrganizationFiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import { processTokenInfo } from "./misc";
+import { SelfCareIdentity } from "./selfcare_identity_strategy";
 
 /**
  *
@@ -55,4 +56,11 @@ export const setupSelfCareSessionStrategy = (
       session: false
     } as {})(req, res, next);
   };
+};
+
+export const createSessionToken = (
+  data: SelfCareIdentity,
+  options: { signatureKey: string }
+): string => {
+  throw new Error("not implemented yet");
 };

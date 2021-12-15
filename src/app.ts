@@ -75,6 +75,8 @@ import { ServiceId } from "../generated/api/ServiceId";
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
 import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identity_strategy";
 import { selfcareIdentityCreds } from "./config";
+import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
+import { resolveSelfCareIdentity } from "./controllers/idp";
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
 if (process.env.NODE_ENV === "debug") {
@@ -297,9 +299,11 @@ app.get(
 app.get(
   "/idp/selfcare/resolve-identity",
   identityTokenVerifier,
-  (_req, _res) => {
-    console.log("an new identity has been");
-  }
+  wrapRequestHandler(
+    withRequestMiddlewares(getSelfCareIdentityFromRequestMiddleware())(
+      resolveSelfCareIdentity
+    )
+  )
 );
 
 app.get("/configuration", toExpressHandler(getConfiguration));

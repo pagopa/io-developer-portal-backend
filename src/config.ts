@@ -3,6 +3,7 @@ import { fromNullable } from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
 import { FiscalCode, NonEmptyString } from "italia-ts-commons/lib/strings";
+
 import { EmailAddress } from "../generated/api/EmailAddress";
 
 /**
@@ -86,7 +87,11 @@ export const selfcareSessionCreds = {
   // url to redirect to login
   login_url: process.env.SELFCARE_LOGIN_URL || "",
   // to check jwt signature
-  secret: process.env.JWT_SIGNATURE_KEY
+  secret: process.env.JWT_SIGNATURE_KEY,
+  // success landing page for login process
+  successLoginPage: process.env.FRONTEND_SUCCESS_LOGIN_PAGE,
+  // failure landing page for login process
+  failureLoginPage: process.env.FRONTEND_FAILURE_LOGIN_PAGE
 };
 
 // To evaluate IdentityToken coming from SelfCare
