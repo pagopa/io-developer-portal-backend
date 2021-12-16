@@ -41,11 +41,11 @@ export const setupSelfCareIdentityStrategy = (
   const STRATEGY_NAME = "selfcare-identity";
   const strategy = new JwtStrategy(
     {
+      algorithms: ["RS256"],
       audience,
       issuer,
       jwtFromRequest: ExtractJwt.fromUrlQueryParameter("id"),
-      secretOrKey: secret,
-      algorithms: ["RS256"]
+      secretOrKey: secret
     },
     processTokenInfo(SelfCareIdentity)
   );

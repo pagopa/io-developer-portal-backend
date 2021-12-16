@@ -1,3 +1,7 @@
+import { readableReport } from "@pagopa/ts-commons/lib/reporters";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { ValidUrl } from "@pagopa/ts-commons/lib/url";
+import * as t from "io-ts";
 import {
   IResponsePermanentRedirect,
   ResponsePermanentRedirect
@@ -6,11 +10,7 @@ import { UrlFromString } from "italia-ts-commons/lib/url";
 import { SelfCareIdentity } from "../auth-strategies/selfcare_identity_strategy";
 import { createSessionToken } from "../auth-strategies/selfcare_session_strategy";
 import { selfcareSessionCreds } from "../config";
-import * as t from "io-ts";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import { logger } from "../logger";
-import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 
 const withToken = (url: ValidUrl, idToken: string): ValidUrl => {
   const newUrl = `${url.href}#id_token=${idToken}`;
@@ -24,11 +24,11 @@ export async function resolveSelfCareIdentity(
 ): Promise<IResponsePermanentRedirect> {
   const options = t
     .interface({
-      successLoginPage: UrlFromString,
-      failureLoginPage: UrlFromString,
-      secret: NonEmptyString,
       audience: NonEmptyString,
-      issuer: NonEmptyString
+      failureLoginPage: UrlFromString,
+      issuer: NonEmptyString,
+      secret: NonEmptyString,
+      successLoginPage: UrlFromString
     })
     .decode(selfcareSessionCreds)
     .getOrElseL(err => {

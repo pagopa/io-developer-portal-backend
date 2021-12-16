@@ -82,6 +82,8 @@ export const azureAdCreds = {
 export const selfcareSessionCreds = {
   // to match session jwt aud
   audience: process.env.HOSTNAME,
+  // page we redirect to when a login fails fo whatever reason
+  failureLoginPage: process.env.FAILURE_URL,
   // to match session jwt iss
   issuer: process.env.HOSTNAME,
   // url to redirect to login
@@ -89,9 +91,7 @@ export const selfcareSessionCreds = {
   // to check jwt signature
   secret: process.env.JWT_SIGNATURE_KEY,
   // page we redirect to after a successful login
-  successLoginPage: process.env.LOGIN_URL,
-  // page we redirect to when a login fails fo whatever reason
-  failureLoginPage: process.env.FAILURE_URL
+  successLoginPage: process.env.LOGIN_URL
 };
 
 // To evaluate IdentityToken coming from SelfCare

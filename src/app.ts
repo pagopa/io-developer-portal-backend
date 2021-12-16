@@ -72,11 +72,11 @@ import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 import { right } from "fp-ts/lib/Either";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
-import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
 import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identity_strategy";
+import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
 import { selfcareIdentityCreds } from "./config";
-import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 import { resolveSelfCareIdentity } from "./controllers/idp";
+import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
 if (process.env.NODE_ENV === "debug") {

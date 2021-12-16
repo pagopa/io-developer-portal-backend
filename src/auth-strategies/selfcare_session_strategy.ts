@@ -8,8 +8,8 @@ import { ulid } from "ulid";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { OrganizationFiscalCode } from "@pagopa/ts-commons/lib/strings";
-import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import * as jwt from "jsonwebtoken";
+import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import { JWT, processTokenInfo } from "./misc";
 import { SelfCareIdentity } from "./selfcare_identity_strategy";
 
@@ -66,23 +66,27 @@ export const setupSelfCareSessionStrategy = (
 
 export const createSessionToken = (
   data: SelfCareIdentity,
-  options: { audience: string; issuer: string; signatureKey: string }
+  options: {
+    readonly audience: string;
+    readonly issuer: string;
+    readonly signatureKey: string;
+  }
 ): string => {
   const payload = {
     aud: options.audience,
     exp: Math.floor(data.desired_exp.getTime() / 1000),
+    family_name: data.family_name,
+    given_name: data.name,
     iat: Math.floor(Date.now() / 1000),
     iss: options.issuer,
     jti: ulid(),
-    sub: data.sub,
-    family_name: data.family_name,
-    given_name: data.name,
     oid: data.fiscal_number,
     organization: {
+      fiscal_number: data.organization.fiscal_number,
       id: data.organization.id,
-      role: data.organization.role,
-      fiscal_number: data.organization.fiscal_number
-    }
+      role: data.organization.role
+    },
+    sub: data.sub
   };
 
   return jwt.sign(payload, options.signatureKey, { algorithm: "RS256" });
