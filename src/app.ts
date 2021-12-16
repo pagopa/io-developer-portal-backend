@@ -121,14 +121,6 @@ const sessionTokenVerifier = (() => {
   }
 })();
 
-/**
- * Express middleware that checks IdentityToken
- */
-const identityTokenVerifier = setupSelfCareIdentityStrategy(
-  passport,
-  selfcareIdentityCreds
-);
-
 app.get("/info", (_, res) => {
   res.json({
     version: packageJson.version
@@ -296,15 +288,23 @@ app.get(
   )
 );
 
-app.get(
-  "/idp/selfcare/resolve-identity",
-  identityTokenVerifier,
-  wrapRequestHandler(
-    withRequestMiddlewares(getSelfCareIdentityFromRequestMiddleware())(
-      resolveSelfCareIdentity
+if (config.IDP === "selfcare") {
+  // Express middleware that checks IdentityToken
+  const identityTokenVerifier = setupSelfCareIdentityStrategy(
+    passport,
+    selfcareIdentityCreds
+  );
+
+  app.get(
+    "/idp/selfcare/resolve-identity",
+    identityTokenVerifier,
+    wrapRequestHandler(
+      withRequestMiddlewares(getSelfCareIdentityFromRequestMiddleware())(
+        resolveSelfCareIdentity
+      )
     )
-  )
-);
+  );
+}
 
 app.get("/configuration", toExpressHandler(getConfiguration));
 
