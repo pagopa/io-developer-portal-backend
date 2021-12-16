@@ -14,15 +14,6 @@ parameters:
       - patch
     default: minor
 
-# variables setted on azdevops to avoid circular dependency warning
-# $(DEFAULT_BRANCH)
-# $(CACHE_VERSION_ID)
-variables:
-  YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
-  AZURE_SUBSCRIPTION: $(PROD_AZURE_SUBSCRIPTION)
-  WEB_APP_NAME: $(PROD_WEB_APP_NAME)
-  WEB_APP_RESOURCE_GROUP_NAME: $(PROD_WEB_APP_RESOURCE_GROUP_NAME)
-
 # This pipeline has been implemented to be run on hosted agent pools based both
 # on 'windows' and 'ubuntu' virtual machine images and using the scripts defined
 # in the package.json file. Since we are deploying on Azure functions on Windows
@@ -139,10 +130,10 @@ stages:
 
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)'
-              resourceGroupName: '$(WEB_APP_RESOURCE_GROUP_NAME)'
+              azureSubscription: '$(PROD_AZURE_SUBSCRIPTION)'
+              resourceGroupName: '$(PROD_WEB_APP_RESOURCE_GROUP_NAME)'
               appType: 'webApp'
-              appName: '$(WEB_APP_NAME)'
+              appName: '$(PROD_WEB_APP_NAME)'
               package: '$(Pipeline.Workspace)/Bundle'
               deploymentMethod: 'auto'
               deployToSlotOrASE: true
