@@ -81,11 +81,11 @@ export const azureAdCreds = {
 
 export const selfcareSessionCreds = {
   // to match session jwt aud
-  audience: process.env.HOSTNAME,
+  audience: process.env.FRONTEND_URL,
   // page we redirect to when a login fails fo whatever reason
   failureLoginPage: process.env.FAILURE_URL,
   // to match session jwt iss
-  issuer: process.env.HOSTNAME,
+  issuer: process.env.BACKEND_URL,
   // url to redirect to login
   login_url: process.env.SELFCARE_LOGIN_URL || "",
   // to check jwt signature
@@ -97,7 +97,7 @@ export const selfcareSessionCreds = {
 // To evaluate IdentityToken coming from SelfCare
 export const selfcareIdentityCreds = {
   // to match session jwt aud
-  audience: process.env.HOSTNAME,
+  audience: process.env.FRONTEND_URL,
   // to match session jwt iss
   issuer: process.env.SELFCARE_IDP_ISSUER,
   // to check jwt signature
