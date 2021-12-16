@@ -8,6 +8,16 @@ import { createSessionToken } from "../auth-strategies/selfcare_session_strategy
 import { selfcareSessionCreds } from "../config";
 import * as t from "io-ts";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { ValidUrl } from "@pagopa/ts-commons/lib/url";
+import { logger } from "../logger";
+import { readableReport } from "@pagopa/ts-commons/lib/reporters";
+
+const withToken = (url: ValidUrl, idToken: string): ValidUrl => {
+  const newUrl = `${url.href}#id_token=${idToken}`;
+  return UrlFromString.decode(newUrl).getOrElseL(() => {
+    throw new Error(`Cannot parse url: ${newUrl}`);
+  });
+};
 
 export async function resolveSelfCareIdentity(
   selfcareIdentity: SelfCareIdentity
@@ -16,18 +26,25 @@ export async function resolveSelfCareIdentity(
     .interface({
       successLoginPage: UrlFromString,
       failureLoginPage: UrlFromString,
-      secret: NonEmptyString
+      secret: NonEmptyString,
+      audience: NonEmptyString,
+      issuer: NonEmptyString
     })
     .decode(selfcareSessionCreds)
-    .getOrElseL(() => {
+    .getOrElseL(err => {
+      logger.error(`Invalid configuration env file: ${readableReport(err)}`);
       throw new Error("Invalid configuration env file");
     });
 
   try {
-    const _ = await createSessionToken(selfcareIdentity, {
+    const token = createSessionToken(selfcareIdentity, {
+      audience: options.audience,
+      issuer: options.issuer,
       signatureKey: options.secret
     });
-    return ResponsePermanentRedirect(options.successLoginPage);
+    return ResponsePermanentRedirect(
+      withToken(options.successLoginPage, token)
+    );
   } catch (error) {
     return ResponsePermanentRedirect(options.failureLoginPage);
   }

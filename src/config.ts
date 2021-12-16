@@ -88,10 +88,10 @@ export const selfcareSessionCreds = {
   login_url: process.env.SELFCARE_LOGIN_URL || "",
   // to check jwt signature
   secret: process.env.JWT_SIGNATURE_KEY,
-  // success landing page for login process
-  successLoginPage: process.env.FRONTEND_SUCCESS_LOGIN_PAGE,
-  // failure landing page for login process
-  failureLoginPage: process.env.FRONTEND_FAILURE_LOGIN_PAGE
+  // page we redirect to after a successful login
+  successLoginPage: process.env.LOGIN_URL,
+  // page we redirect to when a login fails fo whatever reason
+  failureLoginPage: process.env.FAILURE_URL
 };
 
 // To evaluate IdentityToken coming from SelfCare
