@@ -3,6 +3,7 @@ import { fromNullable } from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
 import { FiscalCode, NonEmptyString } from "italia-ts-commons/lib/strings";
+
 import { EmailAddress } from "../generated/api/EmailAddress";
 
 /**
@@ -80,13 +81,27 @@ export const azureAdCreds = {
 
 export const selfcareSessionCreds = {
   // to match session jwt aud
-  audience: process.env.HOSTNAME,
+  audience: process.env.FRONTEND_URL,
+  // page we redirect to when a login fails fo whatever reason
+  failureLoginPage: process.env.FAILURE_URL,
   // to match session jwt iss
-  issuer: process.env.HOSTNAME,
+  issuer: process.env.BACKEND_URL,
   // url to redirect to login
   login_url: process.env.SELFCARE_LOGIN_URL || "",
   // to check jwt signature
-  secret: process.env.JWT_SIGNATURE_KEY
+  secret: process.env.JWT_SIGNATURE_KEY,
+  // page we redirect to after a successful login
+  successLoginPage: process.env.LOGIN_URL
+};
+
+// To evaluate IdentityToken coming from SelfCare
+export const selfcareIdentityCreds = {
+  // to match session jwt aud
+  audience: process.env.FRONTEND_URL,
+  // to match session jwt iss
+  issuer: process.env.SELFCARE_IDP_ISSUER,
+  // to check jwt signature
+  secret: process.env.SELFCARE_IDP_ISSUER_JWT_SIGNATURE_KEY
 };
 
 export const policyName = process.env.POLICY_NAME;

@@ -72,7 +72,11 @@ import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 import { right } from "fp-ts/lib/Either";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
+import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identity_strategy";
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
+import { selfcareIdentityCreds } from "./config";
+import { resolveSelfCareIdentity } from "./controllers/idp";
+import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
 if (process.env.NODE_ENV === "debug") {
@@ -100,7 +104,7 @@ app.use(
 );
 
 /**
- * Express middleware that check oauth token.
+ * Express middleware that checks oauth token.
  */
 const sessionTokenVerifier = (() => {
   switch (config.IDP) {
@@ -283,6 +287,24 @@ app.get(
     )(getUsers)
   )
 );
+
+if (config.IDP === "selfcare") {
+  // Express middleware that checks IdentityToken
+  const identityTokenVerifier = setupSelfCareIdentityStrategy(
+    passport,
+    selfcareIdentityCreds
+  );
+
+  app.get(
+    "/idp/selfcare/resolve-identity",
+    identityTokenVerifier,
+    wrapRequestHandler(
+      withRequestMiddlewares(getSelfCareIdentityFromRequestMiddleware())(
+        resolveSelfCareIdentity
+      )
+    )
+  );
+}
 
 app.get("/configuration", toExpressHandler(getConfiguration));
 

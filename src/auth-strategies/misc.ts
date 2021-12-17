@@ -8,10 +8,16 @@ export const UnixTime = new t.Type<Date, number, unknown>(
   "UnixTime",
   (d): d is Date => typeof d === "object" && d !== null && d instanceof Date,
   (e, c) => {
-    if (!t.number.is(e)) {
-      return t.failure(e, c, "timestamp must be a number");
+    if (e instanceof Date) {
+      return t.success(e);
+    } else if (t.number.is(e)) {
+      return t.success(new Date(e * 1000));
     }
-    return t.success(new Date(e * 1000));
+    return t.failure(
+      e,
+      c,
+      "timestamp must be either a number or a Date instance"
+    );
   },
   d => Math.floor(d.getTime() / 1000)
 );
