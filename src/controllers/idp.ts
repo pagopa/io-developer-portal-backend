@@ -21,8 +21,8 @@ const withToken = (url: ValidUrl, idToken: string): ValidUrl => {
 };
 
 const withError = (url: ValidUrl, error: unknown): ValidUrl => {
-  const e = error instanceof Error ? error.message : JSON.stringify(error);
-  const newUrl = `${url.href}?e=${e}`;
+  const err = error instanceof Error ? error.message : JSON.stringify(error);
+  const newUrl = `${url.href}?e=${err}`;
   return UrlFromString.decode(newUrl).getOrElseL(() => {
     throw new Error(`Cannot parse url: ${newUrl}`);
   });
