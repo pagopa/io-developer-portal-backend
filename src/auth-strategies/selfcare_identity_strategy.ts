@@ -23,7 +23,7 @@ export const SelfCareIdentity = t.intersection([
     fiscal_number: FiscalCode,
     name: t.string,
     organization: t.interface({
-      fiscal_number: OrganizationFiscalCode,
+      fiscal_code: OrganizationFiscalCode,
       id: NonEmptyString,
       role: NonEmptyString
     })
@@ -45,6 +45,7 @@ export const setupSelfCareIdentityStrategy = (
       audience,
       issuer,
       jwtFromRequest: ExtractJwt.fromUrlQueryParameter("id"),
+      ignoreExpiration: true,
       secretOrKey: secret
     },
     processTokenInfo(SelfCareIdentity)
@@ -57,9 +58,21 @@ export const setupSelfCareIdentityStrategy = (
     res: express.Response,
     next: express.NextFunction
   ) => {
-    passportInstance.authenticate(STRATEGY_NAME, {
-      response: res,
-      session: false
-    } as {})(req, res, next);
+    passportInstance.authenticate(STRATEGY_NAME, function(err, user) {
+      if (err) {
+        console.error("==> authenticate", err);
+        res.send({ type: "auth error", err });
+        res.status(480);
+        return next(err);
+      }
+      if (!user) {
+        console.error("==> no user");
+        res.send({ type: "no user" });
+        res.status(481);
+        return next(new Error("no user!"));
+      }
+      req.user = user;
+      next(err);
+    })(req, res, next);
   };
 };

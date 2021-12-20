@@ -82,7 +82,7 @@ export const createSessionToken = (
     jti: ulid(),
     oid: data.fiscal_number,
     organization: {
-      fiscal_number: data.organization.fiscal_number,
+      fiscal_number: data.organization.fiscal_code,
       id: data.organization.id,
       role: data.organization.role
     },
