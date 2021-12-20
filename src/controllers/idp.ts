@@ -1,7 +1,6 @@
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
-import e = require("express");
 import * as t from "io-ts";
 import {
   IResponsePermanentRedirect,
