@@ -54,6 +54,15 @@ export async function resolveSelfCareIdentity(
       withToken(options.successLoginPage, token)
     );
   } catch (error) {
+    console.error("IDP --->");
+    console.error("IDP --->");
+    console.error("IDP --->", error);
+    console.error("IDP --->");
+    console.error("IDP --->");
+    console.error("IDP --->");
+    console.error("IDP --->", options.secret);
+    console.error("IDP --->");
+    console.error("IDP --->");
     return ResponsePermanentRedirect(
       withError(options.failureLoginPage, error)
     );
