@@ -13,29 +13,6 @@ parameters:
       - minor
       - patch
     default: minor
-  - name: environment
-    displayName: Target Environment
-    type: string
-    default: prod
-    values:
-      # - dev
-      - prod
-
-# variables setted on azdevops to avoid circular dependency warning
-# $(DEFAULT_BRANCH)
-# $(CACHE_VERSION_ID)
-variables:
-  YARN_CACHE_FOLDER: $(Pipeline.Workspace)/.yarn
-  ${{ if eq(parameters['environment'], 'dev') }}:
-    DEPLOY_TYPE: $[variables['DEV_DEPLOY_TYPE']]
-    AZURE_SUBSCRIPTION: $(DEV_AZURE_SUBSCRIPTION)
-    WEB_APP_NAME: $(DEV_WEB_APP_NAME)
-    WEB_APP_RESOURCE_GROUP_NAME: $(DEV_WEB_APP_RESOURCE_GROUP_NAME)
-  ${{ if eq(parameters['environment'], 'prod') }}:
-    DEPLOY_TYPE: $[variables['PROD_DEPLOY_TYPE']]
-    AZURE_SUBSCRIPTION: $(PROD_AZURE_SUBSCRIPTION)
-    WEB_APP_NAME: $(PROD_WEB_APP_NAME)
-    WEB_APP_RESOURCE_GROUP_NAME: $(PROD_WEB_APP_RESOURCE_GROUP_NAME)
 
 # This pipeline has been implemented to be run on hosted agent pools based both
 # on 'windows' and 'ubuntu' virtual machine images and using the scripts defined
@@ -141,12 +118,11 @@ stages:
             artifact: Bundle
 
   # Deploy 
-  - stage: 'Deploy_to_${{ parameters.environment }}'
+  - stage: 'Deploy_to_prod'
     dependsOn:
       - Prepare_artifact
     jobs:
-      - job: 'do_deploy_staging_slot_and_swap'
-        condition: eq(variables.DEPLOY_TYPE, 'staging_slot_and_swap')
+      - job: 'do_deploy_production_slot'
         steps:
           - checkout: none
           - download: current
@@ -154,37 +130,21 @@ stages:
 
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)'
-              resourceGroupName: '$(WEB_APP_RESOURCE_GROUP_NAME)'
+              azureSubscription: '$(PROD_AZURE_SUBSCRIPTION)'
+              resourceGroupName: '$(PROD_WEB_APP_RESOURCE_GROUP_NAME)'
               appType: 'webApp'
-              appName: '$(WEB_APP_NAME)'
+              appName: '$(PROD_WEB_APP_NAME)'
               package: '$(Pipeline.Workspace)/Bundle'
               deploymentMethod: 'auto'
               deployToSlotOrASE: true
-              slotName: 'staging'
-            displayName: 'Deploy to staging slot'
-
-          - template: templates/rest-healthcheck/template.yaml@pagopaCommons
-            parameters:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)'
-              appName: '$(WEB_APP_NAME)'
-              endpoint: '$(HEALTHCHECK_ENDPOINT)'
-              endpointType: 'private'
-              containerInstanceResourceGroup: '$(HEALTHCHECK_CONTAINER_RESOURCE_GROUP_NAME)'
-              containerInstanceVNet: '$(HEALTHCHECK_CONTAINER_VNET)'
-              containerInstanceSubnet: '$(HEALTHCHECK_CONTAINER_SUBNET)'
-
-          - task: AzureAppServiceManage@0
-            inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)'
-              resourceGroupName: '$(WEB_APP_RESOURCE_GROUP_NAME)'
-              webAppName: '$(WEB_APP_NAME)'
-              sourceSlot: 'staging'
-              swapWithProduction: true
-            displayName: 'Swap with production slot'
-
+              slotName: 'production'
+            displayName: 'Deploy to production slot'
+  
+  - stage: 'Deploy_to_selfcare_prod'
+    dependsOn:
+      - Prepare_artifact
+    jobs:
       - job: 'do_deploy_production_slot'
-        condition: eq(variables.DEPLOY_TYPE, 'production_slot')
         steps:
           - checkout: none
           - download: current
@@ -192,10 +152,10 @@ stages:
 
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)'
-              resourceGroupName: '$(WEB_APP_RESOURCE_GROUP_NAME)'
+              azureSubscription: '$(PROD_AZURE_SUBSCRIPTION)'
+              resourceGroupName: '$(SELFCARE_PROD_WEB_APP_RESOURCE_GROUP_NAME)'
               appType: 'webApp'
-              appName: '$(WEB_APP_NAME)'
+              appName: '$(SELFCARE_PROD_WEB_APP_NAME)'
               package: '$(Pipeline.Workspace)/Bundle'
               deploymentMethod: 'auto'
               deployToSlotOrASE: true
