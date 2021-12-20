@@ -67,6 +67,7 @@ export const setupSelfCareIdentityStrategy = (
       }
       if (!user) {
         console.error("==> no user", rest);
+        console.error("-->", secret);
         res.send({ type: "no user", rest });
         res.status(481);
         return next(new Error("no user!"));
