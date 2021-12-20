@@ -1,6 +1,7 @@
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
+import e = require("express");
 import * as t from "io-ts";
 import {
   IResponsePermanentRedirect,
@@ -14,6 +15,14 @@ import { logger } from "../logger";
 
 const withToken = (url: ValidUrl, idToken: string): ValidUrl => {
   const newUrl = `${url.href}#id_token=${idToken}`;
+  return UrlFromString.decode(newUrl).getOrElseL(() => {
+    throw new Error(`Cannot parse url: ${newUrl}`);
+  });
+};
+
+const withError = (url: ValidUrl, error: unknown): ValidUrl => {
+  const e = error instanceof Error ? error.message : JSON.stringify(error);
+  const newUrl = `${url.href}?e=${e}`;
   return UrlFromString.decode(newUrl).getOrElseL(() => {
     throw new Error(`Cannot parse url: ${newUrl}`);
   });
@@ -46,6 +55,8 @@ export async function resolveSelfCareIdentity(
       withToken(options.successLoginPage, token)
     );
   } catch (error) {
-    return ResponsePermanentRedirect(options.failureLoginPage);
+    return ResponsePermanentRedirect(
+      withError(options.failureLoginPage, error)
+    );
   }
 }
