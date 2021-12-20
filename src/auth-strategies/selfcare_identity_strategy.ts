@@ -58,16 +58,16 @@ export const setupSelfCareIdentityStrategy = (
     res: express.Response,
     next: express.NextFunction
   ) => {
-    passportInstance.authenticate(STRATEGY_NAME, function(err, user) {
+    passportInstance.authenticate(STRATEGY_NAME, function(err, user, ...rest) {
       if (err) {
         console.error("==> authenticate", err);
-        res.send({ type: "auth error", err });
+        res.send({ type: "auth error", err, rest });
         res.status(480);
         return next(err);
       }
       if (!user) {
-        console.error("==> no user");
-        res.send({ type: "no user" });
+        console.error("==> no user", rest);
+        res.send({ type: "no user", rest });
         res.status(481);
         return next(new Error("no user!"));
       }
