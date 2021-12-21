@@ -24,7 +24,7 @@ export const SelfCareUser = t.intersection([
     given_name: t.string,
     oid: NonEmptyString,
     organization: t.interface({
-      fiscal_number: OrganizationFiscalCode,
+      fiscal_code: OrganizationFiscalCode,
       id: NonEmptyString,
       role: NonEmptyString
     })
@@ -89,5 +89,5 @@ export const createSessionToken = (
     sub: data.sub
   };
 
-  return jwt.sign(payload, options.signatureKey, { algorithm: "RS256" });
+  return jwt.sign(payload, options.signatureKey);
 };
