@@ -89,5 +89,5 @@ export const createSessionToken = (
     sub: data.sub
   };
 
-  return jwt.sign(payload, options.signatureKey, { algorithm: "RS256" });
+  return jwt.sign(payload, options.signatureKey);
 };
