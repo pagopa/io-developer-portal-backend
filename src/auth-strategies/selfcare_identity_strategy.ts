@@ -23,7 +23,7 @@ export const SelfCareIdentity = t.intersection([
     fiscal_number: FiscalCode,
     name: t.string,
     organization: t.interface({
-      fiscal_number: OrganizationFiscalCode,
+      fiscal_code: OrganizationFiscalCode,
       id: NonEmptyString,
       role: NonEmptyString
     })
