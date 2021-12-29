@@ -8,6 +8,7 @@ import * as passport from "passport";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { OrganizationFiscalCode } from "@pagopa/ts-commons/lib/strings";
 import { FiscalCode } from "italia-ts-commons/lib/strings";
+import { passportJwtSecret as fetchJwtSecret } from "jwks-rsa";
 import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import { JWT, processTokenInfo, UnixTime } from "./misc";
 
@@ -36,7 +37,7 @@ export const SelfCareIdentity = t.intersection([
 export const setupSelfCareIdentityStrategy = (
   passportInstance: typeof passport,
   // tslint:disable-next-line:no-any
-  { audience, issuer, secret }: any
+  { audience, issuer, jwksUrl }: any
 ) => {
   const STRATEGY_NAME = "selfcare-identity";
   const strategy = new JwtStrategy(
@@ -45,7 +46,11 @@ export const setupSelfCareIdentityStrategy = (
       audience,
       issuer,
       jwtFromRequest: ExtractJwt.fromUrlQueryParameter("id"),
-      secretOrKey: secret
+      secretOrKeyProvider: fetchJwtSecret({
+        cache: true,
+        jwksUri: jwksUrl,
+        rateLimit: false
+      })
     },
     processTokenInfo(SelfCareIdentity)
   );

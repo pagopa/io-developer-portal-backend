@@ -100,8 +100,8 @@ export const selfcareIdentityCreds = {
   audience: process.env.BACKEND_URL,
   // to match session jwt iss
   issuer: process.env.SELFCARE_IDP_ISSUER,
-  // to check jwt signature
-  secret: process.env.SELFCARE_IDP_ISSUER_JWT_SIGNATURE_KEY
+  // url to fetch jwks from
+  jwksUrl: process.env.SELFCARE_JWKS_URL
 };
 
 export const policyName = process.env.POLICY_NAME;
