@@ -93,13 +93,12 @@ export async function postSubscriptions(
   const errorOrRetrievedApimUser =
     subscriptionData.new_user && subscriptionData.new_user.email === email
       ? fromOption(ResponseErrorForbiddenNotAuthorized)(
-          await createApimUserIfNotExists(
-            apiClient,
-            subscriptionData.new_user.email,
-            subscriptionData.new_user.adb2c_id,
-            subscriptionData.new_user.first_name,
-            subscriptionData.new_user.last_name
-          )
+          await createApimUserIfNotExists(apiClient, {
+            userEmail: subscriptionData.new_user.email,
+            userAdId: subscriptionData.new_user.adb2c_id,
+            firstName: subscriptionData.new_user.first_name,
+            lastName: subscriptionData.new_user.last_name
+          })
         )
       : await getActualUser(apiClient, authenticatedUser, userEmail);
 
