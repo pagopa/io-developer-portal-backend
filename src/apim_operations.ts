@@ -445,11 +445,11 @@ export async function createApimUserIfNotExists(
     lastName,
     note = ""
   }: {
-    userEmail: EmailString;
-    userAdId: string;
-    firstName: string;
-    lastName: string;
-    note?: string;
+    readonly userEmail: EmailString;
+    readonly userAdId: string;
+    readonly firstName: string;
+    readonly lastName: string;
+    readonly note?: string;
   },
   lconfig: IApimConfig = config
 ): Promise<Option<IExtendedUserContract>> {

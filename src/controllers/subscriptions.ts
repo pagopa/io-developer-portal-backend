@@ -26,7 +26,11 @@ import {
 } from "../apim_operations";
 
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
-import { getApimAccountEmail, SessionUser } from "../utils/session";
+import {
+  getApimAccountAnnotation,
+  getApimAccountEmail,
+  SessionUser
+} from "../utils/session";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
 import { getActualUser } from "../middlewares/actual_user";
@@ -94,10 +98,11 @@ export async function postSubscriptions(
     subscriptionData.new_user && subscriptionData.new_user.email === email
       ? fromOption(ResponseErrorForbiddenNotAuthorized)(
           await createApimUserIfNotExists(apiClient, {
-            userEmail: subscriptionData.new_user.email,
-            userAdId: subscriptionData.new_user.adb2c_id,
             firstName: subscriptionData.new_user.first_name,
-            lastName: subscriptionData.new_user.last_name
+            lastName: subscriptionData.new_user.last_name,
+            note: getApimAccountAnnotation(authenticatedUser),
+            userAdId: subscriptionData.new_user.adb2c_id,
+            userEmail: subscriptionData.new_user.email
           })
         )
       : await getActualUser(apiClient, authenticatedUser, userEmail);
