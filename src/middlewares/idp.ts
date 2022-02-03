@@ -4,22 +4,22 @@
  */
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
 import { ResponseErrorFromValidationErrors } from "italia-ts-commons/lib/responses";
+import { SelfCareIdentity } from "../auth-strategies/selfcare_identity_strategy";
 import { logger } from "../logger";
-import { SessionUser } from "../utils/session";
 
-export function getUserFromRequestMiddleware(): IRequestMiddleware<
+export function getSelfCareIdentityFromRequestMiddleware(): IRequestMiddleware<
   "IResponseErrorValidation",
-  SessionUser
+  SelfCareIdentity
 > {
   return request =>
     new Promise(resolve => {
-      const validation = SessionUser.decode(request.user);
+      const validation = SelfCareIdentity.decode(request.user);
       logger.debug(
-        "Trying to get authenticated user: %s",
+        "Trying to get resolved identity: %s",
         JSON.stringify(request.user)
       );
       const result = validation.mapLeft(
-        ResponseErrorFromValidationErrors(SessionUser)
+        ResponseErrorFromValidationErrors(SelfCareIdentity)
       );
       resolve(result);
     });

@@ -16,7 +16,6 @@ import {
   IExtendedUserContract,
   isAdminUser
 } from "../apim_operations";
-import { AdUser } from "../bearer_strategy";
 import * as config from "../config";
 
 import { Logo as ApiLogo } from "../../generated/api/Logo";
@@ -38,13 +37,14 @@ import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 import { fromNullable, toError } from "fp-ts/lib/Either";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../generated/api/ServiceId";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 export const getApimUserTask = (
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser
+  authenticatedUser: SessionUser
 ): TaskEither<ErrorResponses, IExtendedUserContract> =>
   tryCatch(
-    () => getApimUser(apiClient, authenticatedUser.emails[0]),
+    () => getApimUser(apiClient, getApimAccountEmail(authenticatedUser)),
     errors => ResponseErrorInternal(toError(errors).message)
   ).foldTaskEither<ErrorResponses, IExtendedUserContract>(
     error => fromLeft(error),

@@ -100,7 +100,7 @@ definitions:
       apimUser:
         $ref: "#/definitions/ExtendedUserContract"
       authenticatedUser:
-        $ref: "#/definitions/AdUser"
+        $ref: "#/definitions/SessionUser"
     required:
       - authenticatedUser
 
@@ -176,6 +176,12 @@ definitions:
     required:
       - displayName
 
+  # FIXME: this is a temporary solution to introduce a definition, SessionUser
+  #  which abstracts and encompasses any kind of authenticated user's shape
+  # So far we have only one inmplementation, AdUser, thus the seems-to-be-useless alias definition
+  SessionUser:
+    $ref: '#/definitions/AdUser'  
+
   AdUser:
     type: object
     properties:
@@ -231,6 +237,12 @@ definitions:
         type: string
 
   #Returned by GET /configuration
+  PublicConfig:
+    x-one-of: true
+    allOf:
+      - $ref: "#/definitions/MsalConfig"
+      - $ref: "#/definitions/SelfCareConfig"
+
   MsalConfig:
     type: object
     properties:
@@ -252,3 +264,11 @@ definitions:
       - b2cScopes
       - changePasswordLink
       - clientID
+  
+  SelfCareConfig:
+    type: object
+    properties:
+      login_url:
+        type: string
+    required:
+      - login_url

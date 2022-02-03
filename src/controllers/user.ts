@@ -19,18 +19,18 @@ import {
   IExtendedUserContract,
   isAdminUser
 } from "../apim_operations";
-import { AdUser } from "../bearer_strategy";
 import { logger } from "../logger";
 import { getActualUser } from "../middlewares/actual_user";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 interface IUserData {
   readonly apimUser: IExtendedUserContract | undefined;
-  readonly authenticatedUser: AdUser;
+  readonly authenticatedUser: SessionUser;
 }
 
 export async function getUser(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   userEmail?: EmailString
 ): Promise<
   IResponseSuccessJson<IUserData> | IResponseErrorForbiddenNotAuthorized
@@ -56,7 +56,7 @@ type ApimUser = Pick<UserContract, "email" | "firstName" | "lastName">;
  */
 export async function getUsers(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser
+  authenticatedUser: SessionUser
 ): Promise<
   | IResponseSuccessJson<{
       readonly items: ReadonlyArray<ApimUser>;
@@ -68,7 +68,7 @@ export async function getUsers(
 > {
   const maybeApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
   if (isNone(maybeApimUser)) {
     return ResponseErrorNotFound(

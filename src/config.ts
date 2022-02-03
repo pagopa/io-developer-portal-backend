@@ -1,13 +1,15 @@
+import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { fromNullable } from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
 import { FiscalCode, NonEmptyString } from "italia-ts-commons/lib/strings";
+
 import { EmailAddress } from "../generated/api/EmailAddress";
 
 /**
  * Globals and OAuth configuration for the Active Directory B2C tenant / application.
  */
-export const creds = {
+export const azureAdCreds = {
   // Required. It must be tenant-specific endpoint, common endpoint
   // is not supported to use B2C feature.
   identityMetadata: `https://${process.env.TENANT_NAME}.b2clogin.com/${process.env.TENANT_NAME}.onmicrosoft.com/v2.0/.well-known/openid-configuration`,
@@ -75,6 +77,31 @@ export const creds = {
   clockSkew: undefined,
 
   policyName: process.env.POLICY_NAME
+};
+
+export const selfcareSessionCreds = {
+  // to match session jwt aud
+  audience: process.env.BACKEND_URL,
+  // page we redirect to when a login fails fo whatever reason
+  failureLoginPage: process.env.FAILURE_URL,
+  // to match session jwt iss
+  issuer: process.env.BACKEND_URL,
+  // url to redirect to login
+  login_url: process.env.SELFCARE_LOGIN_URL || "",
+  // to check jwt signature
+  secret: process.env.JWT_SIGNATURE_KEY,
+  // page we redirect to after a successful login
+  successLoginPage: process.env.LOGIN_URL
+};
+
+// To evaluate IdentityToken coming from SelfCare
+export const selfcareIdentityCreds = {
+  // to match session jwt aud
+  audience: process.env.BACKEND_URL,
+  // to match session jwt iss
+  issuer: process.env.SELFCARE_IDP_ISSUER,
+  // url to fetch jwks from
+  jwksUrl: process.env.SELFCARE_JWKS_URL
 };
 
 export const policyName = process.env.POLICY_NAME;
@@ -166,4 +193,14 @@ export const getJiraConfigOrThrow = () =>
     ).getOrElse("11")
   }).getOrElseL(err => {
     throw new Error(errorsToReadableMessages(err).join("|"));
+  });
+
+// which Identity provider this instance is configured to work with
+export const IDP = withDefault(
+  t.union([t.literal("azure-ad"), t.literal("selfcare")]),
+  "azure-ad" as const
+)
+  .decode(process.env.IDP)
+  .getOrElseL(_ => {
+    throw new Error(`Invalid IDP configured: ${process.env.IDP}`);
   });

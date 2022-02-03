@@ -36,7 +36,7 @@ import {
   OrganizationFiscalCode
 } from "italia-ts-commons/lib/strings";
 
-import { setupBearerStrategy } from "./bearer_strategy";
+import { setupAzureAdStrategy } from "./auth-strategies/azure_ad_strategy";
 import { initCacheStats } from "./cache";
 import { getConfiguration } from "./controllers/configuration";
 import {
@@ -72,6 +72,11 @@ import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 import { right } from "fp-ts/lib/Either";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
+import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identity_strategy";
+import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
+import { selfcareIdentityCreds } from "./config";
+import { resolveSelfCareIdentity } from "./controllers/idp";
+import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
 if (process.env.NODE_ENV === "debug") {
@@ -79,16 +84,6 @@ if (process.env.NODE_ENV === "debug") {
 }
 
 const JIRA_CONFIG = config.getJiraConfigOrThrow();
-
-/**
- * Setup an authentication strategy (oauth) for express endpoints.
- */
-setupBearerStrategy(passport, config.creds, async (userId, profile) => {
-  // executed when the user is logged in
-  // userId === profile.oid
-  // req.user === profile
-  logger.debug("setupBearerStrategy %s %s", userId, JSON.stringify(profile));
-});
 
 const app = express();
 secureExpressApp(app);
@@ -103,27 +98,28 @@ app.use(morgan("combined"));
 // Avoid stateful in-memory sessions
 app.use(
   cookieSession({
-    keys: [config.creds.cookieEncryptionKeys[0].key!],
+    keys: [config.azureAdCreds.cookieEncryptionKeys[0].key!],
     name: "session"
   })
 );
 
 /**
- * Express middleware that check oauth token.
+ * Express middleware that checks oauth token.
  */
-const ouathVerifier = (
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) => {
-  // adds policyName in case none is provided
-  // tslint:disable-next-line:no-object-mutation
-  req.query.p = config.policyName;
-  passport.authenticate("oauth-bearer", {
-    response: res,
-    session: false
-  } as {})(req, res, next);
-};
+const sessionTokenVerifier = (() => {
+  switch (config.IDP) {
+    case "azure-ad":
+      return setupAzureAdStrategy(passport, config.azureAdCreds);
+    case "selfcare":
+      return setupSelfCareSessionStrategy(
+        passport,
+        config.selfcareSessionCreds
+      );
+    default:
+      const idp: never = config.IDP;
+      throw new Error(`Invalid IDP: ${idp}`);
+  }
+})();
 
 app.get("/info", (_, res) => {
   res.json({
@@ -138,7 +134,7 @@ app.get("/logout", (req: express.Request, res: express.Response) => {
 
 app.get(
   ["/subscriptions", "/subscriptions/:email"],
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -150,7 +146,7 @@ app.get(
 
 app.post(
   ["/subscriptions", "/subscriptions/:email"],
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -163,7 +159,7 @@ app.post(
 
 app.put(
   "/subscriptions/:subscriptionId/:keyType",
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -176,7 +172,7 @@ app.put(
 
 app.get(
   "/services/:serviceId",
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -188,7 +184,7 @@ app.get(
 
 app.put(
   "/services/:serviceId",
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -202,7 +198,7 @@ app.put(
 /* Get Review Status */
 app.get(
   "/services/:serviceId/review",
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -216,7 +212,7 @@ app.get(
 /* Post a new Review Request for Service Id */
 app.post(
   "/services/:serviceId/review",
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -231,7 +227,7 @@ app.post(
 /* Post a disable Request for Service Id */
 app.put(
   "/services/:serviceId/disable",
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -245,7 +241,7 @@ app.put(
 
 app.put(
   "/services/:serviceId/logo",
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -258,7 +254,7 @@ app.put(
 
 app.put(
   "/organizations/:organizationFiscalCode/logo",
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -271,7 +267,7 @@ app.put(
 
 app.get(
   ["/user", "/user/:email"],
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -283,7 +279,7 @@ app.get(
 
 app.get(
   "/users",
-  ouathVerifier,
+  sessionTokenVerifier,
   wrapRequestHandler(
     withRequestMiddlewares(
       getApiClientMiddleware(),
@@ -291,6 +287,24 @@ app.get(
     )(getUsers)
   )
 );
+
+if (config.IDP === "selfcare") {
+  // Express middleware that checks IdentityToken
+  const identityTokenVerifier = setupSelfCareIdentityStrategy(
+    passport,
+    selfcareIdentityCreds
+  );
+
+  app.get(
+    "/idp/selfcare/resolve-identity",
+    identityTokenVerifier,
+    wrapRequestHandler(
+      withRequestMiddlewares(getSelfCareIdentityFromRequestMiddleware())(
+        resolveSelfCareIdentity
+      )
+    )
+  );
+}
 
 app.get("/configuration", toExpressHandler(getConfiguration));
 

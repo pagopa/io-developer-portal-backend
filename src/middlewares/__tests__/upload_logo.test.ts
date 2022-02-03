@@ -4,7 +4,6 @@ import * as services from "../../controllers/services";
 import ApiManagementClient from "azure-arm-apimanagement";
 import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
-import { AdUser } from "../../bearer_strategy";
 import {
   checkAdminTask,
   getApimUserTask,
@@ -16,6 +15,7 @@ import { Logo } from "../../../generated/api/Logo";
 
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../../generated/api/ServiceId";
+import { SessionUser } from "../../utils/session";
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -43,8 +43,9 @@ const adUser = {
   extension_Service: "service",
   family_name: "name",
   given_name: "given_name",
+
   oid: "oid"
-} as AdUser;
+} as SessionUser;
 
 const logo = { logo: "logo_base_64" } as Logo;
 

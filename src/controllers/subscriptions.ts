@@ -24,8 +24,13 @@ import {
   regeneratePrimaryKey,
   regenerateSecondaryKey
 } from "../apim_operations";
-import { AdUser } from "../bearer_strategy";
+
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
+import {
+  getApimAccountAnnotation,
+  getApimAccountEmail,
+  SessionUser
+} from "../utils/session";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
 import { getActualUser } from "../middlewares/actual_user";
@@ -35,7 +40,7 @@ import { getActualUser } from "../middlewares/actual_user";
  */
 export async function getSubscriptions(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   userEmail?: EmailString
 ): Promise<
   | IResponseSuccessJson<SubscriptionCollection>
@@ -65,7 +70,7 @@ export async function getSubscriptions(
  */
 export async function postSubscriptions(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   subscriptionData: SubscriptionData,
   userEmail?: EmailString
 ): Promise<
@@ -75,7 +80,7 @@ export async function postSubscriptions(
 > {
   const maybeAuthenticatedApimUser = await getApimUser(
     apiClient,
-    authenticatedUser.emails[0]
+    getApimAccountEmail(authenticatedUser)
   );
 
   const isAuthenticatedAdmin = maybeAuthenticatedApimUser.exists(isAdminUser);
@@ -85,18 +90,20 @@ export async function postSubscriptions(
   // which has the provided 'userMail' in case the logged in user
   // is the administrator.
   const email =
-    isAuthenticatedAdmin && userEmail ? userEmail : authenticatedUser.emails[0];
+    isAuthenticatedAdmin && userEmail
+      ? userEmail
+      : getApimAccountEmail(authenticatedUser);
 
   const errorOrRetrievedApimUser =
     subscriptionData.new_user && subscriptionData.new_user.email === email
       ? fromOption(ResponseErrorForbiddenNotAuthorized)(
-          await createApimUserIfNotExists(
-            apiClient,
-            subscriptionData.new_user.email,
-            subscriptionData.new_user.adb2c_id,
-            subscriptionData.new_user.first_name,
-            subscriptionData.new_user.last_name
-          )
+          await createApimUserIfNotExists(apiClient, {
+            firstName: subscriptionData.new_user.first_name,
+            lastName: subscriptionData.new_user.last_name,
+            note: getApimAccountAnnotation(authenticatedUser),
+            userAdId: subscriptionData.new_user.adb2c_id,
+            userEmail: subscriptionData.new_user.email
+          })
         )
       : await getActualUser(apiClient, authenticatedUser, userEmail);
 
@@ -124,7 +131,7 @@ export async function postSubscriptions(
  */
 export async function putSubscriptionKey(
   apiClient: ApiManagementClient,
-  authenticatedUser: AdUser,
+  authenticatedUser: SessionUser,
   subscriptionId: NonEmptyString,
   keyType: NonEmptyString
 ): Promise<
@@ -133,7 +140,10 @@ export async function putSubscriptionKey(
   | IResponseErrorInternal
   | IResponseErrorNotFound
 > {
-  const maybeUser = await getApimUser(apiClient, authenticatedUser.emails[0]);
+  const maybeUser = await getApimUser(
+    apiClient,
+    getApimAccountEmail(authenticatedUser)
+  );
   if (isNone(maybeUser)) {
     return ResponseErrorForbiddenNotAuthorized;
   }

@@ -1,13 +1,13 @@
 /*
- *  OpenID Connect strategy for passport / express.
+ *  OpenID Connect strategy for passport / express that resolves auth using Azure Active Directory
  */
 import * as express from "express";
 import * as t from "io-ts";
 import * as passport from "passport";
-import { logger } from "./logger";
 
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { BearerStrategy } from "passport-azure-ad";
+import { processTokenInfo } from "./misc";
 
 /**
  * Format of the Active directory B2C user data.
@@ -46,31 +46,34 @@ export type AdUser = t.TypeOf<typeof AdUser>;
 /**
  * Calls a callback on the logged in user's profile.
  */
-export const setupBearerStrategy = (
+export const setupAzureAdStrategy = (
   passportInstance: typeof passport,
   // tslint:disable-next-line:no-any
-  creds: any,
-  cb: (userId: string, profile: AdUser) => Promise<void>
+  creds: any
 ) => {
-  passportInstance.use(
-    "oauth-bearer",
-    new BearerStrategy(
-      creds,
-      (
-        _: express.Request,
-        profile: AdUser,
-        done: (err: Error | undefined, profile?: AdUser) => void
-      ) => {
-        return cb(profile.oid, profile)
-          .then(() => {
-            logger.debug("user authenticated %s", JSON.stringify(profile));
-            return done(undefined, profile);
-          })
-          .catch(e => {
-            logger.error("error during authentication %s", JSON.stringify(e));
-            return done(e);
-          });
-      }
-    )
+  const STRATEGY_NAME = "oauth-bearer";
+  const strategy = new BearerStrategy(
+    creds,
+    async (
+      _: express.Request,
+      tokenInfo: unknown,
+      done: (err: Error | undefined, user?: AdUser) => void
+    ) => processTokenInfo(AdUser)(tokenInfo, done)
   );
+
+  passportInstance.use(STRATEGY_NAME, strategy);
+
+  return (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    // adds policyName in case none is provided
+    // tslint:disable-next-line:no-object-mutation
+    req.query.p = creds.policyName;
+    passport.authenticate(STRATEGY_NAME, {
+      response: res,
+      session: false
+    } as {})(req, res, next);
+  };
 };
