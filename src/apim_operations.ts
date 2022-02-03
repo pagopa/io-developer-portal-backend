@@ -438,10 +438,19 @@ export async function getApimUsers(
 
 export async function createApimUserIfNotExists(
   apiClient: ApiManagementClient,
-  userEmail: EmailString,
-  userAdId: string,
-  firstName: string,
-  lastName: string,
+  {
+    userEmail,
+    userAdId,
+    firstName,
+    lastName,
+    note = ""
+  }: {
+    readonly userEmail: EmailString;
+    readonly userAdId: string;
+    readonly firstName: string;
+    readonly lastName: string;
+    readonly note?: string;
+  },
   lconfig: IApimConfig = config
 ): Promise<Option<IExtendedUserContract>> {
   const maybeExistingApimUser = await getApimUser__(
@@ -474,6 +483,7 @@ export async function createApimUserIfNotExists(
           }
         ],
         lastName,
+        note,
         state: "active"
       }
     );
