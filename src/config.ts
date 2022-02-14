@@ -204,3 +204,11 @@ export const IDP = withDefault(
   .getOrElseL(_ => {
     throw new Error(`Invalid IDP configured: ${process.env.IDP}`);
   });
+
+/**
+ * References to the subscription migrations service
+ */
+export const SUBSCRIPTION_MIGRATIONS_URL: string =
+  process.env.SUBSCRIPTION_MIGRATIONS_URL || "";
+export const SUBSCRIPTION_MIGRATIONS_APIKEY: string =
+  process.env.SUBSCRIPTION_MIGRATIONS_APIKEY || "";
