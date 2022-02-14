@@ -50,6 +50,7 @@ import {
   ServicePayload
 } from "./controllers/services";
 import {
+  getOwnershipClaimStatus,
   getSubscriptions,
   postSubscriptions,
   putSubscriptionKey
@@ -302,6 +303,18 @@ if (config.IDP === "selfcare") {
       withRequestMiddlewares(getSelfCareIdentityFromRequestMiddleware())(
         resolveSelfCareIdentity
       )
+    )
+  );
+
+  // Expose subscription migration features
+  app.get(
+    "/subscriptions/ownership-claims/:delegateId",
+    sessionTokenVerifier,
+    wrapRequestHandler(
+      withRequestMiddlewares(
+        getUserFromRequestMiddleware(),
+        RequiredParamMiddleware("delegateId", NonEmptyString)
+      )(getOwnershipClaimStatus)
     )
   );
 }
