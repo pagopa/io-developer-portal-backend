@@ -203,7 +203,6 @@ export async function getOwnershipClaimStatus(
   | IResponseErrorInternal
   | IResponseErrorNotFound
   | IResponseErrorValidation
-  | IResponseErrorForbiddenNotAuthorized
 > {
   if (SelfCareUser.is(authenticatedUser)) {
     const client = createSubsctiptionMigrationsClient<"SubscriptionKey">({
