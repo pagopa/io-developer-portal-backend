@@ -16,6 +16,8 @@ import cookieSession = require("cookie-session");
 // tslint:disable-next-line: no-var-requires
 const packageJson = require("../package.json");
 
+import nodeFetch from "node-fetch";
+
 /*
  * Useful for testing the web application locally.
  * 'local.env' file does not need to exists in the
@@ -50,7 +52,6 @@ import {
   ServicePayload
 } from "./controllers/services";
 import {
-  getOwnershipClaimStatus,
   getSubscriptions,
   postSubscriptions,
   putSubscriptionKey
@@ -73,11 +74,8 @@ import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 import { right } from "fp-ts/lib/Either";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
-import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identity_strategy";
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
-import { selfcareIdentityCreds } from "./config";
-import { resolveSelfCareIdentity } from "./controllers/idp";
-import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
+
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
 if (process.env.NODE_ENV === "debug") {
@@ -290,32 +288,37 @@ app.get(
 );
 
 if (config.IDP === "selfcare") {
-  // Express middleware that checks IdentityToken
-  const identityTokenVerifier = setupSelfCareIdentityStrategy(
-    passport,
-    selfcareIdentityCreds
-  );
-
-  app.get(
-    "/idp/selfcare/resolve-identity",
-    identityTokenVerifier,
-    wrapRequestHandler(
-      withRequestMiddlewares(getSelfCareIdentityFromRequestMiddleware())(
-        resolveSelfCareIdentity
-      )
-    )
-  );
-
   // Expose subscription migration features
-  app.get(
-    "/subscriptions/ownership-claims/:delegateId",
+  app.use(
+    "/subscriptions/migrations/*",
     sessionTokenVerifier,
-    wrapRequestHandler(
-      withRequestMiddlewares(
-        getUserFromRequestMiddleware(),
-        RequiredParamMiddleware("delegateId", NonEmptyString)
-      )(getOwnershipClaimStatus)
-    )
+    async (req, res) => {
+      const url = `${config.SUBSCRIPTION_MIGRATIONS_URL}/organizations/${req.user?.organization.fiscal_code}/${req.params[0]}`;
+      const { method, body } = req;
+
+      try {
+        const result = await nodeFetch(url, {
+          body: ["GET", "HEAD"].includes(method.toUpperCase())
+            ? undefined
+            : body,
+          headers: {
+            "X-Functions-Key": config.SUBSCRIPTION_MIGRATIONS_APIKEY
+          },
+          method
+        });
+
+        res.status(result.status);
+        res.send(await result.text());
+      } catch (error) {
+        logger.error(
+          `Failte to proxy request to subscription migrations service`,
+          error
+        );
+        res.status(500);
+      }
+
+      res.end();
+    }
   );
 }
 
