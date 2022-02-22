@@ -32,17 +32,7 @@ import {
   SessionUser
 } from "../utils/session";
 
-import { ClaimProcedureStatus } from "@pagopa/io-selfcare-subscription-migrations-sdk/ClaimProcedureStatus";
-import { createClient as createSubsctiptionMigrationsClient } from "@pagopa/io-selfcare-subscription-migrations-sdk/client";
-import {
-  IResponseErrorValidation,
-  ResponseErrorValidation
-} from "@pagopa/ts-commons/lib/responses";
 import { fromOption, isLeft } from "fp-ts/lib/Either";
-import { readableReport } from "italia-ts-commons/lib/reporters";
-import nodeFetch from "node-fetch";
-import { SelfCareUser } from "../auth-strategies/selfcare_session_strategy";
-import * as config from "../config";
 import { getActualUser } from "../middlewares/actual_user";
 
 /**
@@ -185,76 +175,4 @@ export async function putSubscriptionKey(
     ResponseErrorInternal("Cannot update subscription to renew key"),
     ResponseSuccessJson
   );
-}
-
-/**
- * Retrieve status for an ownership claim
- *
- * @param authenticatedUser
- * @param delegateId
- * @returns
- */
-export async function getOwnershipClaimStatus(
-  authenticatedUser: SessionUser,
-  delegateId: NonEmptyString
-): Promise<
-  | IResponseSuccessJson<ClaimProcedureStatus>
-  | IResponseErrorForbiddenNotAuthorized
-  | IResponseErrorInternal
-  | IResponseErrorNotFound
-  | IResponseErrorValidation
-> {
-  if (SelfCareUser.is(authenticatedUser)) {
-    const client = createSubsctiptionMigrationsClient<"SubscriptionKey">({
-      basePath: "",
-      baseUrl: config.SUBSCRIPTION_MIGRATIONS_URL,
-      fetchApi: (nodeFetch as unknown) as typeof fetch,
-      withDefaults: op => params => {
-        const c = op({
-          ...params,
-          SubscriptionKey: config.SUBSCRIPTION_MIGRATIONS_APIKEY
-        });
-        return c;
-      }
-    });
-
-    const proxied = await client.getOwnershipClaimStatus({
-      delegate_id: delegateId,
-      organization_fiscal_code: authenticatedUser.organization.fiscal_code
-    });
-    return proxied.fold(
-      err =>
-        ResponseErrorInternal(
-          `Failed to decode response, ${readableReport(err)}`
-        ),
-      res => {
-        switch (res.status) {
-          case 200:
-            return ResponseSuccessJson(res.value);
-          case 400:
-            return ResponseErrorValidation("Bad Request", "Bad Request");
-          case 401:
-            return ResponseErrorForbiddenNotAuthorized;
-          case 404:
-            return ResponseErrorNotFound(
-              "Not Found",
-              `No subscription is associated with delegate ${delegateId}`
-            );
-          case 500:
-            return ResponseErrorInternal(res.value.detail || "");
-          default:
-            // exhaustive check
-            const _: never = res;
-            return ResponseErrorInternal(
-              `Received unexpected status: ${
-                (_ as any).status /* tslint:disable-line: no-any */
-              }`
-            );
-        }
-      }
-    );
-  } else {
-    // Subscription migration is allowed only in SelfCare context
-    return ResponseErrorForbiddenNotAuthorized;
-  }
 }
