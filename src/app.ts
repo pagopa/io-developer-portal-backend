@@ -311,7 +311,7 @@ if (config.IDP === "selfcare") {
         res.send(await result.text());
       } catch (error) {
         logger.error(
-          `Failte to proxy request to subscription migrations service`,
+          `Failed to proxy request to subscription migrations service`,
           error
         );
         res.status(500);
