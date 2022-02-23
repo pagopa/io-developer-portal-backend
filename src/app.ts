@@ -74,7 +74,11 @@ import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 import { right } from "fp-ts/lib/Either";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
+import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identity_strategy";
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
+import { selfcareIdentityCreds } from "./config";
+import { resolveSelfCareIdentity } from "./controllers/idp";
+import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
@@ -288,6 +292,22 @@ app.get(
 );
 
 if (config.IDP === "selfcare") {
+  // Express middleware that checks IdentityToken
+  const identityTokenVerifier = setupSelfCareIdentityStrategy(
+    passport,
+    selfcareIdentityCreds
+  );
+
+  app.get(
+    "/idp/selfcare/resolve-identity",
+    identityTokenVerifier,
+    wrapRequestHandler(
+      withRequestMiddlewares(getSelfCareIdentityFromRequestMiddleware())(
+        resolveSelfCareIdentity
+      )
+    )
+  );
+
   // Expose subscription migration features
   app.use(
     "/subscriptions/migrations/*",
