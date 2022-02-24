@@ -33,6 +33,7 @@ import {
 } from "../utils/session";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
+import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import { getActualUser } from "../middlewares/actual_user";
 
 /**
@@ -101,8 +102,14 @@ export async function postSubscriptions(
             firstName: subscriptionData.new_user.first_name,
             lastName: subscriptionData.new_user.last_name,
             note: getApimAccountAnnotation(authenticatedUser),
-            userAdId: subscriptionData.new_user.adb2c_id,
-            userEmail: subscriptionData.new_user.email
+            userEmail: subscriptionData.new_user.email,
+            // for backwar compatibility, we link the active directory identity to the created apim user
+            userIdentity: AdUser.is(authenticatedUser)
+              ? {
+                  id: subscriptionData.new_user.adb2c_id,
+                  provider: "AadB2C"
+                }
+              : undefined
           })
         )
       : await getActualUser(apiClient, authenticatedUser, userEmail);
