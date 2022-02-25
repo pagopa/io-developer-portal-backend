@@ -81,7 +81,7 @@ export const azureAdCreds = {
 
 export const selfcareSessionCreds = {
   // to match session jwt aud
-  audience: process.env.FRONTEND_URL,
+  audience: process.env.BACKEND_URL,
   // page we redirect to when a login fails fo whatever reason
   failureLoginPage: process.env.FAILURE_URL,
   // to match session jwt iss
@@ -97,11 +97,11 @@ export const selfcareSessionCreds = {
 // To evaluate IdentityToken coming from SelfCare
 export const selfcareIdentityCreds = {
   // to match session jwt aud
-  audience: process.env.FRONTEND_URL,
+  audience: process.env.BACKEND_URL,
   // to match session jwt iss
   issuer: process.env.SELFCARE_IDP_ISSUER,
-  // to check jwt signature
-  secret: process.env.SELFCARE_IDP_ISSUER_JWT_SIGNATURE_KEY
+  // url to fetch jwks from
+  jwksUrl: process.env.SELFCARE_JWKS_URL
 };
 
 export const policyName = process.env.POLICY_NAME;
@@ -204,3 +204,11 @@ export const IDP = withDefault(
   .getOrElseL(_ => {
     throw new Error(`Invalid IDP configured: ${process.env.IDP}`);
   });
+
+/**
+ * References to the subscription migrations service
+ */
+export const SUBSCRIPTION_MIGRATIONS_URL: string =
+  process.env.SUBSCRIPTION_MIGRATIONS_URL || "";
+export const SUBSCRIPTION_MIGRATIONS_APIKEY: string =
+  process.env.SUBSCRIPTION_MIGRATIONS_APIKEY || "";

@@ -1,3 +1,4 @@
+import { EmailString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import ApiManagementClient from "azure-arm-apimanagement";
 import {
   SubscriptionCollection,
@@ -14,7 +15,6 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessJson
 } from "italia-ts-commons/lib/responses";
-import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import {
   createApimUserIfNotExists,
   getApimUser,
@@ -26,9 +26,14 @@ import {
 } from "../apim_operations";
 
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
-import { getApimAccountEmail, SessionUser } from "../utils/session";
+import {
+  getApimAccountAnnotation,
+  getApimAccountEmail,
+  SessionUser
+} from "../utils/session";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
+import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import { getActualUser } from "../middlewares/actual_user";
 
 /**
@@ -93,13 +98,19 @@ export async function postSubscriptions(
   const errorOrRetrievedApimUser =
     subscriptionData.new_user && subscriptionData.new_user.email === email
       ? fromOption(ResponseErrorForbiddenNotAuthorized)(
-          await createApimUserIfNotExists(
-            apiClient,
-            subscriptionData.new_user.email,
-            subscriptionData.new_user.adb2c_id,
-            subscriptionData.new_user.first_name,
-            subscriptionData.new_user.last_name
-          )
+          await createApimUserIfNotExists(apiClient, {
+            firstName: subscriptionData.new_user.first_name,
+            lastName: subscriptionData.new_user.last_name,
+            note: getApimAccountAnnotation(authenticatedUser),
+            userEmail: subscriptionData.new_user.email,
+            // for backwar compatibility, we link the active directory identity to the created apim user
+            userIdentity: AdUser.is(authenticatedUser)
+              ? {
+                  id: subscriptionData.new_user.adb2c_id,
+                  provider: "AadB2C"
+                }
+              : undefined
+          })
         )
       : await getActualUser(apiClient, authenticatedUser, userEmail);
 
