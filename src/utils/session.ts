@@ -30,3 +30,15 @@ export const getApimAccountEmail = (user: SessionUser): EmailAddress => {
     throw new Error(`Cannot get APIM account email`);
   });
 };
+
+/**
+ * Lens that composes the annotation to be stored on APIM accont, depending on the session user type
+ *
+ * @param user
+ * @returns
+ */
+export const getApimAccountAnnotation = (user: SessionUser): string =>
+  SelfCareUser.is(user)
+    ? // for SelfCare we store Organization's info in notes
+      user.organization.fiscal_code
+    : "";

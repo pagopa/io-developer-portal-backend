@@ -16,6 +16,8 @@ import cookieSession = require("cookie-session");
 // tslint:disable-next-line: no-var-requires
 const packageJson = require("../package.json");
 
+import nodeFetch from "node-fetch";
+
 /*
  * Useful for testing the web application locally.
  * 'local.env' file does not need to exists in the
@@ -77,6 +79,7 @@ import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session
 import { selfcareIdentityCreds } from "./config";
 import { resolveSelfCareIdentity } from "./controllers/idp";
 import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
+
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
 if (process.env.NODE_ENV === "debug") {
@@ -303,6 +306,39 @@ if (config.IDP === "selfcare") {
         resolveSelfCareIdentity
       )
     )
+  );
+
+  // Expose subscription migration features
+  app.use(
+    "/subscriptions/migrations/*",
+    sessionTokenVerifier,
+    async (req, res) => {
+      const url = `${config.SUBSCRIPTION_MIGRATIONS_URL}/organizations/${req.user?.organization.fiscal_code}/${req.params[0]}`;
+      const { method, body } = req;
+
+      try {
+        const result = await nodeFetch(url, {
+          body: ["GET", "HEAD"].includes(method.toUpperCase())
+            ? undefined
+            : body,
+          headers: {
+            "X-Functions-Key": config.SUBSCRIPTION_MIGRATIONS_APIKEY
+          },
+          method
+        });
+
+        res.status(result.status);
+        res.send(await result.text());
+      } catch (error) {
+        logger.error(
+          `Failed to proxy request to subscription migrations service`,
+          error
+        );
+        res.status(500);
+      }
+
+      res.end();
+    }
   );
 }
 
