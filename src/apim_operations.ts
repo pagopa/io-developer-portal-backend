@@ -10,7 +10,8 @@ import {
   SubscriptionCollection,
   SubscriptionContract,
   UserContract,
-  UserCreateParameters
+  UserCreateParameters,
+  UserIdentityContract
 } from "azure-arm-apimanagement/lib/models";
 import { Set } from "json-set-map";
 import * as msRestAzure from "ms-rest-azure";
@@ -440,13 +441,13 @@ export async function createApimUserIfNotExists(
   apiClient: ApiManagementClient,
   {
     userEmail,
-    userAdId,
+    userIdentity,
     firstName,
     lastName,
     note = ""
   }: {
     readonly userEmail: EmailString;
-    readonly userAdId: string;
+    readonly userIdentity?: UserIdentityContract;
     readonly firstName: string;
     readonly lastName: string;
     readonly note?: string;
@@ -465,7 +466,7 @@ export async function createApimUserIfNotExists(
   logger.debug(
     "createApimUserIfNotExists|Creating new user (%s/%s)",
     userEmail,
-    userAdId
+    userIdentity?.id
   );
 
   try {
@@ -476,15 +477,11 @@ export async function createApimUserIfNotExists(
       {
         email: userEmail,
         firstName,
-        identities: [
-          {
-            id: userAdId,
-            provider: "AadB2C"
-          }
-        ],
         lastName,
         note,
-        state: "active"
+        state: "active",
+        // identity is optional
+        ...(userIdentity ? { identities: [userIdentity] } : {})
       }
     );
 
