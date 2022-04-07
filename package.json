@@ -32,7 +32,7 @@
     "@types/memoizee": "^0.4.2",
     "applicationinsights": "^1.0.3",
     "auto-changelog": "^2.2.1",
-    "azure-arm-apimanagement": "^2.1.1-preview",
+    "azure-arm-apimanagement": "^5.0.0",
     "azure-graph": "^3.1.0",
     "body-parser": "^1.18.2",
     "cookie-parser": "^1.4.3",
@@ -62,7 +62,7 @@
     "referrer-policy": "^1.1.0",
     "request": "^2.83.0",
     "ulid": "^2.3.0",
-    "winston": "^3.0.0"
+    "winston": "^3.3.0"
   },
   "devDependencies": {
     "@pagopa/io-functions-commons": "^19.2.0",
