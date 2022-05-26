@@ -84,7 +84,7 @@ export const createSessionToken = (
     organization: {
       fiscal_code: data.organization.fiscal_code,
       id: data.organization.id,
-      role: data.organization.role
+      roles: data.organization.roles
     },
     sub: data.sub
   };

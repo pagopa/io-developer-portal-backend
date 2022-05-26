@@ -26,7 +26,12 @@ export const SelfCareIdentity = t.intersection([
     organization: t.interface({
       fiscal_code: OrganizationFiscalCode,
       id: NonEmptyString,
-      role: NonEmptyString
+      roles: t.array(
+        t.interface({
+          partyRole: NonEmptyString,
+          role: NonEmptyString
+        })
+      )
     })
   })
 ]);
