@@ -54,7 +54,7 @@
     "ms-rest": "^2.2.4",
     "ms-rest-azure": "^2.4.4",
     "node-fetch": "^2.6.7",
-    "passport": "*",
+    "passport": "0.6.0",
     "passport-azure-ad": "^3.0.8",
     "passport-jwt": "^4.0.0",
     "patch-package": "^6.2.1",
