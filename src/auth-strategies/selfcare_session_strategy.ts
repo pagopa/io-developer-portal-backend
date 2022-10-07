@@ -7,11 +7,13 @@ import * as passport from "passport";
 import { ulid } from "ulid";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { OrganizationFiscalCode } from "@pagopa/ts-commons/lib/strings";
 import * as jwt from "jsonwebtoken";
 import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import { JWT, processTokenInfo } from "./misc";
-import { SelfCareIdentity } from "./selfcare_identity_strategy";
+import {
+  SelfCareIdentity,
+  SelfCareOrganization
+} from "./selfcare_identity_strategy";
 
 /**
  *
@@ -23,16 +25,7 @@ export const SelfCareUser = t.intersection([
     family_name: t.string,
     given_name: t.string,
     oid: NonEmptyString,
-    organization: t.interface({
-      fiscal_code: OrganizationFiscalCode,
-      id: NonEmptyString,
-      roles: t.array(
-        t.interface({
-          partyRole: NonEmptyString,
-          role: NonEmptyString
-        })
-      )
-    })
+    organization: SelfCareOrganization
   })
 ]);
 
@@ -86,11 +79,7 @@ export const createSessionToken = (
     iss: options.issuer,
     jti: ulid(),
     oid: data.fiscal_number,
-    organization: {
-      fiscal_code: data.organization.fiscal_code,
-      id: data.organization.id,
-      roles: data.organization.roles
-    },
+    organization: data.organization,
     sub: data.sub
   };
 
