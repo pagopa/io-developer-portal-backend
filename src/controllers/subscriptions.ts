@@ -26,11 +26,7 @@ import {
 } from "../apim_operations";
 
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
-import {
-  getApimAccountAnnotation,
-  getApimAccountEmail,
-  SessionUser
-} from "../utils/session";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
 import { AdUser } from "../auth-strategies/azure_ad_strategy";
@@ -96,20 +92,23 @@ export async function postSubscriptions(
       : getApimAccountEmail(authenticatedUser);
 
   const errorOrRetrievedApimUser =
-    subscriptionData.new_user && subscriptionData.new_user.email === email
+    // As we introduced the principle that an account is ensured for every sessions in a SelfCare context,
+    // For Active Directory context, we cannot do the same as we do not have a single point for creating a session token
+    // in that case only, a new user will be create
+    AdUser.is(authenticatedUser) &&
+    // we also check the subscription-creation request also asks for a new user to (eventually) be created
+    subscriptionData.new_user &&
+    subscriptionData.new_user.email === email
       ? fromOption(ResponseErrorForbiddenNotAuthorized)(
           await createApimUserIfNotExists(apiClient, {
             firstName: subscriptionData.new_user.first_name,
             lastName: subscriptionData.new_user.last_name,
-            note: getApimAccountAnnotation(authenticatedUser),
             userEmail: subscriptionData.new_user.email,
             // for backwar compatibility, we link the active directory identity to the created apim user
-            userIdentity: AdUser.is(authenticatedUser)
-              ? {
-                  id: subscriptionData.new_user.adb2c_id,
-                  provider: "AadB2C"
-                }
-              : undefined
+            userIdentity: {
+              id: subscriptionData.new_user.adb2c_id,
+              provider: "AadB2C"
+            }
           })
         )
       : await getActualUser(apiClient, authenticatedUser, userEmail);

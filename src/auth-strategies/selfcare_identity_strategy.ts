@@ -12,6 +12,19 @@ import { passportJwtSecret as fetchJwtSecret } from "jwks-rsa";
 import { ExtractJwt, Strategy as JwtStrategy } from "passport-jwt";
 import { JWT, processTokenInfo, UnixTime } from "./misc";
 
+export type SelfCareOrganization = t.TypeOf<typeof SelfCareOrganization>;
+export const SelfCareOrganization = t.interface({
+  fiscal_code: OrganizationFiscalCode,
+  id: NonEmptyString,
+  name: NonEmptyString,
+  roles: t.array(
+    t.interface({
+      partyRole: NonEmptyString,
+      role: NonEmptyString
+    })
+  )
+});
+
 /**
  *
  */
@@ -23,16 +36,7 @@ export const SelfCareIdentity = t.intersection([
     family_name: t.string,
     fiscal_number: FiscalCode,
     name: t.string,
-    organization: t.interface({
-      fiscal_code: OrganizationFiscalCode,
-      id: NonEmptyString,
-      roles: t.array(
-        t.interface({
-          partyRole: NonEmptyString,
-          role: NonEmptyString
-        })
-      )
-    })
+    organization: SelfCareOrganization
   })
 ]);
 
