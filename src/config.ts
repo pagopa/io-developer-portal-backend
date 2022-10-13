@@ -212,3 +212,9 @@ export const SUBSCRIPTION_MIGRATIONS_URL: string =
   process.env.SUBSCRIPTION_MIGRATIONS_URL || "";
 export const SUBSCRIPTION_MIGRATIONS_APIKEY: string =
   process.env.SUBSCRIPTION_MIGRATIONS_APIKEY || "";
+
+/**
+ * References to the organization services
+ */
+export const ORGANIZATION_SERVICES_URL: string =
+  process.env.ORGANIZATION_SERVICES_URL || "";

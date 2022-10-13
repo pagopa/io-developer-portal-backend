@@ -340,6 +340,37 @@ if (config.IDP === "selfcare") {
       res.end();
     }
   );
+
+  app.use(
+    "/organizations/:organizationFiscalCode/services/*",
+    sessionTokenVerifier,
+    async (req, res) => {
+      const url = `${config.ORGANIZATION_SERVICES_URL}/organizations/${req.user?.organization.fiscal_code}/services${req.params[0]}`;
+      const { method, body } = req;
+
+      try {
+        const result = await nodeFetch(url, {
+          body: ["GET", "HEAD"].includes(method.toUpperCase())
+            ? undefined
+            : body,
+          headers: {
+            "X-Functions-Key": config.SUBSCRIPTION_MIGRATIONS_APIKEY
+          },
+          method
+        });
+
+        res.status(result.status);
+        res.send(await result.text());
+      } catch (error) {
+        logger.error(
+          `Failed to proxy request to organization services data export`,
+          error
+        );
+        res.status(500);
+      }
+
+      res.end();
+    }
 }
 
 app.get("/configuration", toExpressHandler(getConfiguration));
