@@ -222,7 +222,7 @@ app.post(
       getJiraClientMiddleware(JIRA_CONFIG),
       getUserFromRequestMiddleware(),
       RequiredParamMiddleware("serviceId", NonEmptyString),
-      async _ => right(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware
+      async _ => right<never, typeof JIRA_CONFIG>(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware
     )(newReviewRequest)
   )
 );
@@ -237,7 +237,7 @@ app.put(
       getJiraClientMiddleware(JIRA_CONFIG),
       getUserFromRequestMiddleware(),
       RequiredParamMiddleware("serviceId", NonEmptyString),
-      async _ => right(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware
+      async _ => right<never, typeof JIRA_CONFIG>(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware
     )(newDisableRequest)
   )
 );
@@ -371,6 +371,7 @@ if (config.IDP === "selfcare") {
 
       res.end();
     }
+  );
 }
 
 app.get("/configuration", toExpressHandler(getConfiguration));
