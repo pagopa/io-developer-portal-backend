@@ -29,11 +29,17 @@ import {
 } from "fp-ts/lib/TaskEither";
 import nodeFetch from "node-fetch";
 
+// tslint:disable-next-line:no-any
+type ServiceDataSuccessResponse = any /* TODO: shape as the expected response from the API */;
+
 export const serviceDataTask = (
   organizationFiscalCode: OrganizationFiscalCode,
   // tslint:disable-next-line:no-any
   fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
-): TaskEither<IResponseErrorInternal, IResponseSuccessJson<boolean>> => {
+): TaskEither<
+  IResponseErrorInternal,
+  IResponseSuccessJson<ServiceDataSuccessResponse>
+> => {
   return tryCatch(
     async () => {
       const url = `${config.SERVICE_DATA_URL}/organizations/${organizationFiscalCode}/services`;
@@ -61,7 +67,7 @@ export async function serviceData(
   // Retrieve APIM account for the logged user
   return (
     tryCatch<
-      | IResponseSuccessJson<boolean>
+      | IResponseSuccessJson<ServiceDataSuccessResponse>
       | IResponseErrorInternal
       | IResponseErrorForbiddenNotAuthorized
       | IResponseErrorNotFound,
