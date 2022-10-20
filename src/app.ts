@@ -78,6 +78,7 @@ import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identi
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
 import { selfcareIdentityCreds } from "./config";
 import { resolveSelfCareIdentity } from "./controllers/idp";
+import { serviceData } from "./controllers/service_data";
 import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
@@ -344,34 +345,16 @@ if (config.IDP === "selfcare") {
   app.use(
     "/organizations/:organizationFiscalCode/services",
     sessionTokenVerifier,
-    async (req, res) => {
-      const organizationFiscalCode = req.params["organizationFiscalCode"];
-      const url = `${config.SERVICE_DATA_URL}/organizations/${organizationFiscalCode}/services/${req.params[0]}`;
-      const { method, body } = req;
-
-      try {
-        const result = await nodeFetch(url, {
-          body: ["GET", "HEAD"].includes(method.toUpperCase())
-            ? undefined
-            : body,
-          headers: {
-            "X-Functions-Key": config.SERVICE_DATA_APIKEY
-          },
-          method
-        });
-
-        res.status(result.status);
-        res.send(await result.text());
-      } catch (error) {
-        logger.error(
-          `Failed to proxy request to organization services data export`,
-          error
-        );
-        res.status(500);
-      }
-
-      res.end();
-    }
+    wrapRequestHandler(
+      withRequestMiddlewares(
+        getApiClientMiddleware(),
+        getUserFromRequestMiddleware(),
+        RequiredParamMiddleware(
+          "organizationFiscalCode",
+          OrganizationFiscalCode
+        )
+      )(serviceData)
+    )
   );
 }
 
