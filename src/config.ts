@@ -216,5 +216,7 @@ export const SUBSCRIPTION_MIGRATIONS_APIKEY: string =
 /**
  * References to the organization services
  */
-export const ORGANIZATION_SERVICES_URL: string =
-  process.env.ORGANIZATION_SERVICES_URL || "";
+export const SERVICE_DATA_URL: string = process.env.SERVICE_DATA_URL || "";
+// Azure Function Auth API KEY
+export const SERVICE_DATA_APIKEY: string =
+  process.env.SERVICE_DATA_APIKEY || "";

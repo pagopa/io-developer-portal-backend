@@ -342,10 +342,11 @@ if (config.IDP === "selfcare") {
   );
 
   app.use(
-    "/organizations/:organizationFiscalCode/services/*",
+    "/organizations/:organizationFiscalCode/services",
     sessionTokenVerifier,
     async (req, res) => {
-      const url = `${config.ORGANIZATION_SERVICES_URL}/organizations/${req.user?.organization.fiscal_code}/services${req.params[0]}`;
+      const organizationFiscalCode = req.params["organizationFiscalCode"];
+      const url = `${config.SERVICE_DATA_URL}/organizations/${organizationFiscalCode}/services/${req.params[0]}`;
       const { method, body } = req;
 
       try {
@@ -354,7 +355,7 @@ if (config.IDP === "selfcare") {
             ? undefined
             : body,
           headers: {
-            "X-Functions-Key": config.SUBSCRIPTION_MIGRATIONS_APIKEY
+            "X-Functions-Key": config.SERVICE_DATA_APIKEY
           },
           method
         });
