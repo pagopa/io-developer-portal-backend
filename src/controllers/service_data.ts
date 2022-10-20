@@ -1,6 +1,6 @@
 import ApiManagementClient from "azure-arm-apimanagement";
-import { fromPredicate, isRight, toError } from "fp-ts/lib/Either";
-import { isNone } from "fp-ts/lib/Option";
+import { fromOption, toError } from "fp-ts/lib/Either";
+import { Option } from "fp-ts/lib/Option";
 import {
   IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
@@ -21,7 +21,12 @@ import {
 import * as config from "../config";
 import { getApimAccountEmail, SessionUser } from "../utils/session";
 
-import { TaskEither, tryCatch } from "fp-ts/lib/TaskEither";
+import {
+  fromEither,
+  fromPredicate,
+  TaskEither,
+  tryCatch
+} from "fp-ts/lib/TaskEither";
 import nodeFetch from "node-fetch";
 
 export const serviceDataTask = (
@@ -57,30 +62,42 @@ export async function serviceData(
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorNotFound
 > {
-  const maybeApimUser = await getApimUser(
-    apiClient,
-    getApimAccountEmail(authenticatedUser)
+  // Retrieve APIM account for the logged user
+  return (
+    tryCatch<
+      | IResponseSuccessJson<boolean>
+      | IResponseErrorInternal
+      | IResponseErrorForbiddenNotAuthorized
+      | IResponseErrorNotFound,
+      Option<IExtendedUserContract>
+    >(
+      () => getApimUser(apiClient, getApimAccountEmail(authenticatedUser)),
+      () => ResponseErrorInternal("Internal Error")
+    )
+      .chain(maybeApimUser =>
+        fromEither(
+          fromOption(
+            ResponseErrorNotFound(
+              "API user not found",
+              "Cannot find a user in the API management with the provided email address"
+            )
+          )(maybeApimUser)
+        )
+      )
+      // Check the user has admin role
+      .chain(
+        fromPredicate(
+          (user: IExtendedUserContract) => isAdminUser(user),
+          _ => ResponseErrorForbiddenNotAuthorized
+        )
+      )
+      // Eetrieve service data for the organization
+      .chain(_ => serviceDataTask(organizationFiscalCode))
+      // Either to union
+      .fold(
+        _ => _,
+        _ => _
+      )
+      .run()
   );
-  if (isNone(maybeApimUser)) {
-    return ResponseErrorNotFound(
-      "API user not found",
-      "Cannot find a user in the API management with the provided email address"
-    );
-  }
-  const authenticatedApimUser = maybeApimUser.value;
-
-  const res = fromPredicate(
-    (user: IExtendedUserContract) => isAdminUser(user),
-    _ => ResponseErrorForbiddenNotAuthorized
-  )(authenticatedApimUser);
-  if (isRight(res)) {
-    const proxy = await serviceDataTask(organizationFiscalCode).run();
-    if (isRight(proxy)) {
-      return ResponseSuccessJson(proxy.value.value);
-    } else {
-      return ResponseErrorInternal("Internal Error");
-    }
-  } else {
-    return ResponseErrorForbiddenNotAuthorized;
-  }
 }
