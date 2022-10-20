@@ -34,19 +34,15 @@ export const serviceDataTask = (
   // tslint:disable-next-line:no-any
   fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
 ): TaskEither<IResponseErrorInternal, IResponseSuccessJson<boolean>> => {
-  return tryCatch<IResponseErrorInternal, Response>(
-    () => {
+  return tryCatch(
+    async () => {
       const url = `${config.SERVICE_DATA_URL}/organizations/${organizationFiscalCode}/services`;
-      const body = JSON.stringify("");
-      const headers = {
-        "X-Functions-Key": config.SERVICE_DATA_APIKEY
-      };
-      const fetch = fetchApi(`${url}`, {
-        body,
-        headers,
-        method: "*"
+      const response = await fetchApi(url, {
+        headers: {
+          "X-Functions-Key": config.SERVICE_DATA_APIKEY
+        }
       });
-      return fetch;
+      return response.json();
     },
     errors => ResponseErrorInternal(toError(errors).message)
   ).map(_ => ResponseSuccessJson<boolean>(true));
