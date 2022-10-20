@@ -36,7 +36,7 @@ export const serviceDataTask = (
 ): TaskEither<IResponseErrorInternal, IResponseSuccessJson<boolean>> => {
   return tryCatch<IResponseErrorInternal, Response>(
     () => {
-      const url = `${config.SERVICE_DATA_URL}/organizations/${organizationFiscalCode}/services}`;
+      const url = `${config.SERVICE_DATA_URL}/organizations/${organizationFiscalCode}/services`;
       const body = JSON.stringify("");
       const headers = {
         "X-Functions-Key": config.SERVICE_DATA_APIKEY
