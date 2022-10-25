@@ -27,6 +27,7 @@ import {
   TaskEither,
   tryCatch
 } from "fp-ts/lib/TaskEither";
+import { identity } from "io-ts";
 import nodeFetch from "node-fetch";
 
 // tslint:disable-next-line:no-any
@@ -67,7 +68,6 @@ export async function serviceData(
   // Retrieve APIM account for the logged user
   return (
     tryCatch<
-      | IResponseSuccessJson<ServiceDataSuccessResponse>
       | IResponseErrorInternal
       | IResponseErrorForbiddenNotAuthorized
       | IResponseErrorNotFound,
@@ -86,7 +86,6 @@ export async function serviceData(
           )(maybeApimUser)
         )
       )
-      // Check the user has admin role
       .chain(
         fromPredicate(
           (user: IExtendedUserContract) => isAdminUser(user),
@@ -95,11 +94,12 @@ export async function serviceData(
       )
       // Eetrieve service data for the organization
       .chain(_ => serviceDataTask(organizationFiscalCode))
-      // Either to union
-      .fold(
-        _ => _,
-        _ => _
-      )
+      .fold<
+        | IResponseErrorInternal
+        | IResponseErrorForbiddenNotAuthorized
+        | IResponseErrorNotFound
+        | IResponseSuccessJson<boolean>
+      >(identity, identity)
       .run()
   );
 }
