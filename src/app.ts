@@ -343,7 +343,7 @@ if (config.IDP === "selfcare") {
   );
 } else if (config.IDP === "azure-ad") {
   // Expose proxied endpoints to retrieve admin data for services
-  app.use(
+  app.get(
     "/organizations/:organizationFiscalCode/services",
     sessionTokenVerifier,
     wrapRequestHandler(
