@@ -26,6 +26,8 @@ import { isNone, isSome, none, Option, some } from "fp-ts/lib/Option";
 import { EmailString } from "italia-ts-commons/lib/strings";
 import SerializableSet from "json-set-map/build/src/set";
 import { ulid } from "ulid";
+import { EmailAddress } from "../generated/api/EmailAddress";
+import { SelfCareOrganization } from "./auth-strategies/selfcare_identity_strategy";
 
 export interface IServicePrincipalCreds {
   readonly servicePrincipalClientId: string;
@@ -51,6 +53,36 @@ export interface IApimConfig {
   readonly azurermResourceGroup: string;
   readonly azurermApim: string;
 }
+
+export interface IApimUserData {
+  readonly userEmail: EmailString;
+  readonly userIdentity?: UserIdentityContract;
+  readonly firstName: string;
+  readonly lastName: string;
+  readonly note?: string;
+}
+
+export const formatApimAccountEmailForSelfcareOrganization = (
+  organization: SelfCareOrganization
+): EmailAddress =>
+  EmailAddress.decode(
+    `org.${organization.id}@selfcare.io.pagopa.it`
+  ).getOrElseL(() => {
+    throw new Error(`Cannot format APIM account email for the organization`);
+  });
+
+/**
+ * Given a SelfCare organizzation, compose a Apim user data object
+ * in the expected shape
+ */
+export const apimUserForSelfCareOrganization = (
+  organization: SelfCareOrganization
+): IApimUserData => ({
+  firstName: organization.name,
+  lastName: organization.id,
+  note: organization.fiscal_code,
+  userEmail: formatApimAccountEmailForSelfcareOrganization(organization)
+});
 
 function getToken(
   loginCreds:
@@ -439,19 +471,7 @@ export async function getApimUsers(
 
 export async function createApimUserIfNotExists(
   apiClient: ApiManagementClient,
-  {
-    userEmail,
-    userIdentity,
-    firstName,
-    lastName,
-    note = ""
-  }: {
-    readonly userEmail: EmailString;
-    readonly userIdentity?: UserIdentityContract;
-    readonly firstName: string;
-    readonly lastName: string;
-    readonly note?: string;
-  },
+  { userEmail, userIdentity, firstName, lastName, note = "" }: IApimUserData,
   lconfig: IApimConfig = config
 ): Promise<Option<IExtendedUserContract>> {
   const maybeExistingApimUser = await getApimUser__(

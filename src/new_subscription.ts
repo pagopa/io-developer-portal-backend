@@ -94,12 +94,11 @@ export async function subscribeApimUser(
     const errorOrService = Service.decode({
       authorized_cidrs: [],
       authorized_recipients: [sandboxFiscalCode],
-      department_name: subscriptionData.department_name || "department",
-      organization_fiscal_code:
-        subscriptionData.organization_fiscal_code || "00000000000",
-      organization_name: subscriptionData.organization_name || "organization",
+      department_name: subscriptionData.department_name,
+      organization_fiscal_code: subscriptionData.organization_fiscal_code,
+      organization_name: subscriptionData.organization_name,
       service_id: subscription.name,
-      service_name: subscriptionData.service_name || "service"
+      service_name: subscriptionData.service_name
     });
     if (isLeft(errorOrService)) {
       return left(

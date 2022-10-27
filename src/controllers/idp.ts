@@ -1,12 +1,17 @@
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
+import ApiManagementClient from "azure-arm-apimanagement";
 import * as t from "io-ts";
 import {
   IResponsePermanentRedirect,
   ResponsePermanentRedirect
 } from "italia-ts-commons/lib/responses";
 import { UrlFromString } from "italia-ts-commons/lib/url";
+import {
+  apimUserForSelfCareOrganization,
+  createApimUserIfNotExists
+} from "../apim_operations";
 import { SelfCareIdentity } from "../auth-strategies/selfcare_identity_strategy";
 import { createSessionToken } from "../auth-strategies/selfcare_session_strategy";
 import { selfcareSessionCreds } from "../config";
@@ -20,7 +25,8 @@ const withToken = (url: ValidUrl, idToken: string): ValidUrl => {
 };
 
 export async function resolveSelfCareIdentity(
-  selfcareIdentity: SelfCareIdentity
+  selfcareIdentity: SelfCareIdentity,
+  apimClient: ApiManagementClient
 ): Promise<IResponsePermanentRedirect> {
   const options = t
     .interface({
@@ -37,6 +43,13 @@ export async function resolveSelfCareIdentity(
     });
 
   try {
+    // ensure an apim account is created for every session,
+    // so that every user operation can rely on that
+    await createApimUserIfNotExists(
+      apimClient,
+      apimUserForSelfCareOrganization(selfcareIdentity.organization)
+    );
+
     const token = createSessionToken(selfcareIdentity, {
       audience: options.audience,
       issuer: options.issuer,

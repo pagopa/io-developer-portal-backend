@@ -1,4 +1,8 @@
-import { EmailString, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import {
+  EmailString,
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "@pagopa/ts-commons/lib/strings";
 import ApiManagementClient from "azure-arm-apimanagement";
 import {
   SubscriptionCollection,
@@ -26,14 +30,11 @@ import {
 } from "../apim_operations";
 
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
-import {
-  getApimAccountAnnotation,
-  getApimAccountEmail,
-  SessionUser
-} from "../utils/session";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
 import { AdUser } from "../auth-strategies/azure_ad_strategy";
+import { SelfCareUser } from "../auth-strategies/selfcare_session_strategy";
 import { getActualUser } from "../middlewares/actual_user";
 
 /**
@@ -65,6 +66,39 @@ export async function getSubscriptions(
 }
 
 /**
+ * Set defaults on an incoming subscription.
+ * Defaults may depend on empty values as well as values enforced by the current session user
+ *
+ * @param source A subscription data object
+ * @param authenticatedUser the current session user
+ * @returns A subscription data object filled with default fields
+ */
+const setSubscriptionDefaults = (
+  source: SubscriptionData,
+  authenticatedUser: SessionUser
+): SubscriptionData => {
+  const withDefaultsOnEmptyFields = {
+    ...source,
+    department_name: source.department_name || ("department" as NonEmptyString),
+    organization_fiscal_code:
+      source.organization_fiscal_code ||
+      ("00000000000" as OrganizationFiscalCode),
+    organization_name:
+      source.organization_name || ("organization" as NonEmptyString),
+    service_name: source.service_name || ("service" as NonEmptyString)
+  };
+
+  if (SelfCareUser.is(authenticatedUser)) {
+    return {
+      ...withDefaultsOnEmptyFields,
+      organization_fiscal_code: authenticatedUser.organization.fiscal_code,
+      organization_name: authenticatedUser.organization.name
+    };
+  }
+  return withDefaultsOnEmptyFields;
+};
+
+/**
  * Subscribe the user to a configured product.
  * Is it possible to create multiple subscriptions
  * for the same user / product tuple.
@@ -72,7 +106,7 @@ export async function getSubscriptions(
 export async function postSubscriptions(
   apiClient: ApiManagementClient,
   authenticatedUser: SessionUser,
-  subscriptionData: SubscriptionData,
+  subscriptionDataInput: SubscriptionData,
   userEmail?: EmailString
 ): Promise<
   | IResponseSuccessJson<SubscriptionContract>
@@ -95,21 +129,30 @@ export async function postSubscriptions(
       ? userEmail
       : getApimAccountEmail(authenticatedUser);
 
+  // Fill Subscription Data fields with default values
+  const subscriptionData = setSubscriptionDefaults(
+    subscriptionDataInput,
+    authenticatedUser
+  );
+
   const errorOrRetrievedApimUser =
-    subscriptionData.new_user && subscriptionData.new_user.email === email
+    // As we introduced the principle that an account is ensured for every sessions in a SelfCare context,
+    // For Active Directory context, we cannot do the same as we do not have a single point for creating a session token
+    // in that case only, a new user will be create
+    AdUser.is(authenticatedUser) &&
+    // we also check the subscription-creation request also asks for a new user to (eventually) be created
+    subscriptionData.new_user &&
+    subscriptionData.new_user.email === email
       ? fromOption(ResponseErrorForbiddenNotAuthorized)(
           await createApimUserIfNotExists(apiClient, {
             firstName: subscriptionData.new_user.first_name,
             lastName: subscriptionData.new_user.last_name,
-            note: getApimAccountAnnotation(authenticatedUser),
             userEmail: subscriptionData.new_user.email,
             // for backwar compatibility, we link the active directory identity to the created apim user
-            userIdentity: AdUser.is(authenticatedUser)
-              ? {
-                  id: subscriptionData.new_user.adb2c_id,
-                  provider: "AadB2C"
-                }
-              : undefined
+            userIdentity: {
+              id: subscriptionData.new_user.adb2c_id,
+              provider: "AadB2C"
+            }
           })
         )
       : await getActualUser(apiClient, authenticatedUser, userEmail);

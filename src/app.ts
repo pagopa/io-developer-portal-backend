@@ -302,9 +302,10 @@ if (config.IDP === "selfcare") {
     "/idp/selfcare/resolve-identity",
     identityTokenVerifier,
     wrapRequestHandler(
-      withRequestMiddlewares(getSelfCareIdentityFromRequestMiddleware())(
-        resolveSelfCareIdentity
-      )
+      withRequestMiddlewares(
+        getSelfCareIdentityFromRequestMiddleware(),
+        getApiClientMiddleware()
+      )(resolveSelfCareIdentity)
     )
   );
 
