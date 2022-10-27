@@ -29,9 +29,26 @@ import {
 } from "fp-ts/lib/TaskEither";
 import { identity } from "io-ts";
 import nodeFetch from "node-fetch";
+import * as t from "io-ts";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { withDefault } from "@pagopa/ts-commons/lib/types";
 
-// tslint:disable-next-line:no-any
-type ServiceDataSuccessResponse = any /* TODO: shape as the expected response from the API */;
+/*
+  The shape of Success Response
+*/
+export const ServiceDataSuccessResponse = t.interface({
+  items: t.readonlyArray(
+    t.interface({
+      id: NonEmptyString,
+      isVisible: withDefault(t.boolean, false),
+      name: NonEmptyString
+    })
+  )
+});
+
+export type ServiceDataSuccessResponse = t.TypeOf<
+  typeof ServiceDataSuccessResponse
+>;
 
 export const serviceDataTask = (
   organizationFiscalCode: OrganizationFiscalCode,
@@ -52,7 +69,9 @@ export const serviceDataTask = (
       return response.json();
     },
     errors => ResponseErrorInternal(toError(errors).message)
-  ).map(_ => ResponseSuccessJson<boolean>(true));
+  ).map((res: ServiceDataSuccessResponse) =>
+    ResponseSuccessJson<ServiceDataSuccessResponse>(res)
+  );
 };
 
 export async function serviceData(
@@ -60,7 +79,7 @@ export async function serviceData(
   authenticatedUser: SessionUser,
   organizationFiscalCode: OrganizationFiscalCode
 ): Promise<
-  | IResponseSuccessJson<boolean>
+  | IResponseSuccessJson<ServiceDataSuccessResponse>
   | IResponseErrorInternal
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorNotFound
@@ -93,12 +112,20 @@ export async function serviceData(
         )
       )
       // Eetrieve service data for the organization
-      .chain(_ => serviceDataTask(organizationFiscalCode))
+      .chain(_ =>
+        serviceDataTask(organizationFiscalCode).chain(res =>
+          fromEither(
+            ServiceDataSuccessResponse.decode(res)
+              .mapLeft(() => ResponseErrorInternal("Response Decode Error"))
+              .map(() => res)
+          )
+        )
+      )
       .fold<
         | IResponseErrorInternal
         | IResponseErrorForbiddenNotAuthorized
         | IResponseErrorNotFound
-        | IResponseSuccessJson<boolean>
+        | IResponseSuccessJson<ServiceDataSuccessResponse>
       >(identity, identity)
       .run()
   );
