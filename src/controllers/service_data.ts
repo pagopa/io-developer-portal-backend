@@ -21,6 +21,8 @@ import {
 import * as config from "../config";
 import { getApimAccountEmail, SessionUser } from "../utils/session";
 
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { withDefault } from "@pagopa/ts-commons/lib/types";
 import {
   fromEither,
   fromPredicate,
@@ -28,10 +30,8 @@ import {
   tryCatch
 } from "fp-ts/lib/TaskEither";
 import { identity } from "io-ts";
-import nodeFetch from "node-fetch";
 import * as t from "io-ts";
-import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { withDefault } from "@pagopa/ts-commons/lib/types";
+import nodeFetch from "node-fetch";
 
 /*
   The shape of Success Response
