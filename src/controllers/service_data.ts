@@ -111,7 +111,7 @@ export async function serviceData(
           _ => ResponseErrorForbiddenNotAuthorized
         )
       )
-      // Eetrieve service data for the organization
+      // Retrieve service data for the organization
       .chain(_ =>
         serviceDataTask(organizationFiscalCode).chain(res =>
           fromEither(
