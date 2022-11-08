@@ -347,6 +347,8 @@ if (config.IDP === "selfcare") {
     }
   );
 } else if (config.IDP === "azure-ad") {
+  // The following utility retrieves APIM account id for the current authenticated user
+  // It does the job for this very specific use case, if needed in future we may think about moving it into common utils
   const getApimUserIdForLoggedUser = (
     req: express.Request
   ): Promise<Either<Error, string>> =>
