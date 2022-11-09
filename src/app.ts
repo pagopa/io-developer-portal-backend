@@ -433,6 +433,7 @@ if (config.IDP === "selfcare") {
         )
       )(serviceData)
     )
+  );
 }
 
 app.get("/configuration", toExpressHandler(getConfiguration));
