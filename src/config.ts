@@ -212,3 +212,11 @@ export const SUBSCRIPTION_MIGRATIONS_URL: string =
   process.env.SUBSCRIPTION_MIGRATIONS_URL || "";
 export const SUBSCRIPTION_MIGRATIONS_APIKEY: string =
   process.env.SUBSCRIPTION_MIGRATIONS_APIKEY || "";
+
+/**
+ * References to the organization services
+ */
+export const SERVICE_DATA_URL: string = process.env.SERVICE_DATA_URL || "";
+// Azure Function Auth API KEY
+export const SERVICE_DATA_APIKEY: string =
+  process.env.SERVICE_DATA_APIKEY || "";

@@ -79,6 +79,7 @@ import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identi
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
 import { selfcareIdentityCreds } from "./config";
 import { resolveSelfCareIdentity } from "./controllers/idp";
+import { serviceData } from "./controllers/service_data";
 import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 
 import { ProblemJson } from "italia-ts-commons/lib/responses";
@@ -227,7 +228,7 @@ app.post(
       getJiraClientMiddleware(JIRA_CONFIG),
       getUserFromRequestMiddleware(),
       RequiredParamMiddleware("serviceId", NonEmptyString),
-      async _ => right(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware
+      async _ => right<never, typeof JIRA_CONFIG>(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware
     )(newReviewRequest)
   )
 );
@@ -242,7 +243,7 @@ app.put(
       getJiraClientMiddleware(JIRA_CONFIG),
       getUserFromRequestMiddleware(),
       RequiredParamMiddleware("serviceId", NonEmptyString),
-      async _ => right(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware
+      async _ => right<never, typeof JIRA_CONFIG>(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware
     )(newDisableRequest)
   )
 );
@@ -417,6 +418,21 @@ if (config.IDP === "selfcare") {
 
       res.end();
     }
+  );
+  // Expose proxied endpoints to retrieve admin data for services
+  app.get(
+    "/organizations/:organizationFiscalCode/services",
+    sessionTokenVerifier,
+    wrapRequestHandler(
+      withRequestMiddlewares(
+        getApiClientMiddleware(),
+        getUserFromRequestMiddleware(),
+        RequiredParamMiddleware(
+          "organizationFiscalCode",
+          OrganizationFiscalCode
+        )
+      )(serviceData)
+    )
   );
 }
 
