@@ -380,10 +380,14 @@ if (config.IDP === "selfcare") {
     // enrich request with apim user id
     async (req, res, next) => {
       try {
-        const apimUserId = await getApimUserIdForLoggedUser(req);
-        // tslint:disable-next-line: no-object-mutation
-        req.user.apimUserId = apimUserId;
-        next();
+        const maybeApimUserId = await getApimUserIdForLoggedUser(req);
+        if (maybeApimUserId.isRight()) {
+          // tslint:disable-next-line: no-object-mutation
+          req.user.apimUserId = maybeApimUserId.value;
+          next();
+        } else {
+          throw new Error(`Failed to get APIM user: ${maybeApimUserId.value}`);
+        }
       } catch (error) {
         res.status(500);
         res.json(ProblemJson.encode({ detail: toError(error).message }));
