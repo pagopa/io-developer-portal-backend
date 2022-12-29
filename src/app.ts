@@ -64,8 +64,8 @@ import {
   getJiraClientMiddleware
 } from "./middlewares/api_client";
 import { OptionalParamMiddleware } from "./middlewares/optional_param";
-import { RequiredParamMiddleware } from "./middlewares/required_param";
 import { OptionalQueryParamMiddleware } from "./middlewares/optional_query_param";
+import { RequiredParamMiddleware } from "./middlewares/required_param";
 import { getUserFromRequestMiddleware } from "./middlewares/user";
 
 import { SubscriptionData } from "./new_subscription";
