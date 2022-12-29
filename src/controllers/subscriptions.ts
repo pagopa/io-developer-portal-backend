@@ -59,7 +59,7 @@ export async function getSubscriptions(
     return errorOrRetrievedApimUser.value;
   }
   const retrievedApimUser = errorOrRetrievedApimUser.value;
-  
+
   const subscriptions = await getUserSubscriptions(
     apiClient,
     retrievedApimUser.name,

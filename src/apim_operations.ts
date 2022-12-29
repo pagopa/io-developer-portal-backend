@@ -178,8 +178,8 @@ export async function getUserSubscriptions(
   logger.debug("getUserSubscriptions");
 
   const options = {
-    top: limit ? +limit : undefined,
-    skip: offset ? +offset : undefined
+    skip: offset ? +offset : undefined,
+    top: limit ? +limit : undefined
   };
 
   // this list is paginated with a next-link
