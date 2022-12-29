@@ -43,7 +43,9 @@ import { getActualUser } from "../middlewares/actual_user";
 export async function getSubscriptions(
   apiClient: ApiManagementClient,
   authenticatedUser: SessionUser,
-  userEmail?: EmailString
+  userEmail?: EmailString,
+  offset?: NonEmptyString,
+  limit?: NonEmptyString
 ): Promise<
   | IResponseSuccessJson<SubscriptionCollection>
   | IResponseErrorForbiddenNotAuthorized
@@ -57,10 +59,12 @@ export async function getSubscriptions(
     return errorOrRetrievedApimUser.value;
   }
   const retrievedApimUser = errorOrRetrievedApimUser.value;
-
+  
   const subscriptions = await getUserSubscriptions(
     apiClient,
-    retrievedApimUser.name
+    retrievedApimUser.name,
+    offset,
+    limit
   );
   return ResponseSuccessJson(subscriptions);
 }
