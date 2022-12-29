@@ -171,23 +171,21 @@ export const getUserSubscription = memoizee(getUserSubscription__, {
 export async function getUserSubscriptions(
   apiClient: ApiManagementClient,
   userId: string,
-  offset?: string,
-  limit?: string,
+  offset?: number,
+  limit?: number,
   lconfig: IApimConfig = config
 ): Promise<SubscriptionCollection> {
   logger.debug("getUserSubscriptions");
-
-  const options = {
-    skip: offset ? +offset : undefined,
-    top: limit ? +limit : undefined
-  };
 
   // this list is paginated with a next-link
   return apiClient.userSubscription.list(
     lconfig.azurermResourceGroup,
     lconfig.azurermApim,
     userId,
-    options
+    {
+      skip: offset,
+      top: limit
+    }
   );
 }
 

@@ -83,6 +83,10 @@ import { resolveSelfCareIdentity } from "./controllers/idp";
 import { serviceData } from "./controllers/service_data";
 import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 
+import {
+  IntegerFromString,
+  NonNegativeInteger
+} from "italia-ts-commons/lib/numbers";
 import { ProblemJson } from "italia-ts-commons/lib/responses";
 import { getApimUser } from "./apim_operations";
 import { getApimAccountEmail } from "./utils/session";
@@ -150,8 +154,14 @@ app.get(
       getApiClientMiddleware(),
       getUserFromRequestMiddleware(),
       OptionalParamMiddleware("email", EmailString),
-      OptionalQueryParamMiddleware("offset", NonEmptyString),
-      OptionalQueryParamMiddleware("limit", NonEmptyString)
+      OptionalQueryParamMiddleware(
+        "offset",
+        IntegerFromString.pipe(NonNegativeInteger)
+      ),
+      OptionalQueryParamMiddleware(
+        "limit",
+        IntegerFromString.pipe(NonNegativeInteger)
+      )
     )(getSubscriptions)
   )
 );
