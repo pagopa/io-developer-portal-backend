@@ -33,6 +33,7 @@ import { subscribeApimUser, SubscriptionData } from "../new_subscription";
 import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
+import { NonNegativeInteger } from "italia-ts-commons/lib/numbers";
 import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import { SelfCareUser } from "../auth-strategies/selfcare_session_strategy";
 import { getActualUser } from "../middlewares/actual_user";
@@ -43,7 +44,9 @@ import { getActualUser } from "../middlewares/actual_user";
 export async function getSubscriptions(
   apiClient: ApiManagementClient,
   authenticatedUser: SessionUser,
-  userEmail?: EmailString
+  userEmail?: EmailString,
+  offset?: NonNegativeInteger,
+  limit?: NonNegativeInteger
 ): Promise<
   | IResponseSuccessJson<SubscriptionCollection>
   | IResponseErrorForbiddenNotAuthorized
@@ -60,7 +63,9 @@ export async function getSubscriptions(
 
   const subscriptions = await getUserSubscriptions(
     apiClient,
-    retrievedApimUser.name
+    retrievedApimUser.name,
+    offset,
+    limit
   );
   return ResponseSuccessJson(subscriptions);
 }

@@ -64,6 +64,7 @@ import {
   getJiraClientMiddleware
 } from "./middlewares/api_client";
 import { OptionalParamMiddleware } from "./middlewares/optional_param";
+import { OptionalQueryParamMiddleware } from "./middlewares/optional_query_param";
 import { RequiredParamMiddleware } from "./middlewares/required_param";
 import { getUserFromRequestMiddleware } from "./middlewares/user";
 
@@ -82,6 +83,10 @@ import { resolveSelfCareIdentity } from "./controllers/idp";
 import { serviceData } from "./controllers/service_data";
 import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 
+import {
+  IntegerFromString,
+  NonNegativeInteger
+} from "italia-ts-commons/lib/numbers";
 import { ProblemJson } from "italia-ts-commons/lib/responses";
 import { getApimUser } from "./apim_operations";
 import { getApimAccountEmail } from "./utils/session";
@@ -148,7 +153,15 @@ app.get(
     withRequestMiddlewares(
       getApiClientMiddleware(),
       getUserFromRequestMiddleware(),
-      OptionalParamMiddleware("email", EmailString)
+      OptionalParamMiddleware("email", EmailString),
+      OptionalQueryParamMiddleware(
+        "offset",
+        IntegerFromString.pipe(NonNegativeInteger)
+      ),
+      OptionalQueryParamMiddleware(
+        "limit",
+        IntegerFromString.pipe(NonNegativeInteger)
+      )
     )(getSubscriptions)
   )
 );
