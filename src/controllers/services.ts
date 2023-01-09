@@ -146,7 +146,7 @@ export async function getService(
   if (isLeft(errorOrServiceResponse)) {
     return ResponseErrorNotFound(
       "Cannot get service",
-      readableReport(errorOrServiceResponse.value)
+      errorOrServiceResponse.value.message
     );
   }
   const service = errorOrServiceResponse.value;
