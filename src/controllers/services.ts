@@ -55,7 +55,6 @@ import {
   uploadOrganizationLogoTask,
   uploadServiceLogoTask
 } from "../middlewares/upload_logo";
-import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 
 export const ServicePayload = t.partial({
   authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
