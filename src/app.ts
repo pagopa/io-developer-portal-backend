@@ -52,6 +52,7 @@ import {
   ServicePayload
 } from "./controllers/services";
 import {
+  getSubscriptionManage,
   getSubscriptions,
   postSubscriptions,
   putSubscriptionKey
@@ -163,6 +164,18 @@ app.get(
         IntegerFromString.pipe(NonNegativeInteger)
       )
     )(getSubscriptions)
+  )
+);
+
+app.get(
+  ["/subscription-manage", "/subscription-manage/:email"],
+  sessionTokenVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getUserFromRequestMiddleware(),
+      OptionalParamMiddleware("email", EmailString)
+    )(getSubscriptionManage)
   )
 );
 

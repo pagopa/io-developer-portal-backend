@@ -23,6 +23,7 @@ import {
   createApimUserIfNotExists,
   getApimUser,
   getUserSubscription,
+  getUserSubscriptionManage,
   getUserSubscriptions,
   isAdminUser,
   regeneratePrimaryKey,
@@ -37,6 +38,7 @@ import { NonNegativeInteger } from "italia-ts-commons/lib/numbers";
 import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import { SelfCareUser } from "../auth-strategies/selfcare_session_strategy";
 import { getActualUser } from "../middlewares/actual_user";
+import { MANAGE_APIKEY_PREFIX } from "../utils/api_key";
 
 /**
  * List all subscriptions for the logged in user
@@ -68,6 +70,65 @@ export async function getSubscriptions(
     limit
   );
   return ResponseSuccessJson(subscriptions);
+}
+
+/**
+ * Get MANAGE subscription for the logged in user (if not exists, create it)
+ */
+export async function getSubscriptionManage(
+  apiClient: ApiManagementClient,
+  authenticatedUser: SessionUser,
+  userEmail?: EmailString
+): Promise<
+  | IResponseSuccessJson<SubscriptionContract>
+  | IResponseErrorForbiddenNotAuthorized
+> {
+  const errorOrRetrievedApimUser = await getActualUser(
+    apiClient,
+    authenticatedUser,
+    userEmail
+  );
+  if (isLeft(errorOrRetrievedApimUser)) {
+    return errorOrRetrievedApimUser.value;
+  }
+  const retrievedApimUser = errorOrRetrievedApimUser.value;
+
+  // Check User permissions
+  if (!retrievedApimUser.groupNames.has("apiservicewrite")) {
+    return ResponseErrorForbiddenNotAuthorized;
+  }
+
+  // Try to get User Subscription MANAGE
+  const maybeSubscriptionManage = await getUserSubscriptionManage(
+    apiClient,
+    retrievedApimUser.id,
+    retrievedApimUser.name
+  );
+  // Check if Subscription MANAGE exists
+  if (isNone(maybeSubscriptionManage)) {
+    // Build Subscription MANAGE Data
+    const subscriptionData = setSubscriptionDefaults(
+      {
+        id: MANAGE_APIKEY_PREFIX + retrievedApimUser.name
+      } as SubscriptionData,
+      authenticatedUser
+    );
+    // Create MANAGE Subscription only (do not create related Service)
+    const subscriptionOrError = await subscribeApimUser(
+      apiClient,
+      retrievedApimUser,
+      subscriptionData,
+      false // no service create
+    );
+    return subscriptionOrError.fold<
+      | IResponseErrorForbiddenNotAuthorized
+      | IResponseSuccessJson<SubscriptionContract>
+    >(
+      _ => ResponseErrorForbiddenNotAuthorized,
+      s => ResponseSuccessJson(s)
+    );
+  }
+  return ResponseSuccessJson(maybeSubscriptionManage.value);
 }
 
 /**

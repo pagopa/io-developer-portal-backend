@@ -36,21 +36,26 @@ const telemetryClient = new appinsights.TelemetryClient();
 
 const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 
-export const SubscriptionData = t.interface({
-  department_name: NonEmptyString,
-  new_user: t.union([
-    t.undefined,
-    t.interface({
-      adb2c_id: NonEmptyString,
-      email: EmailString,
-      first_name: NonEmptyString,
-      last_name: NonEmptyString
-    })
-  ]),
-  organization_fiscal_code: OrganizationFiscalCode,
-  organization_name: NonEmptyString,
-  service_name: NonEmptyString
-});
+export const SubscriptionData = t.intersection([
+  t.interface({
+    department_name: NonEmptyString,
+    new_user: t.union([
+      t.undefined,
+      t.interface({
+        adb2c_id: NonEmptyString,
+        email: EmailString,
+        first_name: NonEmptyString,
+        last_name: NonEmptyString
+      })
+    ]),
+    organization_fiscal_code: OrganizationFiscalCode,
+    organization_name: NonEmptyString,
+    service_name: NonEmptyString
+  }),
+  t.partial({
+    id: NonEmptyString
+  })
+]);
 export type SubscriptionData = t.TypeOf<typeof SubscriptionData>;
 
 /**
@@ -61,7 +66,8 @@ export type SubscriptionData = t.TypeOf<typeof SubscriptionData>;
 export async function subscribeApimUser(
   apiClient: ApiManagementClient,
   apimUser: IExtendedUserContract,
-  subscriptionData: SubscriptionData
+  subscriptionData: SubscriptionData,
+  createService = true
 ): Promise<Either<Error, SubscriptionContract>> {
   try {
     const sandboxFiscalCode = config.sandboxFiscalCode;
@@ -72,7 +78,8 @@ export async function subscribeApimUser(
     const errorOrSubscription = await addUserSubscriptionToProduct(
       apiClient,
       apimUser.id,
-      config.apimProductName
+      config.apimProductName,
+      subscriptionData.id
     );
 
     if (isLeft(errorOrSubscription)) {
@@ -88,48 +95,50 @@ export async function subscribeApimUser(
         )
       );
     }
+    // default parameter for Service creation (false in case of Subscription MANAGE)
+    if (createService) {
+      logger.debug("subscribeApimUser|upsertService");
 
-    logger.debug("subscribeApimUser|upsertService");
-
-    const errorOrService = Service.decode({
-      authorized_cidrs: [],
-      authorized_recipients: [sandboxFiscalCode],
-      department_name: subscriptionData.department_name,
-      organization_fiscal_code: subscriptionData.organization_fiscal_code,
-      organization_name: subscriptionData.organization_name,
-      service_id: subscription.name,
-      service_name: subscriptionData.service_name
-    });
-    if (isLeft(errorOrService)) {
-      return left(
-        new Error(
-          "upsertService|decode error|" + readableReport(errorOrService.value)
-        )
-      );
-    }
-    const service = errorOrService.value;
-
-    // creates a new service every time !
-    const errorOrServiceResponse = toEither(
-      await notificationApiClient.createService({
-        service
-      })
-    );
-    if (isLeft(errorOrServiceResponse)) {
-      return left(
-        new Error(
-          "upsertService|response|" + errorOrServiceResponse.value.message
-        )
-      );
-    }
-
-    telemetryClient.trackEvent({
-      name: "onboarding.success",
-      properties: {
-        id: apimUser.id,
-        username: `${apimUser.firstName} ${apimUser.lastName}`
+      const errorOrService = Service.decode({
+        authorized_cidrs: [],
+        authorized_recipients: [sandboxFiscalCode],
+        department_name: subscriptionData.department_name,
+        organization_fiscal_code: subscriptionData.organization_fiscal_code,
+        organization_name: subscriptionData.organization_name,
+        service_id: subscription.name,
+        service_name: subscriptionData.service_name
+      });
+      if (isLeft(errorOrService)) {
+        return left(
+          new Error(
+            "upsertService|decode error|" + readableReport(errorOrService.value)
+          )
+        );
       }
-    });
+      const service = errorOrService.value;
+
+      // creates a new service every time !
+      const errorOrServiceResponse = toEither(
+        await notificationApiClient.createService({
+          service
+        })
+      );
+      if (isLeft(errorOrServiceResponse)) {
+        return left(
+          new Error(
+            "upsertService|response|" + errorOrServiceResponse.value.message
+          )
+        );
+      }
+
+      telemetryClient.trackEvent({
+        name: "onboarding.success",
+        properties: {
+          id: apimUser.id,
+          username: `${apimUser.firstName} ${apimUser.lastName}`
+        }
+      });
+    }
 
     return right(subscription);
   } catch (e) {

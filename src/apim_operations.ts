@@ -23,11 +23,13 @@ import * as config from "./config";
 
 import { Either, left, right } from "fp-ts/lib/Either";
 import { isNone, isSome, none, Option, some } from "fp-ts/lib/Option";
+import { tryCatch } from "fp-ts/lib/TaskEither";
 import { EmailString } from "italia-ts-commons/lib/strings";
 import SerializableSet from "json-set-map/build/src/set";
 import { ulid } from "ulid";
 import { EmailAddress } from "../generated/api/EmailAddress";
 import { SelfCareOrganization } from "./auth-strategies/selfcare_identity_strategy";
+import { MANAGE_APIKEY_PREFIX } from "./utils/api_key";
 
 export interface IServicePrincipalCreds {
   readonly servicePrincipalClientId: string;
@@ -167,6 +169,39 @@ export const getUserSubscription = memoizee(getUserSubscription__, {
   profileName: "getUserSubscription",
   promise: true
 });
+
+export async function getUserSubscriptionManage(
+  apiClient: ApiManagementClient,
+  userId: string,
+  userName: string,
+  lconfig: IApimConfig = config
+): Promise<Option<SubscriptionContract & { readonly name: string }>> {
+  const res = tryCatch(
+    async () =>
+      await apiClient.subscription.get(
+        lconfig.azurermResourceGroup,
+        lconfig.azurermApim,
+        MANAGE_APIKEY_PREFIX + userName
+      ),
+    _ => {
+      return "getUserSubscriptionManage|error";
+    }
+  )
+    .map(subscription => {
+      if ((userId && subscription.userId !== userId) || !subscription.name) {
+        return none;
+      }
+      return { name: subscription.name, ...subscription };
+    })
+    .fold(
+      _ => none,
+      subscription =>
+        some(subscription as SubscriptionContract & { readonly name: string })
+    )
+    .run();
+
+  return res;
+}
 
 export async function getUserSubscriptions(
   apiClient: ApiManagementClient,
@@ -312,6 +347,7 @@ export async function addUserSubscriptionToProduct(
   apiClient: ApiManagementClient,
   userId: string,
   productName: string,
+  subscriptionId?: string,
   lconfig: IApimConfig = config
 ): Promise<Either<Error, SubscriptionContract>> {
   logger.debug("addUserToProduct");
@@ -323,7 +359,9 @@ export async function addUserSubscriptionToProduct(
   if (!product || !product.id) {
     return left(new Error("Cannot find API management product for update"));
   }
-  const subscriptionId = ulid();
+  if (!subscriptionId) {
+    subscriptionId = ulid();
+  }
   // For some odd reason in the Azure ARM API
   // user.name here is actually the user.id.
   // We do not skip existing subscriptions
