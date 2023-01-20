@@ -29,7 +29,10 @@ import SerializableSet from "json-set-map/build/src/set";
 import { ulid } from "ulid";
 import { EmailAddress } from "../generated/api/EmailAddress";
 import { SelfCareOrganization } from "./auth-strategies/selfcare_identity_strategy";
-import { MANAGE_APIKEY_PREFIX } from "./utils/api_key";
+import {
+  getSubscriptionFilterByApiKeyType,
+  MANAGE_APIKEY_PREFIX
+} from "./utils/api_key";
 
 export interface IServicePrincipalCreds {
   readonly servicePrincipalClientId: string;
@@ -218,6 +221,7 @@ export async function getUserSubscriptions(
     lconfig.azurermApim,
     userId,
     {
+      filter: getSubscriptionFilterByApiKeyType(),
       skip: offset,
       top: limit
     }
