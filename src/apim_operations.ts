@@ -22,7 +22,14 @@ import * as memoizee from "memoizee";
 import * as config from "./config";
 
 import { Either, left, right } from "fp-ts/lib/Either";
-import { isNone, isSome, none, Option, some } from "fp-ts/lib/Option";
+import {
+  fromNullable,
+  isNone,
+  isSome,
+  none,
+  Option,
+  some
+} from "fp-ts/lib/Option";
 import { tryCatch } from "fp-ts/lib/TaskEither";
 import { EmailString } from "italia-ts-commons/lib/strings";
 import SerializableSet from "json-set-map/build/src/set";
@@ -30,9 +37,15 @@ import { ulid } from "ulid";
 import { EmailAddress } from "../generated/api/EmailAddress";
 import { SelfCareOrganization } from "./auth-strategies/selfcare_identity_strategy";
 import {
-  getSubscriptionFilterByApiKeyType,
-  MANAGE_APIKEY_PREFIX
+  MANAGE_APIKEY_PREFIX,
+  subscriptionsExceptManageOneApimFilter
 } from "./utils/api_key";
+import {
+  buildApimFilter,
+  FilterCompositionEnum,
+  FilterFieldEnum,
+  FilterSupportedFunctionsEnum
+} from "./utils/apim_filters";
 
 export interface IServicePrincipalCreds {
   readonly servicePrincipalClientId: string;
@@ -211,6 +224,7 @@ export async function getUserSubscriptions(
   userId: string,
   offset?: number,
   limit?: number,
+  subscriptionName?: string,
   lconfig: IApimConfig = config
 ): Promise<SubscriptionCollection> {
   logger.debug("getUserSubscriptions");
@@ -221,12 +235,31 @@ export async function getUserSubscriptions(
     lconfig.azurermApim,
     userId,
     {
-      filter: getSubscriptionFilterByApiKeyType(),
+      filter:
+        subscriptionsExceptManageOneApimFilter() +
+        subscriptionByNameApimFilter(subscriptionName),
       skip: offset,
       top: limit
     }
   );
 }
+
+/**
+ * User Subscription list filtered by name
+ *
+ * @param name
+ * @returns APIM *filter* property
+ */
+const subscriptionByNameApimFilter = (name?: string) =>
+  fromNullable(name).fold("", value =>
+    buildApimFilter({
+      composeFilter: FilterCompositionEnum.and,
+      field: FilterFieldEnum.name,
+      filterType: FilterSupportedFunctionsEnum.contains,
+      inverse: false,
+      value
+    }).fold("", result => result)
+  );
 
 async function regenerateKey__(
   apiClient: ApiManagementClient,
