@@ -1,3 +1,6 @@
+/* eslint-disable sonarjs/no-duplicate-string */
+/* eslint-disable sonarjs/no-identical-functions */
+
 import { isRight } from "fp-ts/lib/Either";
 import * as t from "io-ts";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
