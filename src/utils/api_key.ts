@@ -1,3 +1,10 @@
+import {
+  buildApimFilter,
+  FilterCompositionEnum,
+  FilterFieldEnum,
+  FilterSupportedFunctionsEnum
+} from "./apim_filters";
+
 /**
  * Utilities to handle subscriptions api key
  */
@@ -6,19 +13,17 @@ export enum ApiKeyTypeEnum {
 }
 
 export const MANAGE_APIKEY_PREFIX = "MANAGE-";
-const MANAGE_APIKEY_FILTER = `startswith(name, '${MANAGE_APIKEY_PREFIX}')`;
 
 /**
- * User Subscription list filter by api key type
+ * User Subscription list filtered by name not startswith 'MANAGE-'
  *
- * _(if **keyType** is null, MANAGE Subscriptions are excluded)_
- *
- * @param keyType
- * @returns
+ * @returns APIM *filter* property
  */
-export const getSubscriptionFilterByApiKeyType = (
-  keyType?: ApiKeyTypeEnum
-): string =>
-  keyType === ApiKeyTypeEnum.MANAGE
-    ? MANAGE_APIKEY_FILTER
-    : `not(${MANAGE_APIKEY_FILTER})`;
+export const subscriptionsExceptManageOneApimFilter = () =>
+  buildApimFilter({
+    composeFilter: FilterCompositionEnum.none,
+    field: FilterFieldEnum.name,
+    filterType: FilterSupportedFunctionsEnum.startswith,
+    inverse: true,
+    value: MANAGE_APIKEY_PREFIX
+  }).fold("", result => result);
