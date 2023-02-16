@@ -5,6 +5,7 @@ import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
 import { FiscalCode, NonEmptyString } from "italia-ts-commons/lib/strings";
 
 import { EmailAddress } from "../generated/api/EmailAddress";
+import { CommaSeparatedListOf } from "./utils/comma-separated-list";
 
 /**
  * Globals and OAuth configuration for the Active Directory B2C tenant / application.
@@ -220,3 +221,17 @@ export const SERVICE_DATA_URL: string = process.env.SERVICE_DATA_URL || "";
 // Azure Function Auth API KEY
 export const SERVICE_DATA_APIKEY: string =
   process.env.SERVICE_DATA_APIKEY || "";
+
+/**
+ * Feature Flags
+ */
+export const manageFlowEnableUserList = withDefault(
+  CommaSeparatedListOf(NonEmptyString),
+  [] as ReadonlyArray<string>
+)
+  .decode(process.env.MANAGE_FLOW_ENABLE_USER_LIST)
+  .getOrElseL(_ => {
+    throw new Error(
+      `Invalid Manage Flow enable user list configured: ${process.env.MANAGE_FLOW_ENABLE_USER_LIST}`
+    );
+  });

@@ -26,6 +26,7 @@ import {
   getUserSubscriptionManage,
   getUserSubscriptions,
   isAdminUser,
+  parseOwnerIdFullPath,
   regeneratePrimaryKey,
   regenerateSecondaryKey
 } from "../apim_operations";
@@ -37,6 +38,7 @@ import { fromOption, isLeft } from "fp-ts/lib/Either";
 import { NonNegativeInteger } from "italia-ts-commons/lib/numbers";
 import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import { SelfCareUser } from "../auth-strategies/selfcare_session_strategy";
+import { manageFlowEnableUserList } from "../config";
 import { getActualUser } from "../middlewares/actual_user";
 import { MANAGE_APIKEY_PREFIX } from "../utils/api_key";
 
@@ -92,6 +94,15 @@ export async function getSubscriptionManage(
     return errorOrRetrievedApimUser.value;
   }
   const retrievedApimUser = errorOrRetrievedApimUser.value;
+
+  // Check Manage flow enable user list feature flag
+  if (
+    manageFlowEnableUserList.indexOf(
+      parseOwnerIdFullPath(retrievedApimUser.id as NonEmptyString)
+    ) === -1
+  ) {
+    return ResponseErrorForbiddenNotAuthorized;
+  }
 
   // Check User permissions
   if (!retrievedApimUser.groupNames.has("apiservicewrite")) {
