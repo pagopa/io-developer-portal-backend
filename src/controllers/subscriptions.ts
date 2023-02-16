@@ -48,7 +48,8 @@ export async function getSubscriptions(
   authenticatedUser: SessionUser,
   userEmail?: EmailString,
   offset?: NonNegativeInteger,
-  limit?: NonNegativeInteger
+  limit?: NonNegativeInteger,
+  subscriptionName?: NonEmptyString
 ): Promise<
   | IResponseSuccessJson<SubscriptionCollection>
   | IResponseErrorForbiddenNotAuthorized
@@ -67,7 +68,8 @@ export async function getSubscriptions(
     apiClient,
     retrievedApimUser.name,
     offset,
-    limit
+    limit,
+    subscriptionName
   );
   return ResponseSuccessJson(subscriptions);
 }

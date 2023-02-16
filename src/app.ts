@@ -162,7 +162,8 @@ app.get(
       OptionalQueryParamMiddleware(
         "limit",
         IntegerFromString.pipe(NonNegativeInteger)
-      )
+      ),
+      OptionalQueryParamMiddleware("name", NonEmptyString)
     )(getSubscriptions)
   )
 );
