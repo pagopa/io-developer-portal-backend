@@ -22,6 +22,7 @@ import * as memoizee from "memoizee";
 import * as config from "./config";
 
 import { Either, left, right } from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
 import {
   fromNullable,
   isNone,
@@ -31,7 +32,7 @@ import {
   some
 } from "fp-ts/lib/Option";
 import { tryCatch } from "fp-ts/lib/TaskEither";
-import { EmailString } from "italia-ts-commons/lib/strings";
+import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import SerializableSet from "json-set-map/build/src/set";
 import { ulid } from "ulid";
 import { EmailAddress } from "../generated/api/EmailAddress";
@@ -614,3 +615,16 @@ export async function createApimUserIfNotExists(
     return none;
   }
 }
+
+/*
+ ** The right full path for ownerID is in this kind of format:
+ ** "/subscriptions/subid/resourceGroups/{resourceGroup}/providers/Microsoft.ApiManagement/service/{apimService}/users/5931a75ae4bbd512a88c680b",
+ ** resouce link: https://docs.microsoft.com/en-us/rest/api/apimanagement/current-ga/subscription/get
+ */
+export const parseOwnerIdFullPath = (
+  fullPath: NonEmptyString
+): NonEmptyString =>
+  pipe(
+    f => (f as string).split("/"),
+    a => a[a.length - 1] as NonEmptyString
+  )(fullPath);
