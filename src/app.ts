@@ -4,6 +4,7 @@
  * Azure API management developer portal resource.
  *
  */
+import * as appinsights from "applicationinsights";
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as cors from "cors";
@@ -11,7 +12,6 @@ import * as dotenv from "dotenv";
 import * as express from "express";
 import * as morgan from "morgan";
 import * as passport from "passport";
-import * as appinsights from "applicationinsights";
 
 import cookieSession = require("cookie-session");
 // tslint:disable-next-line: no-var-requires
