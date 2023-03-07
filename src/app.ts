@@ -11,6 +11,7 @@ import * as dotenv from "dotenv";
 import * as express from "express";
 import * as morgan from "morgan";
 import * as passport from "passport";
+import * as appinsights from "applicationinsights";
 
 import cookieSession = require("cookie-session");
 // tslint:disable-next-line: no-var-requires
@@ -91,6 +92,10 @@ import {
 import { ProblemJson } from "italia-ts-commons/lib/responses";
 import { getApimUser } from "./apim_operations";
 import { getApimAccountEmail } from "./utils/session";
+
+// collect monotoring metrics automatically
+appinsights.setup(process.env.APPINSIGHTS_INSTRUMENTATIONKEY);
+appinsights.start();
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
