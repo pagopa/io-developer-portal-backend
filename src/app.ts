@@ -56,6 +56,7 @@ import {
   getSubscriptionManage,
   getSubscriptions,
   postSubscriptions,
+  putSubscriptionCIDRs,
   putSubscriptionKey
 } from "./controllers/subscriptions";
 import { getUser, getUsers } from "./controllers/user";
@@ -90,6 +91,7 @@ import {
   NonNegativeInteger
 } from "italia-ts-commons/lib/numbers";
 import { ProblemJson } from "italia-ts-commons/lib/responses";
+import { CIDRsPayload } from "../generated/api/CIDRsPayload";
 import { getApimUser } from "./apim_operations";
 import { getApimAccountEmail } from "./utils/session";
 
@@ -208,6 +210,19 @@ app.put(
       RequiredParamMiddleware("subscriptionId", NonEmptyString),
       RequiredParamMiddleware("keyType", NonEmptyString)
     )(putSubscriptionKey)
+  )
+);
+
+app.put(
+  "/subscriptions/:subscriptionId/cidrs",
+  sessionTokenVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getUserFromRequestMiddleware(),
+      RequiredParamMiddleware("subscriptionId", NonEmptyString),
+      ExtractFromPayloadMiddleware(CIDRsPayload)
+    )(putSubscriptionCIDRs)
   )
 );
 

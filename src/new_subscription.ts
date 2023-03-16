@@ -34,6 +34,7 @@ import { Service } from "../generated/api/Service";
 
 const telemetryClient = new appinsights.TelemetryClient();
 
+console.log(APIClient);
 const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 
 export const SubscriptionData = t.intersection([

@@ -1,4 +1,5 @@
 import {
+  CIDR,
   EmailString,
   NonEmptyString,
   OrganizationFiscalCode
@@ -25,6 +26,7 @@ import {
   getUserSubscription,
   getUserSubscriptionManage,
   getUserSubscriptions,
+  IExtendedUserContract,
   isAdminUser,
   parseOwnerIdFullPath,
   regeneratePrimaryKey,
@@ -36,11 +38,18 @@ import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 import { fromOption, isLeft } from "fp-ts/lib/Either";
 import { NonNegativeInteger } from "italia-ts-commons/lib/numbers";
+import { CIDRsPayload } from "../../generated/api/CIDRsPayload";
+import { toEither } from "../api_client";
 import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import { SelfCareUser } from "../auth-strategies/selfcare_session_strategy";
 import { manageFlowEnableUserList } from "../config";
 import { getActualUser } from "../middlewares/actual_user";
 import { MANAGE_APIKEY_PREFIX } from "../utils/api_key";
+import { notificationApiClient } from "./services";
+
+import * as O from "fp-ts/lib/Option";
+
+import * as TE from "fp-ts/lib/TaskEither";
 
 /**
  * List all subscriptions for the logged in user
@@ -84,7 +93,9 @@ export async function getSubscriptionManage(
   authenticatedUser: SessionUser,
   userEmail?: EmailString
 ): Promise<
-  | IResponseSuccessJson<SubscriptionContract>
+  | IResponseSuccessJson<
+      SubscriptionContract & { readonly cidrs: ReadonlyArray<CIDR> }
+    >
   | IResponseErrorForbiddenNotAuthorized
 > {
   const errorOrRetrievedApimUser = await getActualUser(
@@ -135,13 +146,24 @@ export async function getSubscriptionManage(
     );
     return subscriptionOrError.fold<
       | IResponseErrorForbiddenNotAuthorized
-      | IResponseSuccessJson<SubscriptionContract>
+      | IResponseSuccessJson<
+          SubscriptionContract & { readonly cidrs: ReadonlyArray<CIDR> }
+        >
     >(
       _ => ResponseErrorForbiddenNotAuthorized,
-      s => ResponseSuccessJson(s)
+      s => {
+        // To-Do: call UpdateSubscriptionCidrs from io-functions-admin to initialite to an empty array
+        return ResponseSuccessJson({ ...s, cidrs: [] as ReadonlyArray<CIDR> });
+      }
     );
   }
-  return ResponseSuccessJson(maybeSubscriptionManage.value);
+
+  // To-Do: retrieve cidrs from GetSubscriptionCidrs from io-functions-admin
+  const retrievedCidrs = [] as ReadonlyArray<CIDR>;
+  return ResponseSuccessJson({
+    ...maybeSubscriptionManage.value,
+    cidrs: retrievedCidrs
+  });
 }
 
 /**
@@ -252,6 +274,98 @@ export async function postSubscriptions(
     err => ResponseErrorInternal("Cannot add new subscription: " + err),
     ResponseSuccessJson
   );
+}
+
+/**
+ * Update Subscription CIDRS
+ * IMPORTANT: This API is intended to use only with Manage Flow
+ */
+export async function putSubscriptionCIDRsInPipe(
+  apiClient: ApiManagementClient,
+  authenticatedUser: SessionUser,
+  subscriptionId: NonEmptyString,
+  cidrsPayload: CIDRsPayload
+): Promise<
+  | IResponseSuccessJson<CIDRsPayload>
+  | IResponseErrorForbiddenNotAuthorized
+  | IResponseErrorInternal
+> {
+  return TE.tryCatch<
+    IResponseErrorForbiddenNotAuthorized | IResponseErrorInternal,
+    O.Option<IExtendedUserContract>
+  >(
+    () => getApimUser(apiClient, getApimAccountEmail(authenticatedUser)),
+    _ => ResponseErrorForbiddenNotAuthorized
+  )
+    .chain(
+      TE.fromPredicate(
+        maybeAuthenticatedApimUser =>
+          maybeAuthenticatedApimUser.exists(isAdminUser),
+        () => ResponseErrorForbiddenNotAuthorized
+      )
+    )
+    .chain(() =>
+      TE.tryCatch(
+        () =>
+          notificationApiClient.updateSubscriptionCidrs({
+            cidrs: cidrsPayload,
+            subscriptionId
+          }),
+        () => ResponseErrorInternal("Error on retrieve CIDRs")
+      )
+    )
+    .fold<
+      | IResponseErrorInternal
+      | IResponseErrorForbiddenNotAuthorized
+      | IResponseSuccessJson<CIDRsPayload>
+    >(
+      e => e,
+      errorOrUpdateSubscriptionCidrsResponse => {
+        const res = toEither(errorOrUpdateSubscriptionCidrsResponse);
+        return res.isRight() && res
+          ? ResponseSuccessJson(res.value)
+          : ResponseErrorInternal("Error on retrieve CIDRs");
+      }
+    )
+    .run();
+}
+
+/**
+ * Update Subscription CIDRS
+ * IMPORTANT: This API is intended to use only with Manage Flow
+ */
+export async function putSubscriptionCIDRs(
+  apiClient: ApiManagementClient,
+  authenticatedUser: SessionUser,
+  subscriptionId: NonEmptyString,
+  cidrsPayload: CIDRsPayload
+): Promise<
+  | IResponseSuccessJson<CIDRsPayload>
+  | IResponseErrorForbiddenNotAuthorized
+  | IResponseErrorInternal
+> {
+  const maybeAuthenticatedApimUser = await getApimUser(
+    apiClient,
+    getApimAccountEmail(authenticatedUser)
+  );
+
+  const isAuthenticatedAdmin = maybeAuthenticatedApimUser.exists(isAdminUser);
+
+  // This API is intented to use only for Admin
+  if (!isAuthenticatedAdmin) {
+    return ResponseErrorForbiddenNotAuthorized;
+  }
+
+  const errorOrUpdateSubscriptionCidrsResponse = toEither(
+    await notificationApiClient.updateSubscriptionCidrs({
+      cidrs: cidrsPayload,
+      subscriptionId
+    })
+  );
+  if (isLeft(errorOrUpdateSubscriptionCidrsResponse)) {
+    return ResponseErrorInternal("Error on retrieve CIDRs");
+  }
+  return ResponseSuccessJson(errorOrUpdateSubscriptionCidrsResponse.value);
 }
 
 /**

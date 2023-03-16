@@ -36,6 +36,7 @@ import { NewMessage } from "../generated/api/NewMessage";
 import { Service } from "../generated/api/Service";
 import { ServicePublic } from "../generated/api/ServicePublic";
 
+import { CIDRsPayload } from "../generated/api/CIDRsPayload";
 import { Logo } from "../generated/api/Logo";
 
 const OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
@@ -142,6 +143,16 @@ export type UploadOrganizationLogoT = IPutApiRequestType<
   ApiResponseType<{}>
 >;
 
+export type UpdateSubscriptionCIDRsT = IPutApiRequestType<
+  {
+    readonly cidrs: CIDRsPayload;
+    readonly subscriptionId: NonEmptyString;
+  },
+  OcpApimSubscriptionKey | "Content-Type",
+  never,
+  ApiResponseType<CIDRsPayload>
+>;
+
 export function APIClient(
   baseUrl: string,
   token: string,
@@ -155,6 +166,7 @@ export function APIClient(
   readonly sendMessage: TypeofApiCall<SendMessageT>;
   readonly uploadServiceLogo: TypeofApiCall<UploadServiceLogoT>;
   readonly uploadOrganizationLogo: TypeofApiCall<UploadOrganizationLogoT>;
+  readonly updateSubscriptionCidrs: TypeofApiCall<UpdateSubscriptionCIDRsT>;
 } {
   const options = {
     baseUrl,
@@ -225,6 +237,15 @@ export function APIClient(
     url: params => `/adm/organizations/${params.organizationfiscalcode}/logo`
   };
 
+  const updateSubscriptionCIDRsT: UpdateSubscriptionCIDRsT = {
+    body: params => JSON.stringify(params.cidrs),
+    headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
+    method: "put",
+    query: _ => ({}),
+    response_decoder: apiResponseDecoder(CIDRsPayload),
+    url: params => `/adm/subscriptions/${params.subscriptionId}/cidrs`
+  };
+
   return {
     createDevelopmentProfile: createFetchRequestForApi(
       createDevelopmentProfileT,
@@ -238,7 +259,11 @@ export function APIClient(
       uploadOrganizationLogoT,
       options
     ),
-    uploadServiceLogo: createFetchRequestForApi(uploadServiceLogoT, options)
+    uploadServiceLogo: createFetchRequestForApi(uploadServiceLogoT, options),
+    updateSubscriptionCidrs: createFetchRequestForApi(
+      updateSubscriptionCIDRsT,
+      options
+    )
   };
 }
 
