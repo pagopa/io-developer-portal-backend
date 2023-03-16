@@ -7,7 +7,7 @@ import * as apimOperations from "../../apim_operations";
 import { IExtendedUserContract } from "../../apim_operations";
 import { SessionUser } from "../../utils/session";
 import { notificationApiClient } from "../services";
-import { putSubscriptionCIDRs } from "../subscriptions";
+import { getSubscriptionCIDRs, putSubscriptionCIDRs } from "../subscriptions";
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -38,6 +38,12 @@ const aNotAdminUser: IExtendedUserContract = {
   ...anAdminUser,
   groupNames: new SerializableSet(["group_1", "group_2"])
 };
+// tslint:disable-next-line: no-any
+const anArrayWithCIDR: ReadonlyArray<any> = [
+  ("1.1.1.1/32" as unknown) as CIDR
+];
+// tslint:disable-next-line: no-any
+const anArrayWithCIDRResponse: ReadonlyArray<any> = ["1.1.1.1/32"];
 
 jest.spyOn(apimOperations, "getApimUser").mockReturnValue(
   new Promise(resolve => {
@@ -50,10 +56,17 @@ jest
   // tslint:disable-next-line: no-any
   .mockImplementation(() =>
     // tslint:disable-next-line: no-any
-    Promise.resolve({ status: 200, value: ["1.1.1.1/32"] } as any)
+    Promise.resolve({ status: 200, value: anArrayWithCIDRResponse } as any)
+  );
+jest
+  .spyOn(notificationApiClient, "getSubscriptionCidrs")
+  // tslint:disable-next-line: no-any
+  .mockImplementation(() =>
+    // tslint:disable-next-line: no-any
+    Promise.resolve({ status: 200, value: anArrayWithCIDRResponse } as any)
   );
 
-describe("Test Subscription CIDRs Update", () => {
+describe("Test Update Subscription CIDRs", () => {
   it("should respond with IResponseErrorForbiddenNotAuthorized if apim return a none user", async () => {
     jest
       .spyOn(apimOperations, "getApimUser")
@@ -63,7 +76,7 @@ describe("Test Subscription CIDRs Update", () => {
       apiClientMock,
       adUser,
       aSubscriptionId,
-      [("1.1.1.1/32" as unknown) as CIDR]
+      anArrayWithCIDR
     );
 
     expect(res).toEqual({
@@ -83,7 +96,7 @@ describe("Test Subscription CIDRs Update", () => {
       apiClientMock,
       adUser,
       aSubscriptionId,
-      [("1.1.1.1/32" as unknown) as CIDR]
+      anArrayWithCIDR
     );
 
     expect(res).toEqual({
@@ -102,7 +115,7 @@ describe("Test Subscription CIDRs Update", () => {
       apiClientMock,
       adUser,
       aSubscriptionId,
-      [("1.1.1.1/32" as unknown) as CIDR]
+      anArrayWithCIDR
     );
 
     expect(res).toEqual({
@@ -128,7 +141,7 @@ describe("Test Subscription CIDRs Update", () => {
       apiClientMock,
       adUser,
       aSubscriptionId,
-      [("1.1.1.1/32" as unknown) as CIDR]
+      anArrayWithCIDR
     );
 
     expect(res).toEqual({
@@ -142,13 +155,108 @@ describe("Test Subscription CIDRs Update", () => {
       apiClientMock,
       adUser,
       aSubscriptionId,
-      [("1.1.1.1/32" as unknown) as CIDR]
+      anArrayWithCIDR
     );
 
     expect(res).toEqual({
       apply: expect.any(Function),
       kind: "IResponseSuccessJson",
-      value: ["1.1.1.1/32"]
+      value: anArrayWithCIDRResponse
+    });
+  });
+});
+
+describe("Test Get Subscription CIDRs", () => {
+  it("should respond with IResponseErrorForbiddenNotAuthorized if apim return a none user", async () => {
+    jest
+      .spyOn(apimOperations, "getApimUser")
+      .mockReturnValueOnce(Promise.resolve(none));
+
+    const res = await getSubscriptionCIDRs(
+      apiClientMock,
+      adUser,
+      aSubscriptionId
+    );
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseErrorForbiddenNotAuthorized"
+    });
+  });
+
+  it("should respond with IResponseErrorForbiddenNotAuthorized if user is not an admin one", async () => {
+    jest.spyOn(apimOperations, "getApimUser").mockReturnValueOnce(
+      new Promise(resolve => {
+        resolve(some(aNotAdminUser));
+      })
+    );
+
+    const res = await getSubscriptionCIDRs(
+      apiClientMock,
+      adUser,
+      aSubscriptionId
+    );
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseErrorForbiddenNotAuthorized"
+    });
+  });
+
+  it("should respond with IResponseErrorInternal if get Subscription cidrs return undefined", async () => {
+    jest
+      .spyOn(notificationApiClient, "getSubscriptionCidrs")
+      // tslint:disable-next-line: no-any
+      .mockReturnValueOnce(Promise.resolve(undefined));
+
+    const res = await getSubscriptionCIDRs(
+      apiClientMock,
+      adUser,
+      aSubscriptionId
+    );
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseErrorInternal"
+    });
+  });
+
+  it("should respond with IResponseErrorInternal if get Subscription cidrs return an http error code", async () => {
+    jest
+      .spyOn(notificationApiClient, "getSubscriptionCidrs")
+      // tslint:disable-next-line: no-any
+      .mockReturnValueOnce(
+        Promise.resolve({
+          headers: undefined,
+          status: 500,
+          value: undefined
+          // tslint:disable-next-line: no-any
+        } as any)
+      );
+
+    const res = await getSubscriptionCIDRs(
+      apiClientMock,
+      adUser,
+      aSubscriptionId
+    );
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseErrorInternal"
+    });
+  });
+
+  it("should respond successfully with retrieved CIDRs payload for an admin user", async () => {
+    const res = await getSubscriptionCIDRs(
+      apiClientMock,
+      adUser,
+      aSubscriptionId
+    );
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseSuccessJson",
+      value: anArrayWithCIDRResponse
     });
   });
 });

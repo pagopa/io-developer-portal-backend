@@ -143,6 +143,15 @@ export type UploadOrganizationLogoT = IPutApiRequestType<
   ApiResponseType<{}>
 >;
 
+export type GetSubscriptionCIDRsT = IGetApiRequestType<
+  {
+    readonly subscriptionId: NonEmptyString;
+  },
+  OcpApimSubscriptionKey,
+  never,
+  ApiResponseType<CIDRsPayload>
+>;
+
 export type UpdateSubscriptionCIDRsT = IPutApiRequestType<
   {
     readonly cidrs: CIDRsPayload;
@@ -166,6 +175,7 @@ export function APIClient(
   readonly sendMessage: TypeofApiCall<SendMessageT>;
   readonly uploadServiceLogo: TypeofApiCall<UploadServiceLogoT>;
   readonly uploadOrganizationLogo: TypeofApiCall<UploadOrganizationLogoT>;
+  readonly getSubscriptionCidrs: TypeofApiCall<GetSubscriptionCIDRsT>;
   readonly updateSubscriptionCidrs: TypeofApiCall<UpdateSubscriptionCIDRsT>;
 } {
   const options = {
@@ -237,6 +247,14 @@ export function APIClient(
     url: params => `/adm/organizations/${params.organizationfiscalcode}/logo`
   };
 
+  const getSubscriptionCIDRsT: GetSubscriptionCIDRsT = {
+    headers: tokenHeaderProducer,
+    method: "get",
+    query: _ => ({}),
+    response_decoder: apiResponseDecoder(CIDRsPayload),
+    url: params => `/adm/subscriptions/${params.subscriptionId}/cidrs`
+  };
+
   const updateSubscriptionCIDRsT: UpdateSubscriptionCIDRsT = {
     body: params => JSON.stringify(params.cidrs),
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
@@ -253,6 +271,10 @@ export function APIClient(
     ),
     createService: createFetchRequestForApi(createServiceT, options),
     getService: createFetchRequestForApi(getServiceT, options),
+    getSubscriptionCidrs: createFetchRequestForApi(
+      getSubscriptionCIDRsT,
+      options
+    ),
     sendMessage: createFetchRequestForApi(sendMessageT, options),
     updateService: createFetchRequestForApi(updateServiceT, options),
     updateSubscriptionCidrs: createFetchRequestForApi(

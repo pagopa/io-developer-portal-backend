@@ -53,6 +53,7 @@ import {
   ServicePayload
 } from "./controllers/services";
 import {
+  getSubscriptionCIDRs,
   getSubscriptionManage,
   getSubscriptions,
   postSubscriptions,
@@ -184,6 +185,18 @@ app.get(
       getUserFromRequestMiddleware(),
       OptionalParamMiddleware("email", EmailString)
     )(getSubscriptionManage)
+  )
+);
+
+app.get(
+  "/subscriptions/:subscriptionId/cidrs",
+  sessionTokenVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getUserFromRequestMiddleware(),
+      RequiredParamMiddleware("subscriptionId", NonEmptyString)
+    )(getSubscriptionCIDRs)
   )
 );
 

@@ -272,7 +272,43 @@ export async function postSubscriptions(
 }
 
 /**
- * Update Subscription CIDRS
+ * Get Subscription CIDRs
+ * IMPORTANT: This API is intended to use only with Manage Flow
+ */
+export async function getSubscriptionCIDRs(
+  apiClient: ApiManagementClient,
+  authenticatedUser: SessionUser,
+  subscriptionId: NonEmptyString
+): Promise<
+  | IResponseSuccessJson<CIDRsPayload>
+  | IResponseErrorForbiddenNotAuthorized
+  | IResponseErrorInternal
+> {
+  const maybeAuthenticatedApimUser = await getApimUser(
+    apiClient,
+    getApimAccountEmail(authenticatedUser)
+  );
+
+  const isAuthenticatedAdmin = maybeAuthenticatedApimUser.exists(isAdminUser);
+
+  // This API is intented to use only for Admin
+  if (!isAuthenticatedAdmin) {
+    return ResponseErrorForbiddenNotAuthorized;
+  }
+
+  const errorOrSubscriptionCidrsResponse = toEither(
+    await notificationApiClient.getSubscriptionCidrs({
+      subscriptionId
+    })
+  );
+  if (isLeft(errorOrSubscriptionCidrsResponse)) {
+    return ResponseErrorInternal("Error on get Subscription CIDRs");
+  }
+  return ResponseSuccessJson(errorOrSubscriptionCidrsResponse.value);
+}
+
+/**
+ * Update Subscription CIDRs
  * IMPORTANT: This API is intended to use only with Manage Flow
  */
 export async function putSubscriptionCIDRs(
