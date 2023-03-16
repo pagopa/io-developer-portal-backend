@@ -39,9 +39,7 @@ const aNotAdminUser: IExtendedUserContract = {
   groupNames: new SerializableSet(["group_1", "group_2"])
 };
 // tslint:disable-next-line: no-any
-const anArrayWithCIDR: ReadonlyArray<any> = [
-  ("1.1.1.1/32" as unknown) as CIDR
-];
+const anArrayWithCIDR: ReadonlyArray<any> = [("1.1.1.1/32" as unknown) as CIDR];
 // tslint:disable-next-line: no-any
 const anArrayWithCIDRResponse: ReadonlyArray<any> = ["1.1.1.1/32"];
 
