@@ -255,15 +255,15 @@ export function APIClient(
     getService: createFetchRequestForApi(getServiceT, options),
     sendMessage: createFetchRequestForApi(sendMessageT, options),
     updateService: createFetchRequestForApi(updateServiceT, options),
+    updateSubscriptionCidrs: createFetchRequestForApi(
+      updateSubscriptionCIDRsT,
+      options
+    ),
     uploadOrganizationLogo: createFetchRequestForApi(
       uploadOrganizationLogoT,
       options
     ),
-    uploadServiceLogo: createFetchRequestForApi(uploadServiceLogoT, options),
-    updateSubscriptionCidrs: createFetchRequestForApi(
-      updateSubscriptionCIDRsT,
-      options
-    )
+    uploadServiceLogo: createFetchRequestForApi(uploadServiceLogoT, options)
   };
 }
 

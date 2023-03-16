@@ -26,7 +26,6 @@ import {
   getUserSubscription,
   getUserSubscriptionManage,
   getUserSubscriptions,
-  IExtendedUserContract,
   isAdminUser,
   parseOwnerIdFullPath,
   regeneratePrimaryKey,
@@ -46,10 +45,6 @@ import { manageFlowEnableUserList } from "../config";
 import { getActualUser } from "../middlewares/actual_user";
 import { MANAGE_APIKEY_PREFIX } from "../utils/api_key";
 import { notificationApiClient } from "./services";
-
-import * as O from "fp-ts/lib/Option";
-
-import * as TE from "fp-ts/lib/TaskEither";
 
 /**
  * List all subscriptions for the logged in user
@@ -274,60 +269,6 @@ export async function postSubscriptions(
     err => ResponseErrorInternal("Cannot add new subscription: " + err),
     ResponseSuccessJson
   );
-}
-
-/**
- * Update Subscription CIDRS
- * IMPORTANT: This API is intended to use only with Manage Flow
- */
-export async function putSubscriptionCIDRsInPipe(
-  apiClient: ApiManagementClient,
-  authenticatedUser: SessionUser,
-  subscriptionId: NonEmptyString,
-  cidrsPayload: CIDRsPayload
-): Promise<
-  | IResponseSuccessJson<CIDRsPayload>
-  | IResponseErrorForbiddenNotAuthorized
-  | IResponseErrorInternal
-> {
-  return TE.tryCatch<
-    IResponseErrorForbiddenNotAuthorized | IResponseErrorInternal,
-    O.Option<IExtendedUserContract>
-  >(
-    () => getApimUser(apiClient, getApimAccountEmail(authenticatedUser)),
-    _ => ResponseErrorForbiddenNotAuthorized
-  )
-    .chain(
-      TE.fromPredicate(
-        maybeAuthenticatedApimUser =>
-          maybeAuthenticatedApimUser.exists(isAdminUser),
-        () => ResponseErrorForbiddenNotAuthorized
-      )
-    )
-    .chain(() =>
-      TE.tryCatch(
-        () =>
-          notificationApiClient.updateSubscriptionCidrs({
-            cidrs: cidrsPayload,
-            subscriptionId
-          }),
-        () => ResponseErrorInternal("Error on retrieve CIDRs")
-      )
-    )
-    .fold<
-      | IResponseErrorInternal
-      | IResponseErrorForbiddenNotAuthorized
-      | IResponseSuccessJson<CIDRsPayload>
-    >(
-      e => e,
-      errorOrUpdateSubscriptionCidrsResponse => {
-        const res = toEither(errorOrUpdateSubscriptionCidrsResponse);
-        return res.isRight() && res
-          ? ResponseSuccessJson(res.value)
-          : ResponseErrorInternal("Error on retrieve CIDRs");
-      }
-    )
-    .run();
 }
 
 /**
