@@ -6,7 +6,7 @@ import { CIDR } from "../../../generated/api/CIDR";
 import * as apimOperations from "../../apim_operations";
 import { IExtendedUserContract } from "../../apim_operations";
 import { SessionUser } from "../../utils/session";
-import { notificationApiClient } from "../services";
+import { notificationApiClient } from "../subscriptions";
 import { getSubscriptionCIDRs, putSubscriptionCIDRs } from "../subscriptions";
 
 afterEach(() => {
@@ -41,7 +41,10 @@ const aNotAdminUser: IExtendedUserContract = {
 // tslint:disable-next-line: no-any
 const anArrayWithCIDR: ReadonlyArray<any> = [("1.1.1.1/32" as unknown) as CIDR];
 // tslint:disable-next-line: no-any
-const anArrayWithCIDRResponse: ReadonlyArray<any> = ["1.1.1.1/32"];
+const aSubscriptionCidrsResponse = {
+  cidrs: ["1.1.1.1/32"],
+  id: aSubscriptionId
+};
 
 jest.spyOn(apimOperations, "getApimUser").mockReturnValue(
   new Promise(resolve => {
@@ -54,14 +57,14 @@ jest
   // tslint:disable-next-line: no-any
   .mockImplementation(() =>
     // tslint:disable-next-line: no-any
-    Promise.resolve({ status: 200, value: anArrayWithCIDRResponse } as any)
+    Promise.resolve({ status: 200, value: aSubscriptionCidrsResponse } as any)
   );
 jest
   .spyOn(notificationApiClient, "getSubscriptionCidrs")
   // tslint:disable-next-line: no-any
   .mockImplementation(() =>
     // tslint:disable-next-line: no-any
-    Promise.resolve({ status: 200, value: anArrayWithCIDRResponse } as any)
+    Promise.resolve({ status: 200, value: aSubscriptionCidrsResponse } as any)
   );
 
 describe("Test Update Subscription CIDRs", () => {
@@ -148,7 +151,7 @@ describe("Test Update Subscription CIDRs", () => {
     });
   });
 
-  it("should respond successfully with updated CIDRs payload for an admin user", async () => {
+  it("should respond successfully with updated Subscription CIDRs data for an admin user", async () => {
     const res = await putSubscriptionCIDRs(
       apiClientMock,
       adUser,
@@ -159,7 +162,7 @@ describe("Test Update Subscription CIDRs", () => {
     expect(res).toEqual({
       apply: expect.any(Function),
       kind: "IResponseSuccessJson",
-      value: anArrayWithCIDRResponse
+      value: aSubscriptionCidrsResponse
     });
   });
 });
@@ -254,7 +257,7 @@ describe("Test Get Subscription CIDRs", () => {
     expect(res).toEqual({
       apply: expect.any(Function),
       kind: "IResponseSuccessJson",
-      value: anArrayWithCIDRResponse
+      value: aSubscriptionCidrsResponse
     });
   });
 });

@@ -38,6 +38,7 @@ import { ServicePublic } from "../generated/api/ServicePublic";
 
 import { CIDRsPayload } from "../generated/api/CIDRsPayload";
 import { Logo } from "../generated/api/Logo";
+import { SubscriptionCIDRs } from "../generated/api/SubscriptionCIDRs";
 
 const OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 type OcpApimSubscriptionKey = typeof OcpApimSubscriptionKey;
@@ -149,7 +150,7 @@ export type GetSubscriptionCIDRsT = IGetApiRequestType<
   },
   OcpApimSubscriptionKey,
   never,
-  ApiResponseType<CIDRsPayload>
+  ApiResponseType<SubscriptionCIDRs>
 >;
 
 export type UpdateSubscriptionCIDRsT = IPutApiRequestType<
@@ -159,7 +160,7 @@ export type UpdateSubscriptionCIDRsT = IPutApiRequestType<
   },
   OcpApimSubscriptionKey | "Content-Type",
   never,
-  ApiResponseType<CIDRsPayload>
+  ApiResponseType<SubscriptionCIDRs>
 >;
 
 export function APIClient(
@@ -251,7 +252,7 @@ export function APIClient(
     headers: tokenHeaderProducer,
     method: "get",
     query: _ => ({}),
-    response_decoder: apiResponseDecoder(CIDRsPayload),
+    response_decoder: apiResponseDecoder(SubscriptionCIDRs),
     url: params => `/adm/subscriptions/${params.subscriptionId}/cidrs`
   };
 
@@ -260,7 +261,7 @@ export function APIClient(
     headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
     method: "put",
     query: _ => ({}),
-    response_decoder: apiResponseDecoder(CIDRsPayload),
+    response_decoder: apiResponseDecoder(SubscriptionCIDRs),
     url: params => `/adm/subscriptions/${params.subscriptionId}/cidrs`
   };
 

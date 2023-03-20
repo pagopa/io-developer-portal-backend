@@ -214,19 +214,6 @@ app.post(
 );
 
 app.put(
-  "/subscriptions/:subscriptionId/:keyType",
-  sessionTokenVerifier,
-  wrapRequestHandler(
-    withRequestMiddlewares(
-      getApiClientMiddleware(),
-      getUserFromRequestMiddleware(),
-      RequiredParamMiddleware("subscriptionId", NonEmptyString),
-      RequiredParamMiddleware("keyType", NonEmptyString)
-    )(putSubscriptionKey)
-  )
-);
-
-app.put(
   "/subscriptions/:subscriptionId/cidrs",
   sessionTokenVerifier,
   wrapRequestHandler(
@@ -236,6 +223,19 @@ app.put(
       RequiredParamMiddleware("subscriptionId", NonEmptyString),
       ExtractFromPayloadMiddleware(CIDRsPayload)
     )(putSubscriptionCIDRs)
+  )
+);
+
+app.put(
+  "/subscriptions/:subscriptionId/:keyType",
+  sessionTokenVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getUserFromRequestMiddleware(),
+      RequiredParamMiddleware("subscriptionId", NonEmptyString),
+      RequiredParamMiddleware("keyType", NonEmptyString)
+    )(putSubscriptionKey)
   )
 );
 

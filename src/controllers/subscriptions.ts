@@ -38,13 +38,19 @@ import { getApimAccountEmail, SessionUser } from "../utils/session";
 import { fromOption, isLeft } from "fp-ts/lib/Either";
 import { NonNegativeInteger } from "italia-ts-commons/lib/numbers";
 import { CIDRsPayload } from "../../generated/api/CIDRsPayload";
-import { toEither } from "../api_client";
+import { SubscriptionCIDRs } from "../../generated/api/SubscriptionCIDRs";
+import { APIClient, toEither } from "../api_client";
 import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import { SelfCareUser } from "../auth-strategies/selfcare_session_strategy";
 import { manageFlowEnableUserList } from "../config";
+import * as config from "../config";
 import { getActualUser } from "../middlewares/actual_user";
 import { MANAGE_APIKEY_PREFIX } from "../utils/api_key";
-import { notificationApiClient } from "./services";
+
+export const notificationApiClient = APIClient(
+  config.adminApiUrl,
+  config.adminApiKey
+);
 
 /**
  * List all subscriptions for the logged in user
@@ -280,7 +286,7 @@ export async function getSubscriptionCIDRs(
   authenticatedUser: SessionUser,
   subscriptionId: NonEmptyString
 ): Promise<
-  | IResponseSuccessJson<CIDRsPayload>
+  | IResponseSuccessJson<SubscriptionCIDRs>
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorInternal
 > {
@@ -317,7 +323,7 @@ export async function putSubscriptionCIDRs(
   subscriptionId: NonEmptyString,
   cidrsPayload: CIDRsPayload
 ): Promise<
-  | IResponseSuccessJson<CIDRsPayload>
+  | IResponseSuccessJson<SubscriptionCIDRs>
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorInternal
 > {
@@ -340,7 +346,7 @@ export async function putSubscriptionCIDRs(
     })
   );
   if (isLeft(errorOrUpdateSubscriptionCidrsResponse)) {
-    return ResponseErrorInternal("Error on retrieve CIDRs");
+    return ResponseErrorInternal("Error on retrieve updated CIDRs");
   }
   return ResponseSuccessJson(errorOrUpdateSubscriptionCidrsResponse.value);
 }
