@@ -1,5 +1,4 @@
 import {
-  CIDR,
   EmailString,
   NonEmptyString,
   OrganizationFiscalCode
@@ -35,7 +34,8 @@ import {
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
 import { getApimAccountEmail, SessionUser } from "../utils/session";
 
-import { fromOption, isLeft } from "fp-ts/lib/Either";
+import { Either, fromOption, isLeft } from "fp-ts/lib/Either";
+import { identity } from "fp-ts/lib/function";
 import { NonNegativeInteger } from "italia-ts-commons/lib/numbers";
 import { CIDRsPayload } from "../../generated/api/CIDRsPayload";
 import { SubscriptionCIDRs } from "../../generated/api/SubscriptionCIDRs";
@@ -86,6 +86,17 @@ export async function getSubscriptions(
   return ResponseSuccessJson(subscriptions);
 }
 
+export async function initializeSubscriptionCidrs(
+  subscriptionId: NonEmptyString
+): Promise<Either<Error, SubscriptionCIDRs>> {
+  return toEither(
+    await notificationApiClient.updateSubscriptionCidrs({
+      cidrs: [],
+      subscriptionId
+    })
+  );
+}
+
 /**
  * Get MANAGE subscription for the logged in user (if not exists, create it)
  */
@@ -94,10 +105,9 @@ export async function getSubscriptionManage(
   authenticatedUser: SessionUser,
   userEmail?: EmailString
 ): Promise<
-  | IResponseSuccessJson<
-      SubscriptionContract & { readonly cidrs: ReadonlyArray<CIDR> }
-    >
+  | IResponseSuccessJson<SubscriptionContract>
   | IResponseErrorForbiddenNotAuthorized
+  | IResponseErrorInternal
 > {
   const errorOrRetrievedApimUser = await getActualUser(
     apiClient,
@@ -145,26 +155,26 @@ export async function getSubscriptionManage(
       subscriptionData,
       false // no service create
     );
-    return subscriptionOrError.fold<
-      | IResponseErrorForbiddenNotAuthorized
-      | IResponseSuccessJson<
-          SubscriptionContract & { readonly cidrs: ReadonlyArray<CIDR> }
-        >
-    >(
-      _ => ResponseErrorForbiddenNotAuthorized,
-      s => {
-        // To-Do: call UpdateSubscriptionCidrs from io-functions-admin to initialite to an empty array
-        return ResponseSuccessJson({ ...s, cidrs: [] as ReadonlyArray<CIDR> });
-      }
-    );
+    return subscriptionOrError
+      .map(async sub => {
+        const errorOrInitializedSubscriptionCidrs = await initializeSubscriptionCidrs(
+          sub.name as NonEmptyString
+        );
+        if (isLeft(errorOrInitializedSubscriptionCidrs)) {
+          return ResponseErrorInternal("Cannot persist CIDRs");
+        }
+        return ResponseSuccessJson(sub);
+      })
+      .fold<
+        | IResponseErrorForbiddenNotAuthorized
+        | Promise<
+            | IResponseErrorInternal
+            | IResponseErrorForbiddenNotAuthorized
+            | IResponseSuccessJson<SubscriptionContract>
+          >
+      >(_ => ResponseErrorForbiddenNotAuthorized, identity);
   }
-
-  // To-Do: retrieve cidrs from GetSubscriptionCidrs from io-functions-admin
-  const retrievedCidrs = [] as ReadonlyArray<CIDR>;
-  return ResponseSuccessJson({
-    ...maybeSubscriptionManage.value,
-    cidrs: retrievedCidrs
-  });
+  return ResponseSuccessJson(maybeSubscriptionManage.value);
 }
 
 /**

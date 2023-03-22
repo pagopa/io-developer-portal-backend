@@ -1,16 +1,30 @@
 import ApiManagementClient from "azure-arm-apimanagement";
+import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
+import * as E from "fp-ts/lib/Either";
 import { none, some } from "fp-ts/lib/Option";
+import { ResponseErrorForbiddenNotAuthorized } from "italia-ts-commons/lib/responses";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import SerializableSet from "json-set-map/build/src/set";
 import { CIDR } from "../../../generated/api/CIDR";
-import * as apimOperations from "../../apim_operations";
 import { IExtendedUserContract } from "../../apim_operations";
+import * as apimOperations from "../../apim_operations";
+import * as subscriptionController from "../../controllers/subscriptions";
+import * as actualUser from "../../middlewares/actual_user";
+import * as newSubscription from "../../new_subscription";
 import { SessionUser } from "../../utils/session";
-import { notificationApiClient } from "../subscriptions";
+import { getSubscriptionManage, notificationApiClient } from "../subscriptions";
 import { getSubscriptionCIDRs, putSubscriptionCIDRs } from "../subscriptions";
+
+// tslint:disable-next-line
+const configModule = require("../../config");
 
 afterEach(() => {
   jest.clearAllMocks();
+});
+
+beforeEach(() => {
+  // tslint:disable-next-line
+  configModule.manageFlowEnableUserList = "aUserId";
 });
 
 const apiClientMock = ({} as unknown) as ApiManagementClient;
@@ -29,8 +43,9 @@ const aSubscriptionId = "1234ABC" as NonEmptyString;
 
 const anAdminUser: IExtendedUserContract = {
   email: "test@test.it",
-  groupNames: new SerializableSet(["apiadmin", "group_2"]),
-  id: "124123_id",
+  groupNames: new SerializableSet(["apiadmin", "group_2", "apiservicewrite"]),
+  id:
+    "/subscriptions/abc/resourceGroups/io-p-rg-internal/providers/Microsoft.ApiManagement/service/io-p-apim-api/users/aUserId",
   name: "name"
 };
 
@@ -44,6 +59,17 @@ const anArrayWithCIDR: ReadonlyArray<any> = [("1.1.1.1/32" as unknown) as CIDR];
 const aSubscriptionCidrsResponse = {
   cidrs: ["1.1.1.1/32"],
   id: aSubscriptionId
+};
+
+const aSubscriptionContract: SubscriptionContract & {
+  readonly name: string;
+} = {
+  name: aSubscriptionId,
+  primaryKey: "234324",
+  productId: "1234",
+  secondaryKey: "343434",
+  state: "state",
+  userId: "1234"
 };
 
 jest.spyOn(apimOperations, "getApimUser").mockReturnValue(
@@ -66,6 +92,9 @@ jest
     // tslint:disable-next-line: no-any
     Promise.resolve({ status: 200, value: aSubscriptionCidrsResponse } as any)
   );
+
+const mockGetActualUser = jest.fn();
+mockGetActualUser.mockImplementation(() => Promise.resolve(anAdminUser));
 
 describe("Test Update Subscription CIDRs", () => {
   it("should respond with IResponseErrorForbiddenNotAuthorized if apim return a none user", async () => {
@@ -258,6 +287,143 @@ describe("Test Get Subscription CIDRs", () => {
       apply: expect.any(Function),
       kind: "IResponseSuccessJson",
       value: aSubscriptionCidrsResponse
+    });
+  });
+});
+
+describe("Test Get Subscription Manage", () => {
+  it("should respond with IResponseErrorForbiddenNotAuthorized if apim return a none user", async () => {
+    jest
+      .spyOn(actualUser, "getActualUser")
+      .mockReturnValueOnce(
+        Promise.resolve(new E.Left(ResponseErrorForbiddenNotAuthorized))
+      );
+
+    const res = await getSubscriptionManage(apiClientMock, adUser);
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseErrorForbiddenNotAuthorized"
+    });
+  });
+
+  it("should respond with IResponseErrorForbiddenNotAuthorized if user is not present in MANAGE_FLOW_ENABLE_USER_LIST", async () => {
+    jest
+      .spyOn(actualUser, "getActualUser")
+      .mockReturnValueOnce(Promise.resolve(new E.Right(aNotAdminUser)));
+
+    // tslint:disable-next-line
+    configModule.manageFlowEnableUserList = "aDifferentUserId";
+
+    const res = await getSubscriptionManage(apiClientMock, adUser);
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseErrorForbiddenNotAuthorized"
+    });
+  });
+
+  it("should respond with IResponseErrorForbiddenNotAuthorized if user has NO apiservicewrite permission", async () => {
+    jest
+      .spyOn(actualUser, "getActualUser")
+      .mockReturnValueOnce(Promise.resolve(new E.Right(aNotAdminUser)));
+
+    const res = await getSubscriptionManage(apiClientMock, adUser);
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseErrorForbiddenNotAuthorized"
+    });
+  });
+
+  it("should respond with IResponseErrorForbiddenNotAuthorized if Manage Subscription doesn't exist and its creation returns an error", async () => {
+    jest
+      .spyOn(actualUser, "getActualUser")
+      .mockReturnValueOnce(Promise.resolve(new E.Right(anAdminUser)));
+    jest
+      .spyOn(apimOperations, "getUserSubscriptionManage")
+      .mockReturnValueOnce(Promise.resolve(none));
+    jest
+      .spyOn(newSubscription, "subscribeApimUser")
+      .mockReturnValueOnce(
+        Promise.resolve(new E.Left(new Error("error on subscribeApimUser")))
+      );
+
+    const res = await getSubscriptionManage(apiClientMock, adUser);
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseErrorForbiddenNotAuthorized"
+    });
+  });
+
+  it("should respond with IResponseErrorInternal if Manage Subscription doesn't exist, subscription creation is done but related cidrs initialization return an error", async () => {
+    jest
+      .spyOn(actualUser, "getActualUser")
+      .mockReturnValueOnce(Promise.resolve(new E.Right(anAdminUser)));
+    jest
+      .spyOn(apimOperations, "getUserSubscriptionManage")
+      .mockReturnValueOnce(Promise.resolve(none));
+    jest
+      .spyOn(newSubscription, "subscribeApimUser")
+      .mockReturnValueOnce(Promise.resolve(new E.Right(aSubscriptionContract)));
+    jest
+      .spyOn(notificationApiClient, "updateSubscriptionCidrs")
+      // tslint:disable-next-line: no-any
+      .mockReturnValueOnce(Promise.resolve(undefined));
+    jest
+      .spyOn(subscriptionController, "initializeSubscriptionCidrs")
+      .mockReturnValueOnce(
+        Promise.resolve(new E.Left(new Error("Error on upsert")))
+      );
+
+    const res = await getSubscriptionManage(apiClientMock, adUser);
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseErrorInternal"
+    });
+  });
+
+  it("should respond with Manage Subscription data if subscription creation and cidrs initialization are both correctly done", async () => {
+    jest
+      .spyOn(actualUser, "getActualUser")
+      .mockReturnValueOnce(Promise.resolve(new E.Right(anAdminUser)));
+    jest
+      .spyOn(apimOperations, "getUserSubscriptionManage")
+      .mockReturnValueOnce(Promise.resolve(none));
+    jest
+      .spyOn(newSubscription, "subscribeApimUser")
+      .mockReturnValueOnce(Promise.resolve(new E.Right(aSubscriptionContract)));
+    jest
+      .spyOn(subscriptionController, "initializeSubscriptionCidrs")
+      .mockReturnValueOnce(
+        Promise.resolve(new E.Right({ id: aSubscriptionId, cidrs: [] }))
+      );
+
+    const res = await getSubscriptionManage(apiClientMock, adUser);
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseSuccessJson",
+      value: aSubscriptionContract
+    });
+  });
+
+  it("should respond with Manage Subscription data if it already exists", async () => {
+    jest
+      .spyOn(actualUser, "getActualUser")
+      .mockReturnValueOnce(Promise.resolve(new E.Right(anAdminUser)));
+    jest
+      .spyOn(apimOperations, "getUserSubscriptionManage")
+      .mockReturnValueOnce(Promise.resolve(some(aSubscriptionContract)));
+
+    const res = await getSubscriptionManage(apiClientMock, adUser);
+
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseSuccessJson",
+      value: aSubscriptionContract
     });
   });
 });
