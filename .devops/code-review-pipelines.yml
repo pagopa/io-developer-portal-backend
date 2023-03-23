@@ -66,6 +66,8 @@ stages:
             yarn generate
           displayName: 'Generate definitions'
         - script: |
+            # APPINSIGHTS_INSTRUMENTATIONKEY required for subscription controller unit tests
+            export APPINSIGHTS_INSTRUMENTATIONKEY=anykey
             yarn test:coverage
           displayName: 'Unit tests exec'
         - bash: |

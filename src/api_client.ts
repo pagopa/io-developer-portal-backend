@@ -36,7 +36,9 @@ import { NewMessage } from "../generated/api/NewMessage";
 import { Service } from "../generated/api/Service";
 import { ServicePublic } from "../generated/api/ServicePublic";
 
+import { CIDRsPayload } from "../generated/api/CIDRsPayload";
 import { Logo } from "../generated/api/Logo";
+import { SubscriptionCIDRs } from "../generated/api/SubscriptionCIDRs";
 
 const OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 type OcpApimSubscriptionKey = typeof OcpApimSubscriptionKey;
@@ -142,6 +144,25 @@ export type UploadOrganizationLogoT = IPutApiRequestType<
   ApiResponseType<{}>
 >;
 
+export type GetSubscriptionCIDRsT = IGetApiRequestType<
+  {
+    readonly subscriptionId: NonEmptyString;
+  },
+  OcpApimSubscriptionKey,
+  never,
+  ApiResponseType<SubscriptionCIDRs>
+>;
+
+export type UpdateSubscriptionCIDRsT = IPutApiRequestType<
+  {
+    readonly cidrs: CIDRsPayload;
+    readonly subscriptionId: NonEmptyString;
+  },
+  OcpApimSubscriptionKey | "Content-Type",
+  never,
+  ApiResponseType<SubscriptionCIDRs>
+>;
+
 export function APIClient(
   baseUrl: string,
   token: string,
@@ -155,6 +176,8 @@ export function APIClient(
   readonly sendMessage: TypeofApiCall<SendMessageT>;
   readonly uploadServiceLogo: TypeofApiCall<UploadServiceLogoT>;
   readonly uploadOrganizationLogo: TypeofApiCall<UploadOrganizationLogoT>;
+  readonly getSubscriptionCidrs: TypeofApiCall<GetSubscriptionCIDRsT>;
+  readonly updateSubscriptionCidrs: TypeofApiCall<UpdateSubscriptionCIDRsT>;
 } {
   const options = {
     baseUrl,
@@ -225,6 +248,23 @@ export function APIClient(
     url: params => `/adm/organizations/${params.organizationfiscalcode}/logo`
   };
 
+  const getSubscriptionCIDRsT: GetSubscriptionCIDRsT = {
+    headers: tokenHeaderProducer,
+    method: "get",
+    query: _ => ({}),
+    response_decoder: apiResponseDecoder(SubscriptionCIDRs),
+    url: params => `/adm/subscriptions/${params.subscriptionId}/cidrs`
+  };
+
+  const updateSubscriptionCIDRsT: UpdateSubscriptionCIDRsT = {
+    body: params => JSON.stringify(params.cidrs),
+    headers: composeHeaderProducers(tokenHeaderProducer, ApiHeaderJson),
+    method: "put",
+    query: _ => ({}),
+    response_decoder: apiResponseDecoder(SubscriptionCIDRs),
+    url: params => `/adm/subscriptions/${params.subscriptionId}/cidrs`
+  };
+
   return {
     createDevelopmentProfile: createFetchRequestForApi(
       createDevelopmentProfileT,
@@ -232,8 +272,16 @@ export function APIClient(
     ),
     createService: createFetchRequestForApi(createServiceT, options),
     getService: createFetchRequestForApi(getServiceT, options),
+    getSubscriptionCidrs: createFetchRequestForApi(
+      getSubscriptionCIDRsT,
+      options
+    ),
     sendMessage: createFetchRequestForApi(sendMessageT, options),
     updateService: createFetchRequestForApi(updateServiceT, options),
+    updateSubscriptionCidrs: createFetchRequestForApi(
+      updateSubscriptionCIDRsT,
+      options
+    ),
     uploadOrganizationLogo: createFetchRequestForApi(
       uploadOrganizationLogoT,
       options
