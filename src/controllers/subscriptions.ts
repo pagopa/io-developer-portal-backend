@@ -25,6 +25,7 @@ import {
   getUserSubscription,
   getUserSubscriptionManage,
   getUserSubscriptions,
+  IExtendedUserContract,
   isAdminUser,
   parseOwnerIdFullPath,
   regeneratePrimaryKey,
@@ -97,6 +98,14 @@ export async function initializeSubscriptionCidrs(
   );
 }
 
+const isManageFlowUserDisabled = (retrievedApimUser: IExtendedUserContract) => {
+  return (
+    manageFlowEnableUserList.indexOf(
+      parseOwnerIdFullPath(retrievedApimUser.id as NonEmptyString)
+    ) === -1 && manageFlowEnableUserList.indexOf("*" as NonEmptyString) === -1
+  );
+};
+
 /**
  * Get MANAGE subscription for the logged in user (if not exists, create it)
  */
@@ -120,11 +129,7 @@ export async function getSubscriptionManage(
   const retrievedApimUser = errorOrRetrievedApimUser.value;
 
   // Check Manage flow enable user list feature flag
-  if (
-    manageFlowEnableUserList.indexOf(
-      parseOwnerIdFullPath(retrievedApimUser.id as NonEmptyString)
-    ) === -1
-  ) {
+  if (isManageFlowUserDisabled(retrievedApimUser)) {
     return ResponseErrorForbiddenNotAuthorized;
   }
 

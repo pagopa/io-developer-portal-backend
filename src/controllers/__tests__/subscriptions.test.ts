@@ -410,6 +410,31 @@ describe("Test Get Subscription Manage", () => {
     });
   });
 
+  it("should respond with Manage Subscription data if subscription creation and cidrs initialization are both correctly done and * is present in MANAGE_FLOW_ENABLE_USER_LIST", async () => {
+    jest
+      .spyOn(actualUser, "getActualUser")
+      .mockReturnValueOnce(Promise.resolve(new E.Right(anAdminUser)));
+    jest
+      .spyOn(apimOperations, "getUserSubscriptionManage")
+      .mockReturnValueOnce(Promise.resolve(none));
+    jest
+      .spyOn(newSubscription, "subscribeApimUser")
+      .mockReturnValueOnce(Promise.resolve(new E.Right(aSubscriptionContract)));
+    jest
+      .spyOn(subscriptionController, "initializeSubscriptionCidrs")
+      .mockReturnValueOnce(
+        Promise.resolve(new E.Right({ id: aSubscriptionId, cidrs: [] }))
+      );
+    // tslint:disable-next-line
+    configModule.manageFlowEnableUserList = "*";
+    const res = await getSubscriptionManage(apiClientMock, adUser);
+    expect(res).toEqual({
+      apply: expect.any(Function),
+      kind: "IResponseSuccessJson",
+      value: aSubscriptionContract
+    });
+  });
+
   it("should respond with Manage Subscription data if it already exists", async () => {
     jest
       .spyOn(actualUser, "getActualUser")
