@@ -225,6 +225,11 @@ export const SERVICE_DATA_APIKEY: string =
 /**
  * Feature Flags
  */
+/**
+ * We have a feature (manage key) that we don't enable for users EXCEPT the ones in an enabling list.
+ * The enabling list is a list of strings that represents a user id.
+ * If one of such strings is "*", we suddenly open the feature to everyone.
+ */
 export const manageFlowEnableUserList = withDefault(
   CommaSeparatedListOf(NonEmptyString),
   [] as ReadonlyArray<string>
