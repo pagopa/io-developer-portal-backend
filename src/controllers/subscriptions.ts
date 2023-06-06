@@ -25,6 +25,7 @@ import {
   getUserSubscription,
   getUserSubscriptionManage,
   getUserSubscriptions,
+  IExtendedUserContract,
   isAdminUser,
   parseOwnerIdFullPath,
   regeneratePrimaryKey,
@@ -97,6 +98,20 @@ export async function initializeSubscriptionCidrs(
   );
 }
 
+const isManageFlowDisabled = (retrievedApimUser: IExtendedUserContract) => {
+  // if the wildcard "*" is in the enabled user list, every user is enabled (the feature is available to everyone)
+  const everyoneIsEnabled =
+    manageFlowEnableUserList.indexOf("*" as NonEmptyString) >= 0;
+  // we check for the user in the enabled user list
+  const userIsEnabled =
+    manageFlowEnableUserList.indexOf(
+      parseOwnerIdFullPath(retrievedApimUser.id as NonEmptyString)
+    ) >= 0;
+
+  // is disabled if both checks are negative
+  return !(everyoneIsEnabled || userIsEnabled);
+};
+
 /**
  * Get MANAGE subscription for the logged in user (if not exists, create it)
  */
@@ -120,11 +135,7 @@ export async function getSubscriptionManage(
   const retrievedApimUser = errorOrRetrievedApimUser.value;
 
   // Check Manage flow enable user list feature flag
-  if (
-    manageFlowEnableUserList.indexOf(
-      parseOwnerIdFullPath(retrievedApimUser.id as NonEmptyString)
-    ) === -1
-  ) {
+  if (isManageFlowDisabled(retrievedApimUser)) {
     return ResponseErrorForbiddenNotAuthorized;
   }
 
