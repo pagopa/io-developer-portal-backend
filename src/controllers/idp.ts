@@ -2,6 +2,7 @@ import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
 import ApiManagementClient from "azure-arm-apimanagement";
+import { isNone } from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import {
   IResponsePermanentRedirect,
@@ -17,7 +18,6 @@ import { createSessionToken } from "../auth-strategies/selfcare_session_strategy
 import { selfcareSessionCreds } from "../config";
 import * as config from "../config";
 import { logger } from "../logger";
-import { isNone } from "fp-ts/lib/Option";
 
 const withToken = (url: ValidUrl, idToken: string): ValidUrl => {
   const newUrl = `${url.href}#id_token=${idToken}`;
