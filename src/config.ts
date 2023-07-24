@@ -5,6 +5,7 @@ import { errorsToReadableMessages } from "italia-ts-commons/lib/reporters";
 import { FiscalCode, NonEmptyString } from "italia-ts-commons/lib/strings";
 
 import { EmailAddress } from "../generated/api/EmailAddress";
+import { BooleanFromString } from "./utils/booleans";
 import { CommaSeparatedListOf } from "./utils/comma-separated-list";
 
 /**
@@ -238,5 +239,19 @@ export const manageFlowEnableUserList = withDefault(
   .getOrElseL(_ => {
     throw new Error(
       `Invalid Manage Flow enable user list configured: ${process.env.MANAGE_FLOW_ENABLE_USER_LIST}`
+    );
+  });
+
+/**
+ * Lock the creation of a new APIM user, when resolve SelfCareIdentity.
+ */
+export const lockSelfcareCreateNewApimUser = withDefault(
+  BooleanFromString,
+  ("false" as unknown) as boolean
+)
+  .decode(process.env.LOCK_SELFCARE_CREATE_NEW_APIM_USER)
+  .getOrElseL(_ => {
+    throw new Error(
+      `Invalid lockSelfcareCreateNewApimUser configured: ${process.env.LOCK_SELFCARE_CREATE_NEW_APIM_USER}`
     );
   });
