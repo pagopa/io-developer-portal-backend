@@ -11,12 +11,13 @@ import {
 import { UrlFromString } from "italia-ts-commons/lib/url";
 import {
   apimUserForSelfCareOrganization,
-  createApimUserIfNotExists
+  createApimUserIfNotExists,
+  formatApimAccountEmailForSelfcareOrganization,
+  getApimUser
 } from "../apim_operations";
 import { SelfCareIdentity } from "../auth-strategies/selfcare_identity_strategy";
 import { createSessionToken } from "../auth-strategies/selfcare_session_strategy";
-import { selfcareSessionCreds } from "../config";
-import * as config from "../config";
+import { lockSelfcareCreateNewApimUser, selfcareSessionCreds } from "../config";
 import { logger } from "../logger";
 
 const withToken = (url: ValidUrl, idToken: string): ValidUrl => {
@@ -47,13 +48,20 @@ export async function resolveSelfCareIdentity(
   try {
     // ensure an apim account is created for every session,
     // so that every user operation can rely on that
-    const maybeApimUser = await createApimUserIfNotExists(
-      apimClient,
-      apimUserForSelfCareOrganization(selfcareIdentity.organization)
-    );
+    const maybeApimUser = lockSelfcareCreateNewApimUser
+      ? await getApimUser(
+          apimClient,
+          formatApimAccountEmailForSelfcareOrganization(
+            selfcareIdentity.organization
+          )
+        )
+      : await createApimUserIfNotExists(
+          apimClient,
+          apimUserForSelfCareOrganization(selfcareIdentity.organization)
+        );
 
     // feature flag to lock new Selfcare users access
-    if (config.lockSelfcareCreateNewApimUser && isNone(maybeApimUser)) {
+    if (lockSelfcareCreateNewApimUser && isNone(maybeApimUser)) {
       return ResponsePermanentRedirect(options.failureLoginPage);
     }
 
