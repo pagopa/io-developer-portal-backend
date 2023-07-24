@@ -15,7 +15,9 @@ import {
 import { SelfCareIdentity } from "../auth-strategies/selfcare_identity_strategy";
 import { createSessionToken } from "../auth-strategies/selfcare_session_strategy";
 import { selfcareSessionCreds } from "../config";
+import * as config from "../config";
 import { logger } from "../logger";
+import { isNone } from "fp-ts/lib/Option";
 
 const withToken = (url: ValidUrl, idToken: string): ValidUrl => {
   const newUrl = `${url.href}#id_token=${idToken}`;
@@ -45,10 +47,15 @@ export async function resolveSelfCareIdentity(
   try {
     // ensure an apim account is created for every session,
     // so that every user operation can rely on that
-    await createApimUserIfNotExists(
+    const maybeApimUser = await createApimUserIfNotExists(
       apimClient,
       apimUserForSelfCareOrganization(selfcareIdentity.organization)
     );
+
+    // feature flag to lock new Selfcare users access
+    if (config.lockSelfcareCreateNewApimUser && isNone(maybeApimUser)) {
+      return ResponsePermanentRedirect(options.failureLoginPage);
+    }
 
     const token = createSessionToken(selfcareIdentity, {
       audience: options.audience,

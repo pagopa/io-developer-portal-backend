@@ -564,6 +564,13 @@ export async function createApimUserIfNotExists(
   if (isSome(maybeExistingApimUser)) {
     return maybeExistingApimUser;
   }
+  // feature flag to temporarily block the creation of new APIM users
+  if (config.lockSelfcareCreateNewApimUser) {
+    logger.debug(
+      "createApimUserIfNotExists|Creating new user locked by config"
+    );
+    return none;
+  }
 
   logger.debug(
     "createApimUserIfNotExists|Creating new user (%s/%s)",
