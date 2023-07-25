@@ -62,9 +62,8 @@ export async function resolveSelfCareIdentity(
           apimClient,
           apimUserForSelfCareOrganization(selfcareIdentity.organization)
         );
-
-    // feature flag to lock new Selfcare users access
-    if (lockSelfcareCreateNewApimUser && isNone(maybeApimUser)) {
+    // block access if Apim user is not returned
+    if (isNone(maybeApimUser)) {
       return ResponsePermanentRedirect(options.failureLoginPage);
     }
 
