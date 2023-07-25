@@ -46,8 +46,11 @@ export async function resolveSelfCareIdentity(
     });
 
   try {
-    // ensure an apim account is created for every session,
-    // so that every user operation can rely on that
+    // Ensure an APIM account exists for every session,
+    // so that every user operation can rely on that.
+    // If account creation is allowed for the first usage, the account is either fetcher or created
+    // In such a case, the login fails when account creation fails.
+    // Otherwise the account is fetched and the login fails when the account is not found
     const maybeApimUser = lockSelfcareCreateNewApimUser
       ? await getApimUser(
           apimClient,
