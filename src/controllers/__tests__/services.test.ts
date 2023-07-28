@@ -31,6 +31,7 @@ import { ServiceId } from "../../../generated/api/ServiceId";
 import { IExtendedUserContract } from "../../apim_operations";
 import { IJiraAPIClient } from "../../jira_client";
 import { SessionUser } from "../../utils/session";
+import { IStorageQueueClient } from "../../storage_queue_client";
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -281,6 +282,9 @@ describe("jiraStatus", () => {
 });
 
 describe("jiraRequest", () => {
+  const storageQueueClientMock: IStorageQueueClient = {
+    insertNewMessage: jest.fn()
+  };
   it("should respond with IResponseErrorNotFound", async () => {
     mockGetApimUser.mockReturnValueOnce(
       new Promise(resolve => {
@@ -290,6 +294,7 @@ describe("jiraRequest", () => {
     const response = await newReviewRequest(
       apiManagementClientMock,
       jiraClientMock,
+      storageQueueClientMock,
       adUser,
       "DMT-1" as NonEmptyString,
       jiraConfigMock
@@ -305,6 +310,7 @@ describe("jiraRequest", () => {
     const response = await newReviewRequest(
       apiManagementClientMock,
       jiraClientMock,
+      storageQueueClientMock,
       adUser,
       "DMT-1" as NonEmptyString,
       jiraConfigMock

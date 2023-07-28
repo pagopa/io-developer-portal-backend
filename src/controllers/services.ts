@@ -27,7 +27,7 @@ import {
   isAdminUser
 } from "../apim_operations";
 import * as config from "../config";
-import { getApimAccountEmail, SessionUser } from "../utils/session";
+import { SessionUser, getApimAccountEmail } from "../utils/session";
 
 import { withDefault } from "italia-ts-commons/lib/types";
 import { Service } from "../../generated/api/Service";
@@ -43,8 +43,8 @@ import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
-import { identity } from "fp-ts/lib/function";
 import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
+import { identity } from "fp-ts/lib/function";
 import { CIDR } from "../../generated/api/CIDR";
 import { getServicePayloadUpdater } from "../conversions";
 import { IJiraAPIClient, SearchJiraIssueResponse } from "../jira_client";
@@ -55,6 +55,7 @@ import {
   uploadOrganizationLogoTask,
   uploadServiceLogoTask
 } from "../middlewares/upload_logo";
+import { IStorageQueueClient } from "../storage_queue_client";
 
 export const ServicePayload = t.partial({
   authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
@@ -148,6 +149,7 @@ export async function getService(
       "Cannot get existing service"
     );
   }
+
   const service = errorOrServiceResponse.value;
   return ResponseSuccessJson(service);
 }
@@ -469,6 +471,7 @@ export async function newDisableRequest(
 export async function newReviewRequest(
   apiClient: ApiManagementClient,
   jiraClient: IJiraAPIClient,
+  storageQueueClient: IStorageQueueClient,
   authenticatedUser: SessionUser,
   serviceId: NonEmptyString,
   jiraConfig: config.IJIRA_CONFIG
@@ -591,6 +594,12 @@ export async function newReviewRequest(
                 ResponseErrorInternal(err.message)
               )
               .map(() => {
+                storageQueueClient.insertNewMessage(
+                  JSON.stringify({
+                    serviceId,
+                    status: jiraConfig.JIRA_STATUS_NEW
+                  })
+                );
                 return _;
               })
         )
@@ -617,13 +626,19 @@ export async function newReviewRequest(
                 serviceId
               }
             )
-            .map(__ =>
-              ResponseSuccessJson<ReviewStatus>({
+            .map(__ => {
+              storageQueueClient.insertNewMessage(
+                JSON.stringify({
+                  serviceId,
+                  status: jiraConfig.JIRA_STATUS_NEW
+                })
+              );
+              return ResponseSuccessJson<ReviewStatus>({
                 detail: "A new issue is created",
                 status: 201,
                 title: "Create new Issue"
-              })
-            )
+              });
+            })
             .mapLeft(err => ResponseErrorInternal(err.message));
         }
       })
