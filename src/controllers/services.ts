@@ -597,7 +597,8 @@ export async function newReviewRequest(
                 storageQueueClient.insertNewMessage(
                   JSON.stringify({
                     serviceId,
-                    status: jiraConfig.JIRA_STATUS_NEW
+                    isNewTicket: false,
+                    ticketKey: _.issues[0].key
                   })
                 );
                 return _;
@@ -630,7 +631,8 @@ export async function newReviewRequest(
               storageQueueClient.insertNewMessage(
                 JSON.stringify({
                   serviceId,
-                  status: jiraConfig.JIRA_STATUS_NEW
+                  isNewTicket: false,
+                  ticketKey: __.key
                 })
               );
               return ResponseSuccessJson<ReviewStatus>({
