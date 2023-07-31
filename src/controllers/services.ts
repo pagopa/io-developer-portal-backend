@@ -27,7 +27,7 @@ import {
   isAdminUser
 } from "../apim_operations";
 import * as config from "../config";
-import { SessionUser, getApimAccountEmail } from "../utils/session";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 import { withDefault } from "italia-ts-commons/lib/types";
 import { Service } from "../../generated/api/Service";
@@ -43,8 +43,8 @@ import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
-import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
 import { identity } from "fp-ts/lib/function";
+import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
 import { CIDR } from "../../generated/api/CIDR";
 import { getServicePayloadUpdater } from "../conversions";
 import { IJiraAPIClient, SearchJiraIssueResponse } from "../jira_client";
@@ -596,8 +596,8 @@ export async function newReviewRequest(
               .map(() => {
                 storageQueueClient.insertNewMessage(
                   JSON.stringify({
-                    serviceId,
                     isNewTicket: false,
+                    serviceId,
                     ticketKey: _.issues[0].key
                   })
                 );
@@ -630,8 +630,8 @@ export async function newReviewRequest(
             .map(__ => {
               storageQueueClient.insertNewMessage(
                 JSON.stringify({
-                  serviceId,
                   isNewTicket: false,
+                  serviceId,
                   ticketKey: __.key
                 })
               );

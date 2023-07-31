@@ -2,7 +2,7 @@ import * as AzureStorage from "azure-storage";
 import { logger } from "./logger";
 
 export interface IStorageQueueClient {
-  readonly insertNewMessage: (obj: any) => void;
+  readonly insertNewMessage: (obj: unknown) => void;
 }
 
 export function StorageQueueClient(

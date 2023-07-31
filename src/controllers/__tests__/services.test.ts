@@ -30,8 +30,8 @@ import SerializableSet from "json-set-map/build/src/set";
 import { ServiceId } from "../../../generated/api/ServiceId";
 import { IExtendedUserContract } from "../../apim_operations";
 import { IJiraAPIClient } from "../../jira_client";
-import { SessionUser } from "../../utils/session";
 import { IStorageQueueClient } from "../../storage_queue_client";
+import { SessionUser } from "../../utils/session";
 
 afterEach(() => {
   jest.clearAllMocks();
