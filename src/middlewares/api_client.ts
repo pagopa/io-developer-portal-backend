@@ -68,9 +68,9 @@ export function getRequestReviewLegacyQueueClientMiddleware(
     right(
       StorageQueueClient(
         AzureStorage.createQueueService(
-          requestReviewLegacyQueueConfig.REQUEST_REVIEW_LEGACY_STORAGE_QUEUE_CONNECTIONSTRING
+          requestReviewLegacyQueueConfig.REQUEST_REVIEW_LEGACY_QUEUE_CONNECTIONSTRING
         ),
-        requestReviewLegacyQueueConfig.REQUEST_REVIEW_LEGACY_STORAGE_QUEUE_NAME
+        requestReviewLegacyQueueConfig.REQUEST_REVIEW_LEGACY_QUEUE_NAME
       )
     );
 }
