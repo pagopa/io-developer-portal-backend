@@ -594,13 +594,11 @@ export async function newReviewRequest(
                 ResponseErrorInternal(err.message)
               )
               .map(() => {
-                storageQueueClient.insertNewMessage(
-                  JSON.stringify({
-                    isNewTicket: false,
-                    serviceId,
-                    ticketKey: _.issues[0].key
-                  })
-                );
+                storageQueueClient.insertNewMessage({
+                  isNewTicket: false,
+                  serviceId,
+                  ticketKey: _.issues[0].key
+                });
                 return _;
               })
         )
@@ -628,13 +626,11 @@ export async function newReviewRequest(
               }
             )
             .map(__ => {
-              storageQueueClient.insertNewMessage(
-                JSON.stringify({
-                  isNewTicket: false,
-                  serviceId,
-                  ticketKey: __.key
-                })
-              );
+              storageQueueClient.insertNewMessage({
+                isNewTicket: false,
+                serviceId,
+                ticketKey: __.key
+              });
               return ResponseSuccessJson<ReviewStatus>({
                 detail: "A new issue is created",
                 status: 201,

@@ -300,6 +300,7 @@ describe("jiraRequest", () => {
       jiraConfigMock
     );
     expect(response.kind).toEqual("IResponseErrorNotFound");
+    expect(storageQueueClientMock.insertNewMessage).not.toHaveBeenCalled();
   });
 
   it("should respond with IResponseErrorInternal", async () => {
@@ -317,5 +318,6 @@ describe("jiraRequest", () => {
     );
 
     expect(response.kind).toEqual("IResponseErrorInternal");
+    expect(storageQueueClientMock.insertNewMessage).not.toHaveBeenCalled();
   });
 });
