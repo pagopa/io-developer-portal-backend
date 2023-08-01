@@ -597,6 +597,7 @@ export async function newReviewRequest(
                 storageQueueClient.insertNewMessage({
                   isNewTicket: false,
                   serviceId,
+                  ticketId: _.issues[0].id,
                   ticketKey: _.issues[0].key
                 });
                 return _;
@@ -629,6 +630,7 @@ export async function newReviewRequest(
               storageQueueClient.insertNewMessage({
                 isNewTicket: false,
                 serviceId,
+                ticketId: __.id,
                 ticketKey: __.key
               });
               return ResponseSuccessJson<ReviewStatus>({
