@@ -104,8 +104,7 @@
   },
   "resolutions": {
     "fp-ts": "1.17.4",
-    "io-ts": "1.8.5",
-    "xml2js": "^0.5.0"
+    "io-ts": "1.8.5"
   },
   "jest": {
     "testEnvironment": "node",
