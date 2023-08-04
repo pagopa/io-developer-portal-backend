@@ -55,6 +55,7 @@ import {
   uploadOrganizationLogoTask,
   uploadServiceLogoTask
 } from "../middlewares/upload_logo";
+import { IStorageQueueClient } from "../storage_queue_client";
 
 export const ServicePayload = t.partial({
   authorized_cidrs: t.readonlyArray(CIDR, "array of CIDR"),
@@ -148,6 +149,7 @@ export async function getService(
       "Cannot get existing service"
     );
   }
+
   const service = errorOrServiceResponse.value;
   return ResponseSuccessJson(service);
 }
@@ -469,6 +471,7 @@ export async function newDisableRequest(
 export async function newReviewRequest(
   apiClient: ApiManagementClient,
   jiraClient: IJiraAPIClient,
+  storageQueueClient: IStorageQueueClient,
   authenticatedUser: SessionUser,
   serviceId: NonEmptyString,
   jiraConfig: config.IJIRA_CONFIG
@@ -591,6 +594,12 @@ export async function newReviewRequest(
                 ResponseErrorInternal(err.message)
               )
               .map(() => {
+                storageQueueClient.insertNewMessage({
+                  isNewTicket: false,
+                  serviceId,
+                  ticketId: _.issues[0].id,
+                  ticketKey: _.issues[0].key
+                });
                 return _;
               })
         )
@@ -617,13 +626,19 @@ export async function newReviewRequest(
                 serviceId
               }
             )
-            .map(__ =>
-              ResponseSuccessJson<ReviewStatus>({
+            .map(__ => {
+              storageQueueClient.insertNewMessage({
+                isNewTicket: false,
+                serviceId,
+                ticketId: __.id,
+                ticketKey: __.key
+              });
+              return ResponseSuccessJson<ReviewStatus>({
                 detail: "A new issue is created",
                 status: 201,
                 title: "Create new Issue"
-              })
-            )
+              });
+            })
             .mapLeft(err => ResponseErrorInternal(err.message));
         }
       })

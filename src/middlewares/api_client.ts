@@ -3,11 +3,16 @@
  * authenticated using MSI.
  */
 import ApiManagementClient from "azure-arm-apimanagement";
+import * as AzureStorage from "azure-storage";
 import { right } from "fp-ts/lib/Either";
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
 import { ITokenAndCredentials, loginToApim } from "../apim_operations";
 import * as config from "../config";
 import { IJiraAPIClient, JiraAPIClient } from "../jira_client";
+import {
+  IStorageQueueClient,
+  StorageQueueClient
+} from "../storage_queue_client";
 
 // Global var needed to cache the
 // API management access token between calls
@@ -53,5 +58,19 @@ export function getJiraClientMiddleware(
         statusComplete: jiraConfig.JIRA_STATUS_COMPLETE,
         token: jiraConfig.JIRA_TOKEN
       })
+    );
+}
+
+export function getRequestReviewLegacyQueueClientMiddleware(
+  requestReviewLegacyQueueConfig: config.IREQUEST_REVIEW_LEGACY_QUEUE_CONFIG
+): IRequestMiddleware<"IResponseErrorInternal", IStorageQueueClient> {
+  return async _ =>
+    right(
+      StorageQueueClient(
+        AzureStorage.createQueueService(
+          requestReviewLegacyQueueConfig.REQUEST_REVIEW_LEGACY_QUEUE_CONNECTIONSTRING
+        ),
+        requestReviewLegacyQueueConfig.REQUEST_REVIEW_LEGACY_QUEUE_NAME
+      )
     );
 }

@@ -65,7 +65,8 @@ import { secureExpressApp } from "./express";
 import { logger } from "./logger";
 import {
   getApiClientMiddleware,
-  getJiraClientMiddleware
+  getJiraClientMiddleware,
+  getRequestReviewLegacyQueueClientMiddleware
 } from "./middlewares/api_client";
 import { OptionalParamMiddleware } from "./middlewares/optional_param";
 import { OptionalQueryParamMiddleware } from "./middlewares/optional_query_param";
@@ -82,7 +83,10 @@ import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
 import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identity_strategy";
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
-import { selfcareIdentityCreds } from "./config";
+import {
+  getRequestReviewLegacyQueueConfigOrThrow,
+  selfcareIdentityCreds
+} from "./config";
 import { resolveSelfCareIdentity } from "./controllers/idp";
 import { serviceData } from "./controllers/service_data";
 import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
@@ -107,6 +111,8 @@ if (process.env.NODE_ENV === "debug") {
 }
 
 const JIRA_CONFIG = config.getJiraConfigOrThrow();
+
+const REQUEST_REVIEW_LEGACY_QUEUE_CONFIG = getRequestReviewLegacyQueueConfigOrThrow();
 
 const app = express();
 secureExpressApp(app);
@@ -286,6 +292,9 @@ app.post(
     withRequestMiddlewares(
       getApiClientMiddleware(),
       getJiraClientMiddleware(JIRA_CONFIG),
+      getRequestReviewLegacyQueueClientMiddleware(
+        REQUEST_REVIEW_LEGACY_QUEUE_CONFIG
+      ),
       getUserFromRequestMiddleware(),
       RequiredParamMiddleware("serviceId", NonEmptyString),
       async _ => right<never, typeof JIRA_CONFIG>(JIRA_CONFIG) // Pass JIRA_CONFIG as middleware

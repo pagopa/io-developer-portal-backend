@@ -197,6 +197,25 @@ export const getJiraConfigOrThrow = () =>
     throw new Error(errorsToReadableMessages(err).join("|"));
   });
 
+export const IREQUEST_REVIEW_LEGACY_QUEUE_CONFIG = t.interface({
+  REQUEST_REVIEW_LEGACY_QUEUE_CONNECTIONSTRING: NonEmptyString,
+  REQUEST_REVIEW_LEGACY_QUEUE_NAME: NonEmptyString
+});
+export type IREQUEST_REVIEW_LEGACY_QUEUE_CONFIG = t.TypeOf<
+  typeof IREQUEST_REVIEW_LEGACY_QUEUE_CONFIG
+>;
+
+export const getRequestReviewLegacyQueueConfigOrThrow = () =>
+  IREQUEST_REVIEW_LEGACY_QUEUE_CONFIG.decode({
+    ...process.env,
+    REQUEST_REVIEW_LEGACY_QUEUE_CONNECTIONSTRING:
+      process.env.REQUEST_REVIEW_LEGACY_QUEUE_CONNECTIONSTRING,
+    REQUEST_REVIEW_LEGACY_QUEUE_NAME:
+      process.env.REQUEST_REVIEW_LEGACY_QUEUE_NAME
+  }).getOrElseL(err => {
+    throw new Error(errorsToReadableMessages(err).join("|"));
+  });
+
 // which Identity provider this instance is configured to work with
 export const IDP = withDefault(
   t.union([t.literal("azure-ad"), t.literal("selfcare")]),
