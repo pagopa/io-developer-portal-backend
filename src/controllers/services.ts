@@ -595,6 +595,7 @@ export async function newReviewRequest(
               )
               .map(() => {
                 storageQueueClient.insertNewMessage({
+                  apimUserId: authenticatedApimUser.id,
                   isNewTicket: false,
                   serviceId,
                   ticketId: _.issues[0].id,
@@ -628,7 +629,8 @@ export async function newReviewRequest(
             )
             .map(__ => {
               storageQueueClient.insertNewMessage({
-                isNewTicket: false,
+                apimUserId: authenticatedApimUser.id,
+                isNewTicket: true,
                 serviceId,
                 ticketId: __.id,
                 ticketKey: __.key
