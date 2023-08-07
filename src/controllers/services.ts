@@ -599,7 +599,7 @@ export async function newReviewRequest(
                   isNewTicket: false,
                   serviceId,
                   ticketId: _.issues[0].id,
-                  ticketKey: _.issues[0].key,
+                  ticketKey: _.issues[0].key
                 });
                 return _;
               })
@@ -633,7 +633,7 @@ export async function newReviewRequest(
                 isNewTicket: true,
                 serviceId,
                 ticketId: __.id,
-                ticketKey: __.key,
+                ticketKey: __.key
               });
               return ResponseSuccessJson<ReviewStatus>({
                 detail: "A new issue is created",
