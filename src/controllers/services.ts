@@ -65,6 +65,7 @@ export const ServicePayload = t.partial({
   max_allowed_payment_amount: MaxAllowedPaymentAmount,
   organization_fiscal_code: OrganizationFiscalCode,
   organization_name: OrganizationName,
+  require_secure_channels: withDefault(t.boolean, false),
   service_metadata: ServiceMetadata,
   service_name: ServiceName
 });
