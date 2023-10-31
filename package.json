@@ -52,7 +52,7 @@
     "jwks-rsa": "^2.0.5",
     "logform": "2.1.2",
     "memoizee": "^0.4.14",
-    "method-override": "^2.3.10",
+    "method-override": "^3.0.0",
     "morgan": "^1.9.0",
     "ms-rest": "^2.2.4",
     "ms-rest-azure": "^2.4.4",
