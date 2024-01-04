@@ -274,3 +274,18 @@ export const lockSelfcareCreateNewApimUser = withDefault(
       `Invalid lockSelfcareCreateNewApimUser configured: ${process.env.LOCK_SELFCARE_CREATE_NEW_APIM_USER}`
     );
   });
+
+export const ServicesCmsConfig = t.type({
+  API_SERVICES_CMS_URL: NonEmptyString,
+  API_SERVICES_CMS_BASE_PATH: NonEmptyString
+});
+export type ServicesCmsConfig = t.TypeOf<typeof ServicesCmsConfig>;
+
+export const getServicesCmsConfigOrThrow = () =>
+  ServicesCmsConfig.decode({
+    ...process.env, // TODO: remove if useless
+    API_SERVICES_CMS_URL: process.env.API_SERVICES_CMS_URL,
+    API_SERVICES_CMS_BASE_PATH: process.env.API_SERVICES_CMS_BASE_PATH
+  }).getOrElseL(err => {
+    throw new Error(errorsToReadableMessages(err).join("|"));
+  });
