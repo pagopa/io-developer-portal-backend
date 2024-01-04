@@ -65,6 +65,7 @@ import { secureExpressApp } from "./express";
 import { logger } from "./logger";
 import {
   getApiClientMiddleware,
+  getCmsRestClientMiddleware,
   getJiraClientMiddleware,
   getRequestReviewLegacyQueueClientMiddleware
 } from "./middlewares/api_client";
@@ -85,6 +86,7 @@ import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identi
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
 import {
   getRequestReviewLegacyQueueConfigOrThrow,
+  getServicesCmsConfigOrThrow,
   selfcareIdentityCreds
 } from "./config";
 import { resolveSelfCareIdentity } from "./controllers/idp";
@@ -265,7 +267,8 @@ app.put(
       getApiClientMiddleware(),
       getUserFromRequestMiddleware(),
       RequiredParamMiddleware("serviceId", NonEmptyString),
-      ExtractFromPayloadMiddleware(ServicePayload)
+      ExtractFromPayloadMiddleware(ServicePayload),
+      getCmsRestClientMiddleware(getServicesCmsConfigOrThrow())
     )(putService)
   )
 );
