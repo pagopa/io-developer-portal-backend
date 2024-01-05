@@ -216,7 +216,7 @@ export async function putService(
     const userEmail = getApimAccountEmail(authenticatedUser);
     const maybeUserGroups = t
       .array(NonEmptyString)
-      .decode(Array.from(authenticatedApimUser.groupNames));
+      .decode(Array.from(authenticatedApimUser.groupDisplayNames || []));
     if (maybeUserGroups.isLeft()) {
       return ResponseErrorInternal(readableReport(maybeUserGroups.value));
     }
