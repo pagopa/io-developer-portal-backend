@@ -11,7 +11,6 @@ import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 
-
 const ServicesCmsRequiredFields = t.type({
   subscriptionId: NonEmptyString,
   userEmail: EmailString,
@@ -47,6 +46,7 @@ const fetchServicesCms = async <T>(
   url: string,
   headers: ServicesCmsHeader,
   decoder: t.Type<T, unknown, unknown>,
+  // tslint:disable-next-line:no-any
   fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
 ) => {
   const response = await fetchApi(url, {
