@@ -5,10 +5,12 @@
 
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
+import nodeFetch from "node-fetch";
 
 import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
+
 
 const ServicesCmsRequiredFields = t.type({
   subscriptionId: NonEmptyString,
@@ -44,9 +46,10 @@ type ServicePublication = t.TypeOf<typeof ServicePublication>;
 const fetchServicesCms = async <T>(
   url: string,
   headers: ServicesCmsHeader,
-  decoder: t.Type<T, unknown, unknown>
+  decoder: t.Type<T, unknown, unknown>,
+  fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
 ) => {
-  const response = await fetch(url, {
+  const response = await fetchApi(url, {
     headers: {
       ...headers,
       "Content-Type": "application/json"
