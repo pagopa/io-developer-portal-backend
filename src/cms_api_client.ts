@@ -28,16 +28,14 @@ const ServicesCmsHeader = t.type({
 type ServicesCmsHeader = t.TypeOf<typeof ServicesCmsHeader>;
 
 const ServiceLifecycle = t.type({
-  fsm: t.type({
-    state: t.union([t.literal("approved"), NonEmptyString])
+  status: t.type({
+    value: t.union([t.literal("approved"), NonEmptyString])
   })
 });
 type ServiceLifecycle = t.TypeOf<typeof ServiceLifecycle>;
 
 const ServicePublication = t.type({
-  fsm: t.type({
-    state: t.union([t.literal("published"), NonEmptyString])
-  })
+  status: t.union([t.literal("published"), NonEmptyString])
 });
 type ServicePublication = t.TypeOf<typeof ServicePublication>;
 
@@ -63,7 +61,6 @@ const fetchServicesCms = async <T>(
     // Parse the JSON response and validate it against the io-ts type
     const responseBody = await response.json();
     const validationResult = decoder.decode(responseBody);
-
     // Check if the response matches the expected type
     if (validationResult._tag === "Left") {
       throw new Error(

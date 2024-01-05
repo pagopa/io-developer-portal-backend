@@ -365,11 +365,11 @@ async function getApimUser__(
     id: user.id,
     name: user.name,
     ...user,
-    groupNames: isSome(groupResponse)
-      ? new Set(groupResponse.value.groupNames)
-      : (new Set() as SerializableSet<string>),
     groupDisplayNames: isSome(groupResponse)
       ? new Set(groupResponse.value.groupDisplayNames)
+      : (new Set() as SerializableSet<string>),
+    groupNames: isSome(groupResponse)
+      ? new Set(groupResponse.value.groupNames)
       : (new Set() as SerializableSet<string>)
   };
 
@@ -542,10 +542,10 @@ export async function getUserGroups(
   // - one containing the groups DisplayName
 
   return some({
-    groupNames: existingGroups.map(g => g.name) as ReadonlyArray<string>,
     groupDisplayNames: existingGroups.map(g => g.displayName) as ReadonlyArray<
       string
-    >
+    >,
+    groupNames: existingGroups.map(g => g.name) as ReadonlyArray<string>
   });
 }
 
