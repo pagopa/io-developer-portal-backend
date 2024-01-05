@@ -28,7 +28,7 @@ import {
   parseOwnerIdFullPath
 } from "../apim_operations";
 import * as config from "../config";
-import { SessionUser, getApimAccountEmail } from "../utils/session";
+import { getApimAccountEmail, SessionUser } from "../utils/session";
 
 import { withDefault } from "italia-ts-commons/lib/types";
 import { Service } from "../../generated/api/Service";
@@ -44,8 +44,8 @@ import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
-import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
 import { identity } from "fp-ts/lib/function";
+import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { CIDR } from "../../generated/api/CIDR";
 import { CmsRestClient } from "../cms_api_client";
@@ -229,10 +229,10 @@ export async function putService(
     const subscriptionId = `MANAGE-${userId}` as NonEmptyString;
 
     const requiredServicesCmsParams = {
+      subscriptionId,
       userEmail,
       userGroups,
-      userId,
-      subscriptionId
+      userId
     };
 
     const maybeServicePublication = await cmsRestClient.getServicePublication(

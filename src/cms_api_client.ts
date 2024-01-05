@@ -11,18 +11,18 @@ import { readableReport } from "italia-ts-commons/lib/reporters";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 
 const ServicesCmsRequiredFields = t.type({
+  subscriptionId: NonEmptyString,
   userEmail: EmailString,
   userGroups: t.array(NonEmptyString),
-  userId: NonEmptyString,
-  subscriptionId: NonEmptyString
+  userId: NonEmptyString
 });
 type ServicesCmsRequiredFields = t.TypeOf<typeof ServicesCmsRequiredFields>;
 
 const ServicesCmsHeader = t.type({
+  "x-subscription-id": NonEmptyString,
   "x-user-email": EmailString,
   "x-user-groups": NonEmptyString,
-  "x-user-id": NonEmptyString,
-  "x-subscription-id": NonEmptyString
+  "x-user-id": NonEmptyString
 });
 type ServicesCmsHeader = t.TypeOf<typeof ServicesCmsHeader>;
 
@@ -47,11 +47,11 @@ const fetchServicesCms = async <T>(
   decoder: t.Type<T, unknown, unknown>
 ) => {
   const response = await fetch(url, {
-    method: "GET",
     headers: {
       ...headers,
       "Content-Type": "application/json"
-    }
+    },
+    method: "GET"
   });
 
   if (response.status === 404) {
@@ -75,15 +75,6 @@ const fetchServicesCms = async <T>(
 };
 
 export const getCmsRestClient = (baseUrl: NonEmptyString) => ({
-  getServicePublication: (
-    serviceId: NonEmptyString,
-    params: ServicesCmsRequiredFields
-  ): Promise<O.Option<ServicePublication>> =>
-    fetchServicesCms(
-      `${baseUrl}/services/${serviceId}/release`,
-      fnCmsHeaderProducer(params),
-      ServicePublication
-    ),
   getServiceLifecycle: (
     serviceId: NonEmptyString,
     params: ServicesCmsRequiredFields
@@ -92,16 +83,25 @@ export const getCmsRestClient = (baseUrl: NonEmptyString) => ({
       `${baseUrl}/services/${serviceId}`,
       fnCmsHeaderProducer(params),
       ServiceLifecycle
+    ),
+  getServicePublication: (
+    serviceId: NonEmptyString,
+    params: ServicesCmsRequiredFields
+  ): Promise<O.Option<ServicePublication>> =>
+    fetchServicesCms(
+      `${baseUrl}/services/${serviceId}/release`,
+      fnCmsHeaderProducer(params),
+      ServicePublication
     )
 });
 
 const fnCmsHeaderProducer = (
   params: ServicesCmsRequiredFields
 ): ServicesCmsHeader => ({
+  "x-subscription-id": params.subscriptionId,
   "x-user-email": params.userEmail,
   "x-user-groups": params.userGroups.join(",") as NonEmptyString,
-  "x-user-id": params.userId,
-  "x-subscription-id": params.subscriptionId
+  "x-user-id": params.userId
 });
 
 export type CmsRestClient = ReturnType<typeof getCmsRestClient>;
