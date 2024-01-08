@@ -253,7 +253,7 @@ export async function putService(
           maybeServiceLifecycle.isSome() &&
           maybeServiceLifecycle.value.status.value !== "approved"
         ) {
-          return ResponseErrorConflict("synch_check_error");
+          return ResponseErrorConflict("sync_check_error");
         }
       }
     }
