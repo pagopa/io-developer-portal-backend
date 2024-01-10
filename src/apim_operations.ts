@@ -324,6 +324,12 @@ export interface IExtendedUserContract extends UserContract {
   readonly name: string;
   readonly email: string;
   readonly groupNames: SerializableSet<string>;
+  readonly groupDisplayNames?: SerializableSet<string>;
+}
+
+interface IApimGroups {
+  readonly groupNames: ReadonlyArray<string>;
+  readonly groupDisplayNames: ReadonlyArray<string>;
 }
 
 /**
@@ -353,14 +359,17 @@ async function getApimUser__(
   if (!user.id || !user.name || !user.email || !user.email[0]) {
     return none;
   }
-  const groupNames = await getUserGroups(apiClient, user, lconfig);
+  const groupResponse = await getUserGroups(apiClient, user, lconfig);
   const apimUser = {
     email: user.email,
     id: user.id,
     name: user.name,
     ...user,
-    groupNames: isSome(groupNames)
-      ? new Set(groupNames.value)
+    groupDisplayNames: isSome(groupResponse)
+      ? new Set(groupResponse.value.groupDisplayNames)
+      : (new Set() as SerializableSet<string>),
+    groupNames: isSome(groupResponse)
+      ? new Set(groupResponse.value.groupNames)
       : (new Set() as SerializableSet<string>)
   };
 
@@ -518,7 +527,7 @@ export async function getUserGroups(
   apiClient: ApiManagementClient,
   user: UserContract,
   lconfig: IApimConfig = config
-): Promise<Option<ReadonlyArray<string>>> {
+): Promise<Option<IApimGroups>> {
   if (!user.name) {
     return none;
   }
@@ -527,7 +536,17 @@ export async function getUserGroups(
     lconfig.azurermApim,
     user.name
   );
-  return some(existingGroups.map(g => g.name) as ReadonlyArray<string>);
+
+  // obtain 2 lists of groups:
+  // - one containing the groupNames
+  // - one containing the groups DisplayName
+
+  return some({
+    groupDisplayNames: existingGroups.map(g => g.displayName) as ReadonlyArray<
+      string
+    >,
+    groupNames: existingGroups.map(g => g.name) as ReadonlyArray<string>
+  });
 }
 
 export async function getApimUsers(

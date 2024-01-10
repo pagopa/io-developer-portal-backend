@@ -1,6 +1,6 @@
 import ApiManagementClient from "azure-arm-apimanagement";
-import { isLeft } from "fp-ts/lib/Either";
-import { isNone } from "fp-ts/lib/Option";
+import * as E from "fp-ts/lib/Either";
+import * as O from "fp-ts/lib/Option";
 import {
   IResponseErrorConflict,
   IResponseErrorForbiddenNotAuthorized,
@@ -24,7 +24,8 @@ import { APIClient, toEither } from "../api_client";
 import {
   getApimUser,
   getUserSubscription,
-  isAdminUser
+  isAdminUser,
+  parseOwnerIdFullPath
 } from "../apim_operations";
 import * as config from "../config";
 import { getApimAccountEmail, SessionUser } from "../utils/session";
@@ -45,7 +46,9 @@ import { ServiceName } from "../../generated/api/ServiceName";
 
 import { identity } from "fp-ts/lib/function";
 import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
+import { readableReport } from "italia-ts-commons/lib/reporters";
 import { CIDR } from "../../generated/api/CIDR";
+import { CmsRestClient } from "../cms_api_client";
 import { getServicePayloadUpdater } from "../conversions";
 import { IJiraAPIClient, SearchJiraIssueResponse } from "../jira_client";
 import {
@@ -116,7 +119,7 @@ export async function getService(
     apiClient,
     getApimAccountEmail(authenticatedUser)
   );
-  if (isNone(maybeApimUser)) {
+  if (O.isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
       "API user not found",
       "Cannot find a user in the API management with the provided email address"
@@ -134,7 +137,7 @@ export async function getService(
     isAdminUser(apimUser) ? undefined : apimUser.id
   );
 
-  if (isNone(maybeSubscription)) {
+  if (O.isNone(maybeSubscription)) {
     return ResponseErrorInternal("Cannot get user subscription");
   }
 
@@ -144,7 +147,7 @@ export async function getService(
     })
   );
 
-  if (isLeft(errorOrServiceResponse)) {
+  if (E.isLeft(errorOrServiceResponse)) {
     return ResponseErrorNotFound(
       "Cannot get service",
       "Cannot get existing service"
@@ -155,6 +158,16 @@ export async function getService(
   return ResponseSuccessJson(service);
 }
 
+const extractOwnerId = (
+  fullPath?: string
+): E.Either<IResponseErrorNotFound, NonEmptyString> => {
+  const maybeFullPath = O.fromNullable(fullPath);
+  if (O.isNone(maybeFullPath)) {
+    return E.left(ResponseErrorNotFound("Not found", "ownerId not found"));
+  }
+  return E.right(parseOwnerIdFullPath(maybeFullPath.value as NonEmptyString));
+};
+
 /**
  * Update service data for/with a specific serviceId.
  */
@@ -162,73 +175,126 @@ export async function putService(
   apiClient: ApiManagementClient,
   authenticatedUser: SessionUser,
   serviceId: NonEmptyString,
-  servicePayload: ServicePayload
+  servicePayload: ServicePayload,
+  cmsRestClient: CmsRestClient
 ): Promise<
   | IResponseSuccessJson<ServicePublic>
   | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorInternal
   | IResponseErrorNotFound
+  | IResponseErrorConflict
 > {
-  const maybeApimUser = await getApimUser(
-    apiClient,
-    getApimAccountEmail(authenticatedUser)
-  );
-  if (isNone(maybeApimUser)) {
-    return ResponseErrorNotFound(
-      "API user not found",
-      "Cannot find a user in the API management with the provided email address"
+  try {
+    const maybeApimUser = await getApimUser(
+      apiClient,
+      getApimAccountEmail(authenticatedUser)
     );
-  }
-  const authenticatedApimUser = maybeApimUser.value;
+    if (O.isNone(maybeApimUser)) {
+      return ResponseErrorNotFound(
+        "API user not found",
+        "Cannot find a user in the API management with the provided email address"
+      );
+    }
+    const authenticatedApimUser = maybeApimUser.value;
 
-  // Authenticates this request against the logged in user
-  // checking that serviceId = subscriptionId
-  // if the user is an admin we skip the check on userId
-  const maybeSubscription = await getUserSubscription(
-    apiClient,
-    serviceId,
-    isAdminUser(authenticatedApimUser) ? undefined : authenticatedApimUser.id
-  );
-  if (isNone(maybeSubscription)) {
-    return ResponseErrorNotFound(
-      "Subscription not found",
-      "Cannot get a subscription for the logged in user"
+    // Authenticates this request against the logged in user
+    // checking that serviceId = subscriptionId
+    // if the user is an admin we skip the check on userId
+    const maybeSubscription = await getUserSubscription(
+      apiClient,
+      serviceId,
+      isAdminUser(authenticatedApimUser) ? undefined : authenticatedApimUser.id
     );
-  }
+    if (O.isNone(maybeSubscription)) {
+      return ResponseErrorNotFound(
+        "Subscription not found",
+        "Cannot get a subscription for the logged in user"
+      );
+    }
 
-  // Get old service data
-  const errorOrService = toEither(
-    await notificationApiClient.getService({
-      id: serviceId
-    })
-  );
-  if (isLeft(errorOrService)) {
-    return ResponseErrorNotFound(
-      "Service not found",
-      "Cannot get a service with the provided id."
+    if (!isAdminUser(authenticatedApimUser)) {
+      // Retrieve required params to call Services CMS internal API
+      const userEmail = getApimAccountEmail(authenticatedUser);
+      const maybeUserGroups = t
+        .array(NonEmptyString)
+        .decode(Array.from(authenticatedApimUser.groupDisplayNames || []));
+      if (maybeUserGroups.isLeft()) {
+        return ResponseErrorInternal(readableReport(maybeUserGroups.value));
+      }
+      const userGroups = maybeUserGroups.value;
+      const maybeUserId = extractOwnerId(authenticatedApimUser.id);
+      if (maybeUserId.isLeft()) {
+        return maybeUserId.value;
+      }
+      const userId = maybeUserId.value;
+      const subscriptionId = `MANAGE-${userId}` as NonEmptyString;
+
+      const requiredServicesCmsParams = {
+        subscriptionId,
+        userEmail,
+        userGroups,
+        userId
+      };
+
+      const maybeServicePublication = await cmsRestClient.getServicePublication(
+        serviceId,
+        requiredServicesCmsParams
+      );
+
+      if (
+        maybeServicePublication.isSome() &&
+        maybeServicePublication.value.status === "published"
+      ) {
+        const maybeServiceLifecycle = await cmsRestClient.getServiceLifecycle(
+          serviceId,
+          requiredServicesCmsParams
+        );
+        if (
+          maybeServiceLifecycle.isSome() &&
+          maybeServiceLifecycle.value.status.value !== "approved"
+        ) {
+          return ResponseErrorConflict("sync_check_error");
+        }
+      }
+    }
+
+    // Get old service data
+    const errorOrService = toEither(
+      await notificationApiClient.getService({
+        id: serviceId
+      })
     );
+    if (E.isLeft(errorOrService)) {
+      return ResponseErrorNotFound(
+        "Service not found",
+        "Cannot get a service with the provided id."
+      );
+    }
+    const service = errorOrService.value;
+
+    const updatedService = getServicePayloadUpdater(authenticatedApimUser)(
+      service,
+      servicePayload
+    );
+    logger.debug("updating service %s", JSON.stringify(updatedService));
+
+    const errorOrUpdatedService = toEither(
+      await notificationApiClient.updateService({
+        service: updatedService,
+        serviceId
+      })
+    );
+
+    return errorOrUpdatedService.fold<
+      IResponseErrorInternal | IResponseSuccessJson<ServicePublic>
+    >(
+      errs => ResponseErrorInternal("Error updating service: " + errs.message),
+      ResponseSuccessJson
+    );
+  } catch (e) {
+    logger.error("An error has occurred while updating the service ", e);
+    throw e;
   }
-  const service = errorOrService.value;
-
-  const updatedService = getServicePayloadUpdater(authenticatedApimUser)(
-    service,
-    servicePayload
-  );
-  logger.debug("updating service %s", JSON.stringify(updatedService));
-
-  const errorOrUpdatedService = toEither(
-    await notificationApiClient.updateService({
-      service: updatedService,
-      serviceId
-    })
-  );
-
-  return errorOrUpdatedService.fold<
-    IResponseErrorInternal | IResponseSuccessJson<ServicePublic>
-  >(
-    errs => ResponseErrorInternal("Error updating service: " + errs.message),
-    ResponseSuccessJson
-  );
 }
 
 /**
@@ -287,7 +353,7 @@ export async function getReviewStatus(
     apiClient,
     getApimAccountEmail(authenticatedUser)
   );
-  if (isNone(maybeApimUser)) {
+  if (O.isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
       "API user not found",
       "Cannot find a user in the API management with the provided email address"
@@ -304,7 +370,7 @@ export async function getReviewStatus(
       serviceId,
       authenticatedApimUser.id
     );
-    if (isNone(maybeSubscription)) {
+    if (O.isNone(maybeSubscription)) {
       return ResponseErrorNotFound(
         "Subscription not found",
         "Cannot get a subscription for the logged in user"
@@ -365,7 +431,7 @@ export async function newDisableRequest(
     apiClient,
     getApimAccountEmail(authenticatedUser)
   );
-  if (isNone(maybeApimUser)) {
+  if (O.isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
       "API user not found",
       "Cannot find a user in the API management with the provided email address"
@@ -382,7 +448,7 @@ export async function newDisableRequest(
     serviceId,
     authenticatedApimUser.id
   );
-  if (isNone(maybeSubscription)) {
+  if (O.isNone(maybeSubscription)) {
     return ResponseErrorNotFound(
       "Subscription not found",
       "Cannot get a subscription for the logged in user"
@@ -394,7 +460,7 @@ export async function newDisableRequest(
       id: serviceId
     })
   );
-  if (isLeft(errorOrService)) {
+  if (E.isLeft(errorOrService)) {
     return ResponseErrorNotFound(
       "Service not found",
       "Cannot get a service with the provided id."
@@ -487,7 +553,7 @@ export async function newReviewRequest(
     apiClient,
     getApimAccountEmail(authenticatedUser)
   );
-  if (isNone(maybeApimUser)) {
+  if (O.isNone(maybeApimUser)) {
     return ResponseErrorNotFound(
       "API user not found",
       "Cannot find a user in the API management with the provided email address"
@@ -510,7 +576,7 @@ export async function newReviewRequest(
     serviceId,
     authenticatedApimUser.id
   );
-  if (isNone(maybeSubscription)) {
+  if (O.isNone(maybeSubscription)) {
     return ResponseErrorNotFound(
       "Subscription not found",
       "Cannot get a subscription for the logged in user"
@@ -522,7 +588,7 @@ export async function newReviewRequest(
       id: serviceId
     })
   );
-  if (isLeft(errorOrService)) {
+  if (E.isLeft(errorOrService)) {
     return ResponseErrorNotFound(
       "Service not found",
       "Cannot get a service with the provided id."

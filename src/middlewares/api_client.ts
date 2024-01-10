@@ -6,8 +6,11 @@ import ApiManagementClient from "azure-arm-apimanagement";
 import * as AzureStorage from "azure-storage";
 import { right } from "fp-ts/lib/Either";
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
+import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ITokenAndCredentials, loginToApim } from "../apim_operations";
+import { CmsRestClient, getCmsRestClient } from "../cms_api_client";
 import * as config from "../config";
+import { ServicesCmsConfig } from "../config";
 import { IJiraAPIClient, JiraAPIClient } from "../jira_client";
 import {
   IStorageQueueClient,
@@ -74,3 +77,13 @@ export function getRequestReviewLegacyQueueClientMiddleware(
       )
     );
 }
+
+export const getCmsRestClientMiddleware = (
+  servicesCmsConfig: ServicesCmsConfig
+): IRequestMiddleware<never, CmsRestClient> => async _ =>
+  right(
+    getCmsRestClient(
+      (servicesCmsConfig.API_SERVICES_CMS_URL +
+        servicesCmsConfig.API_SERVICES_CMS_BASE_PATH) as NonEmptyString
+    )
+  );
