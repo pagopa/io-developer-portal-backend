@@ -139,25 +139,3 @@ stages:
               deployToSlotOrASE: true
               slotName: 'production'
             displayName: 'Deploy to production slot'
-  
-  - stage: 'Deploy_to_selfcare_prod'
-    dependsOn:
-      - Prepare_artifact
-    jobs:
-      - job: 'do_deploy_production_slot'
-        steps:
-          - checkout: none
-          - download: current
-            artifact: Bundle
-
-          - task: AzureWebApp@1
-            inputs:
-              azureSubscription: '$(PROD_AZURE_SUBSCRIPTION)'
-              resourceGroupName: '$(SELFCARE_PROD_WEB_APP_RESOURCE_GROUP_NAME)'
-              appType: 'webApp'
-              appName: '$(SELFCARE_PROD_WEB_APP_NAME)'
-              package: '$(Pipeline.Workspace)/Bundle'
-              deploymentMethod: 'auto'
-              deployToSlotOrASE: true
-              slotName: 'production'
-            displayName: 'Deploy to production slot'
