@@ -222,6 +222,7 @@ export async function putService(
         return ResponseErrorInternal(readableReport(maybeUserGroups.value));
       }
       const userGroups = maybeUserGroups.value;
+      userGroups.push("ApiServiceWrite" as NonEmptyString);
       const maybeUserId = extractOwnerId(authenticatedApimUser.id);
       if (maybeUserId.isLeft()) {
         return maybeUserId.value;
