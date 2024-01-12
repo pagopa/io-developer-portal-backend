@@ -88,7 +88,7 @@ export const getCmsRestClient = (baseUrl: NonEmptyString) => ({
     params: ServicesCmsRequiredFields
   ): Promise<O.Option<ServiceLifecycle>> =>
     fetchServicesCms(
-      `${baseUrl}/services/${serviceId}`,
+      `${baseUrl}/internal/services/${serviceId}`,
       fnCmsHeaderProducer(params),
       ServiceLifecycle
     ),
@@ -97,7 +97,7 @@ export const getCmsRestClient = (baseUrl: NonEmptyString) => ({
     params: ServicesCmsRequiredFields
   ): Promise<O.Option<ServicePublication>> =>
     fetchServicesCms(
-      `${baseUrl}/services/${serviceId}/release`,
+      `${baseUrl}/internal/services/${serviceId}/release`,
       fnCmsHeaderProducer(params),
       ServicePublication
     )
