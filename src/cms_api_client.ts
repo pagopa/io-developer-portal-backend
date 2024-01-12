@@ -70,6 +70,11 @@ const fetchServicesCms = async <T>(
 
     return O.some(validationResult.value);
   } else {
+    const responseBody = await response.text();
+    console.error("Response error url =>", url);
+    console.error("Response error headers =>", headers);
+    console.error("Response error status =>", response.status);
+    console.error("Response error body =>", responseBody);
     throw new Error(`Request failed with status ${response.status}`);
   }
 };
