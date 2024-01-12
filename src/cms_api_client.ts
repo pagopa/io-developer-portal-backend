@@ -6,6 +6,7 @@
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import nodeFetch from "node-fetch";
+import { logger } from "./logger";
 
 import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { readableReport } from "italia-ts-commons/lib/reporters";
@@ -70,6 +71,11 @@ const fetchServicesCms = async <T>(
 
     return O.some(validationResult.value);
   } else {
+    const responseBody = await response.text();
+    logger.error("Response error url =>", url);
+    logger.error("Response error headers =>", headers);
+    logger.error("Response error status =>", response.status);
+    logger.error("Response error body =>", responseBody);
     throw new Error(`Request failed with status ${response.status}`);
   }
 };
