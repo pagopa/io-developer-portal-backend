@@ -73,7 +73,9 @@ const fetchServicesCms = async <T>(
   } else {
     const responseBody = await response.text();
     logger.error(`Response error url => ${url}`);
-    logger.error(`Response error headers => ${headers}`);
+    logger.error(
+      `Response error headers => {x-subscription-id:${headers["x-subscription-id"]}, x-user-email:${headers["x-user-email"]}, x-user-groups:${headers["x-user-groups"]}, x-user-id:${headers["x-user-id"]}}`
+    );
     logger.error(`Response error status => ${response.status}`);
     logger.error(`Response error body => ${responseBody}`);
     throw new Error(`Request failed with status ${response.status}`);
