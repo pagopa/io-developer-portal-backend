@@ -242,14 +242,22 @@ export async function putService(
         requiredServicesCmsParams
       );
 
+      const maybeServiceLifecycle = await cmsRestClient.getServiceLifecycle(
+        serviceId,
+        requiredServicesCmsParams
+      );
+
+      if (
+        maybeServiceLifecycle.isSome() &&
+        maybeServiceLifecycle.value.status.value === "deleted"
+      ) {
+        return ResponseErrorInternal("Cannot edit deleted service");
+      }
+
       if (
         maybeServicePublication.isSome() &&
         maybeServicePublication.value.status === "published"
       ) {
-        const maybeServiceLifecycle = await cmsRestClient.getServiceLifecycle(
-          serviceId,
-          requiredServicesCmsParams
-        );
         if (
           maybeServiceLifecycle.isSome() &&
           maybeServiceLifecycle.value.status.value !== "approved"
@@ -272,6 +280,11 @@ export async function putService(
       );
     }
     const service = errorOrService.value;
+
+    // added for more robustness , just in case of missing sync from cms and legacy
+        if (service.service_name.startsWith("DELETED")) {
+          return ResponseErrorInternal("Cannot edit deleted service");
+        }
 
     const updatedService = getServicePayloadUpdater(authenticatedApimUser)(
       service,
