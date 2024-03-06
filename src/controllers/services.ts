@@ -185,114 +185,130 @@ export async function putService(
   | IResponseErrorConflict
 > {
   try {
-    const maybeApimUser = await getApimUser(
-      apiClient,
-      getApimAccountEmail(authenticatedUser)
-    );
-    if (O.isNone(maybeApimUser)) {
-      return ResponseErrorNotFound(
-        "API user not found",
-        "Cannot find a user in the API management with the provided email address"
-      );
-    }
-    const authenticatedApimUser = maybeApimUser.value;
-
-    // Authenticates this request against the logged in user
-    // checking that serviceId = subscriptionId
-    // if the user is an admin we skip the check on userId
-    const maybeSubscription = await getUserSubscription(
-      apiClient,
-      serviceId,
-      isAdminUser(authenticatedApimUser) ? undefined : authenticatedApimUser.id
-    );
-    if (O.isNone(maybeSubscription)) {
-      return ResponseErrorNotFound(
-        "Subscription not found",
-        "Cannot get a subscription for the logged in user"
-      );
-    }
-
-    if (!isAdminUser(authenticatedApimUser)) {
-      // Retrieve required params to call Services CMS internal API
-      const userEmail = getApimAccountEmail(authenticatedUser);
-      const maybeUserGroups = t
-        .array(NonEmptyString)
-        .decode(Array.from(authenticatedApimUser.groupDisplayNames || []));
-      if (maybeUserGroups.isLeft()) {
-        return ResponseErrorInternal(readableReport(maybeUserGroups.value));
-      }
-      const userGroups = maybeUserGroups.value;
-      userGroups.push("ApiServiceWrite" as NonEmptyString);
-      const maybeUserId = extractOwnerId(authenticatedApimUser.id);
-      if (maybeUserId.isLeft()) {
-        return maybeUserId.value;
-      }
-      const userId = maybeUserId.value;
-      const subscriptionId = `MANAGE-${userId}` as NonEmptyString;
-
-      const requiredServicesCmsParams = {
-        subscriptionId,
-        userEmail,
-        userGroups,
-        userId
-      };
-
-      const maybeServicePublication = await cmsRestClient.getServicePublication(
-        serviceId,
-        requiredServicesCmsParams
-      );
-
-      if (
-        maybeServicePublication.isSome() &&
-        maybeServicePublication.value.status === "published"
-      ) {
-        const maybeServiceLifecycle = await cmsRestClient.getServiceLifecycle(
-          serviceId,
-          requiredServicesCmsParams
+        const maybeApimUser = await getApimUser(
+          apiClient,
+          getApimAccountEmail(authenticatedUser)
         );
-        if (
-          maybeServiceLifecycle.isSome() &&
-          maybeServiceLifecycle.value.status.value !== "approved"
-        ) {
-          return ResponseErrorConflict("sync_check_error");
+        if (O.isNone(maybeApimUser)) {
+          return ResponseErrorNotFound(
+            "API user not found",
+            "Cannot find a user in the API management with the provided email address"
+          );
         }
-      }
-    }
+        const authenticatedApimUser = maybeApimUser.value;
 
-    // Get old service data
-    const errorOrService = toEither(
-      await notificationApiClient.getService({
-        id: serviceId
-      })
-    );
-    if (E.isLeft(errorOrService)) {
-      return ResponseErrorNotFound(
-        "Service not found",
-        "Cannot get a service with the provided id."
-      );
-    }
-    const service = errorOrService.value;
+        // Authenticates this request against the logged in user
+        // checking that serviceId = subscriptionId
+        // if the user is an admin we skip the check on userId
+        const maybeSubscription = await getUserSubscription(
+          apiClient,
+          serviceId,
+          isAdminUser(authenticatedApimUser)
+            ? undefined
+            : authenticatedApimUser.id
+        );
+        if (O.isNone(maybeSubscription)) {
+          return ResponseErrorNotFound(
+            "Subscription not found",
+            "Cannot get a subscription for the logged in user"
+          );
+        }
 
-    const updatedService = getServicePayloadUpdater(authenticatedApimUser)(
-      service,
-      servicePayload
-    );
-    logger.debug("updating service %s", JSON.stringify(updatedService));
+        if (!isAdminUser(authenticatedApimUser)) {
+          // Retrieve required params to call Services CMS internal API
+          const userEmail = getApimAccountEmail(authenticatedUser);
+          const maybeUserGroups = t
+            .array(NonEmptyString)
+            .decode(Array.from(authenticatedApimUser.groupDisplayNames || []));
+          if (maybeUserGroups.isLeft()) {
+            return ResponseErrorInternal(readableReport(maybeUserGroups.value));
+          }
+          const userGroups = maybeUserGroups.value;
+          userGroups.push("ApiServiceWrite" as NonEmptyString);
+          const maybeUserId = extractOwnerId(authenticatedApimUser.id);
+          if (maybeUserId.isLeft()) {
+            return maybeUserId.value;
+          }
+          const userId = maybeUserId.value;
+          const subscriptionId = `MANAGE-${userId}` as NonEmptyString;
 
-    const errorOrUpdatedService = toEither(
-      await notificationApiClient.updateService({
-        service: updatedService,
-        serviceId
-      })
-    );
+          const requiredServicesCmsParams = {
+            subscriptionId,
+            userEmail,
+            userGroups,
+            userId
+          };
 
-    return errorOrUpdatedService.fold<
-      IResponseErrorInternal | IResponseSuccessJson<ServicePublic>
-    >(
-      errs => ResponseErrorInternal("Error updating service: " + errs.message),
-      ResponseSuccessJson
-    );
-  } catch (e) {
+          const maybeServicePublication = await cmsRestClient.getServicePublication(
+            serviceId,
+            requiredServicesCmsParams
+          );
+
+          const maybeServiceLifecycle = await cmsRestClient.getServiceLifecycle(
+            serviceId,
+            requiredServicesCmsParams
+          );
+
+          if (
+            maybeServiceLifecycle.isSome() &&
+            maybeServiceLifecycle.value.status.value === "deleted"
+          ) {
+            return ResponseErrorInternal("Cannot edit deleted service");
+          }
+
+          if (
+            maybeServicePublication.isSome() &&
+            maybeServicePublication.value.status === "published"
+          ) {
+            if (
+              maybeServiceLifecycle.isSome() &&
+              maybeServiceLifecycle.value.status.value !== "approved"
+            ) {
+              return ResponseErrorConflict("sync_check_error");
+            }
+          }
+        }
+
+        // Get old service data
+        const errorOrService = toEither(
+          await notificationApiClient.getService({
+            id: serviceId
+          })
+        );
+        if (E.isLeft(errorOrService)) {
+          return ResponseErrorNotFound(
+            "Service not found",
+            "Cannot get a service with the provided id."
+          );
+        }
+        const service = errorOrService.value;
+
+        // added for more robustness , just in case of missing sync from cms and legacy
+        if (service.service_name.startsWith("DELETED")) {
+          return ResponseErrorInternal("Cannot edit deleted service");
+        }
+
+        const updatedService = getServicePayloadUpdater(authenticatedApimUser)(
+          service,
+          servicePayload
+        );
+        logger.debug("updating service %s", JSON.stringify(updatedService));
+
+        const errorOrUpdatedService = toEither(
+          await notificationApiClient.updateService({
+            service: updatedService,
+            serviceId
+          })
+        );
+
+        return errorOrUpdatedService.fold<
+          IResponseErrorInternal | IResponseSuccessJson<ServicePublic>
+        >(
+          errs =>
+            ResponseErrorInternal("Error updating service: " + errs.message),
+          ResponseSuccessJson
+        );
+      } catch (e) {
     logger.error("An error has occurred while updating the service ", e);
     throw e;
   }
