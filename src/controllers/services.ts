@@ -294,7 +294,12 @@ export async function putService(
 
     const errorOrUpdatedService = toEither(
       await notificationApiClient.updateService({
-        service: updatedService,
+        service: {
+          ...updatedService,
+          is_visible: updatedService.service_name.startsWith("DELETED")
+            ? false
+            : updatedService.is_visible
+        },
         serviceId
       })
     );
