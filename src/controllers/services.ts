@@ -282,9 +282,9 @@ export async function putService(
     const service = errorOrService.value;
 
     // added for more robustness , just in case of missing sync from cms and legacy
-        if (service.service_name.startsWith("DELETED")) {
-          return ResponseErrorInternal("Cannot edit deleted service");
-        }
+    if (service.service_name.startsWith("DELETED")) {
+      return ResponseErrorInternal("Cannot edit deleted service");
+    }
 
     const updatedService = getServicePayloadUpdater(authenticatedApimUser)(
       service,
