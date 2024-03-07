@@ -251,7 +251,7 @@ export async function putService(
         maybeServiceLifecycle.isSome() &&
         maybeServiceLifecycle.value.status.value === "deleted"
       ) {
-        return ResponseErrorInternal("Cannot edit deleted service");
+        return ResponseErrorConflict("delete_check_error");
       }
 
       if (
@@ -283,7 +283,7 @@ export async function putService(
 
     // added for more robustness , just in case of missing sync from cms and legacy
     if (service.service_name.startsWith("DELETED")) {
-      return ResponseErrorInternal("Cannot edit deleted service");
+      return ResponseErrorConflict("delete_check_error");
     }
 
     const updatedService = getServicePayloadUpdater(authenticatedApimUser)(
