@@ -286,6 +286,23 @@ export async function putService(
       return ResponseErrorConflict("delete_check_error");
     }
 
+    // if the service is about to be activated(switch is_visible to true) check for duplicates
+    if (servicePayload.is_visible) {
+      const maybeCheckServiceDuplicates = await cmsRestClient.checkServiceDuplication(
+        service.organization_fiscal_code,
+        service.service_name,
+        serviceId
+      );
+      if (maybeCheckServiceDuplicates.isSome()) {
+        const responseValue = maybeCheckServiceDuplicates.value;
+        if (responseValue.is_duplicate) {
+          return ResponseErrorConflict(
+            `duplicate_check_error|${responseValue.service_id ?? ""}`
+          );
+        }
+      }
+    }
+
     const updatedService = getServicePayloadUpdater(authenticatedApimUser)(
       service,
       servicePayload
