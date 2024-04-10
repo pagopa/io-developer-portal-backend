@@ -102,6 +102,19 @@ const fetchServicesCms = async <T>(
 };
 
 export const getCmsRestClient = (baseUrl: NonEmptyString) => ({
+  checkServiceDuplication: (
+    organizationFiscalCode: OrganizationFiscalCode,
+    serviceName: NonEmptyString,
+    serviceId?: NonEmptyString
+  ): Promise<O.Option<CheckServiceDuplicatesResponse>> => {
+    const endpoint = `${baseUrl}/internal/services/duplicates?serviceName=${serviceName}&organizationFiscalCode=${organizationFiscalCode}`;
+
+    const fullEndpoint = serviceId
+      ? endpoint + `&serviceId=${serviceId}`
+      : endpoint;
+
+    return fetchServicesCms(fullEndpoint, CheckServiceDuplicatesResponse);
+  },
   getServiceLifecycle: (
     serviceId: NonEmptyString,
     params: ServicesCmsRequiredFields
@@ -119,20 +132,7 @@ export const getCmsRestClient = (baseUrl: NonEmptyString) => ({
       `${baseUrl}/internal/services/${serviceId}/release`,
       ServicePublication,
       fnCmsHeaderProducer(params)
-    ),
-  checkServiceDuplication: (
-    organizationFiscalCode: OrganizationFiscalCode,
-    serviceName: NonEmptyString,
-    serviceId?: NonEmptyString
-  ): Promise<O.Option<CheckServiceDuplicatesResponse>> => {
-    const endpoint = `${baseUrl}/internal/services/duplicates?serviceName=${serviceName}&organizationFiscalCode=${organizationFiscalCode}`;
-
-    const fullEndpoint = serviceId
-      ? endpoint + `&serviceId=${serviceId}`
-      : endpoint;
-
-    return fetchServicesCms(fullEndpoint, CheckServiceDuplicatesResponse);
-  }
+    )
 });
 
 const fnCmsHeaderProducer = (
