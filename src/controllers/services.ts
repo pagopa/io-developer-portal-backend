@@ -28,7 +28,7 @@ import {
   parseOwnerIdFullPath
 } from "../apim_operations";
 import * as config from "../config";
-import { getApimAccountEmail, SessionUser } from "../utils/session";
+import { SessionUser, getApimAccountEmail } from "../utils/session";
 
 import { withDefault } from "italia-ts-commons/lib/types";
 import { Service } from "../../generated/api/Service";
@@ -44,8 +44,8 @@ import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
-import { identity } from "fp-ts/lib/function";
 import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
+import { identity } from "fp-ts/lib/function";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { CIDR } from "../../generated/api/CIDR";
 import { CmsRestClient } from "../cms_api_client";
@@ -284,6 +284,23 @@ export async function putService(
     // added for more robustness , just in case of missing sync from cms and legacy
     if (service.service_name.startsWith("DELETED")) {
       return ResponseErrorConflict("delete_check_error");
+    }
+
+    // if the service is about to be activated(switch is_visible to true) check for duplicates
+    if (servicePayload.is_visible) {
+      const maybeCheckServiceDuplicates = await cmsRestClient.checkServiceDuplication(
+        service.organization_fiscal_code,
+        service.service_name,
+        serviceId
+      );
+      if (maybeCheckServiceDuplicates.isSome()) {
+        const responseValue = maybeCheckServiceDuplicates.value;
+        if (responseValue.is_duplicate) {
+          return ResponseErrorConflict(
+            `duplicate_check_error|${responseValue.service_id ?? ""}`
+          );
+        }
+      }
     }
 
     const updatedService = getServicePayloadUpdater(authenticatedApimUser)(

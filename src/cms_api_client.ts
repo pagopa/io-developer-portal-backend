@@ -10,7 +10,10 @@ import { logger } from "./logger";
 
 import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { readableReport } from "italia-ts-commons/lib/reporters";
-import { NonEmptyString } from "italia-ts-commons/lib/strings";
+import {
+  NonEmptyString,
+  OrganizationFiscalCode
+} from "italia-ts-commons/lib/strings";
 
 const ServicesCmsRequiredFields = t.type({
   subscriptionId: NonEmptyString,
@@ -35,6 +38,19 @@ const ServiceLifecycle = t.type({
 });
 type ServiceLifecycle = t.TypeOf<typeof ServiceLifecycle>;
 
+const CheckServiceDuplicatesResponse = t.intersection([
+  t.type({
+    is_duplicate: t.boolean
+  }),
+  t.partial({
+    // SPID user fiscal code
+    service_id: NonEmptyString
+  })
+]);
+type CheckServiceDuplicatesResponse = t.TypeOf<
+  typeof CheckServiceDuplicatesResponse
+>;
+
 const ServicePublication = t.type({
   status: t.union([t.literal("published"), NonEmptyString])
 });
@@ -43,14 +59,14 @@ type ServicePublication = t.TypeOf<typeof ServicePublication>;
 // Function to make a GET request with custom headers and validate the response
 const fetchServicesCms = async <T>(
   url: string,
-  headers: ServicesCmsHeader,
   decoder: t.Type<T, unknown, unknown>,
+  headers?: ServicesCmsHeader,
   // tslint:disable-next-line:no-any
   fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
 ) => {
   const response = await fetchApi(url, {
     headers: {
-      ...headers,
+      ...(headers ? headers : {}),
       "Content-Type": "application/json"
     },
     method: "GET"
@@ -73,9 +89,12 @@ const fetchServicesCms = async <T>(
   } else {
     const responseBody = await response.text();
     logger.error(`Response error url => ${url}`);
-    logger.error(
-      `Response error headers => {x-subscription-id:${headers["x-subscription-id"]}, x-user-email:${headers["x-user-email"]}, x-user-groups:${headers["x-user-groups"]}, x-user-id:${headers["x-user-id"]}}`
-    );
+    if (headers) {
+      logger.error(
+        `Response error headers => {x-subscription-id:${headers["x-subscription-id"]}, x-user-email:${headers["x-user-email"]}, x-user-groups:${headers["x-user-groups"]}, x-user-id:${headers["x-user-id"]}}`
+      );
+    }
+
     logger.error(`Response error status => ${response.status}`);
     logger.error(`Response error body => ${responseBody}`);
     throw new Error(`Request failed with status ${response.status}`);
@@ -89,8 +108,8 @@ export const getCmsRestClient = (baseUrl: NonEmptyString) => ({
   ): Promise<O.Option<ServiceLifecycle>> =>
     fetchServicesCms(
       `${baseUrl}/internal/services/${serviceId}`,
-      fnCmsHeaderProducer(params),
-      ServiceLifecycle
+      ServiceLifecycle,
+      fnCmsHeaderProducer(params)
     ),
   getServicePublication: (
     serviceId: NonEmptyString,
@@ -98,9 +117,22 @@ export const getCmsRestClient = (baseUrl: NonEmptyString) => ({
   ): Promise<O.Option<ServicePublication>> =>
     fetchServicesCms(
       `${baseUrl}/internal/services/${serviceId}/release`,
-      fnCmsHeaderProducer(params),
-      ServicePublication
-    )
+      ServicePublication,
+      fnCmsHeaderProducer(params)
+    ),
+  checkServiceDuplication: (
+    organizationFiscalCode: OrganizationFiscalCode,
+    serviceName: NonEmptyString,
+    serviceId?: NonEmptyString
+  ): Promise<O.Option<CheckServiceDuplicatesResponse>> => {
+    const endpoint = `${baseUrl}/internal/services/duplicates?serviceName=${serviceName}&organizationFiscalCode=${organizationFiscalCode}`;
+
+    const fullEndpoint = serviceId
+      ? endpoint + `&serviceId=${serviceId}`
+      : endpoint;
+
+    return fetchServicesCms(fullEndpoint, CheckServiceDuplicatesResponse);
+  }
 });
 
 const fnCmsHeaderProducer = (
