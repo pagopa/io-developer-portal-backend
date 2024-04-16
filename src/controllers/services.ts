@@ -253,6 +253,13 @@ export async function putService(
       ) {
         return ResponseErrorConflict("delete_check_error");
       }
+      // if service has an open review on the cms it should not be possible to change it
+      if (
+        maybeServiceLifecycle.isSome() &&
+        maybeServiceLifecycle.value.status.value === "submitted"
+      ) {
+        return ResponseErrorConflict("sync_check_error");
+      }
 
       if (
         maybeServicePublication.isSome() &&
