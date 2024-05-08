@@ -8,7 +8,6 @@
 import { asyncIteratorToArray } from "@pagopa/io-functions-commons/dist/src/utils/async";
 import { Set } from "json-set-map";
 import * as memoizee from "memoizee";
-import * as msRestAzure from "ms-rest-azure";
 import { logger } from "./logger";
 
 import * as config from "./config";
@@ -18,7 +17,6 @@ import {
   SubscriptionCollection,
   SubscriptionContract,
   UserContract,
-  UserCreateParameters,
   UserIdentityContract
 } from "@azure/arm-apimanagement";
 import { Either, left, right } from "fp-ts/lib/Either";
@@ -48,26 +46,6 @@ import {
   FilterSupportedFunctionsEnum
 } from "./utils/apim_filters";
 
-export interface IServicePrincipalCreds {
-  readonly servicePrincipalClientId: string;
-  readonly servicePrincipalSecret: string;
-  readonly servicePrincipalTenantId: string;
-}
-
-export interface IUserData extends UserCreateParameters {
-  readonly oid: string;
-  readonly productName: string;
-  readonly groups: ReadonlyArray<string>;
-}
-
-export interface ITokenAndCredentials {
-  readonly token: msRestAzure.TokenResponse;
-  readonly loginCreds:
-    | msRestAzure.MSIAppServiceTokenCredentials
-    | msRestAzure.ApplicationTokenCredentials;
-  readonly expiresOn: number;
-}
-
 export interface IApimConfig {
   readonly azurermResourceGroup: string;
   readonly azurermApim: string;
@@ -94,6 +72,8 @@ export const formatApimAccountEmailForSelfcareOrganization = (
  * Given a SelfCare organizzation, compose a Apim user data object
  * in the expected shape
  */
+
+// TODO: questo applicativo non è più in uso su selfcare, rimuovere tutta la catena inclusa l'api resolve identity
 export const apimUserForSelfCareOrganization = (
   organization: SelfCareOrganization
 ): IApimUserData => ({
@@ -102,65 +82,6 @@ export const apimUserForSelfCareOrganization = (
   note: organization.fiscal_code,
   userEmail: formatApimAccountEmailForSelfcareOrganization(organization)
 });
-
-function getToken(
-  loginCreds:
-    | msRestAzure.MSIAppServiceTokenCredentials
-    | msRestAzure.ApplicationTokenCredentials
-): Promise<msRestAzure.TokenResponse> {
-  return new Promise((resolve, reject) => {
-    loginCreds.getToken((err, tok) => {
-      if (err) {
-        logger.debug("getToken() error: %s", err.message);
-        return reject(err);
-      }
-      resolve(tok);
-    });
-  });
-}
-
-export async function loginToApim(
-  tokenCreds?: ITokenAndCredentials,
-  servicePrincipalCreds?: IServicePrincipalCreds
-): Promise<ITokenAndCredentials> {
-  const isTokenExpired = tokenCreds
-    ? tokenCreds.expiresOn <= Date.now()
-    : false;
-
-  logger.debug(
-    "loginToApim() token expires in %d seconds. expired=%s",
-    tokenCreds ? Math.round(tokenCreds.expiresOn - Date.now() / 1000) : 0,
-    isTokenExpired
-  );
-
-  // return old credentials in case the token is not expired
-  if (tokenCreds && !isTokenExpired) {
-    logger.debug("loginToApim(): get cached token");
-    return tokenCreds;
-  }
-
-  logger.debug("loginToApim(): login with MSI");
-
-  const loginCreds = servicePrincipalCreds
-    ? await msRestAzure.loginWithServicePrincipalSecret(
-        servicePrincipalCreds.servicePrincipalClientId,
-        servicePrincipalCreds.servicePrincipalSecret,
-        servicePrincipalCreds.servicePrincipalTenantId
-      )
-    : await msRestAzure.loginWithAppServiceMSI();
-
-  const token = await getToken(loginCreds);
-
-  return {
-    // cache token for 1 hour
-    // we cannot use tokenCreds.token.expiresOn
-    // because of a bug in ms-rest-library
-    // see https://github.com/Azure/azure-sdk-for-node/pull/3679
-    expiresOn: Date.now() + 3600 * 1000,
-    loginCreds,
-    token
-  };
-}
 
 async function getUserSubscription__(
   apiClient: ApiManagementClient,
@@ -174,6 +95,7 @@ async function getUserSubscription__(
     lconfig.azurermApim,
     subscriptionId
   );
+  // TODO: probabilmente serve il metodo che estrae l'id, ownerId è un path
   if ((userId && subscription.ownerId !== userId) || !subscription.name) {
     return none;
   }
