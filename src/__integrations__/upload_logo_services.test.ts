@@ -1,7 +1,6 @@
 import * as apim from "../apim_operations";
 import * as services from "../controllers/services";
 
-import ApiManagementClient from "azure-arm-apimanagement";
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { Logo } from "../../generated/api/Logo";
 import { putOrganizationLogo, putServiceLogo } from "../controllers/services";
@@ -11,8 +10,8 @@ import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
 import { IExtendedUserContract } from "../apim_operations";
 
-import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
 import { ServiceId } from "../../generated/api/ServiceId";
+import { ApiManagementClient, SubscriptionContract } from "@azure/arm-apimanagement";
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -55,10 +54,10 @@ const apiManagementClientMock = ({} as unknown) as ApiManagementClient;
 const subscriptionContract: SubscriptionContract & { readonly name: string } = {
   name: "name",
   primaryKey: "234324",
-  productId: "1234",
+  scope: "/products/1234",
   secondaryKey: "343434",
-  state: "state",
-  userId: "1234"
+  state: "active",
+  ownerId: "1234"
 };
 
 describe("putServiceLogo", () => {

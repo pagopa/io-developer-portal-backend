@@ -1,4 +1,3 @@
-import ApiManagementClient from "azure-arm-apimanagement";
 import * as E from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 import {
@@ -44,6 +43,7 @@ import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
+import { ApiManagementClient } from "@azure/arm-apimanagement";
 import { identity } from "fp-ts/lib/function";
 import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
 import { readableReport } from "italia-ts-commons/lib/reporters";

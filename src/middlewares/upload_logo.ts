@@ -1,7 +1,7 @@
 /**
  * Middleware that get tasks performed to upload a logo
  */
-import ApiManagementClient from "azure-arm-apimanagement";
+
 import {
   IResponseSuccessRedirectToResource,
   ResponseErrorForbiddenNotAuthorized,
@@ -33,7 +33,10 @@ import { Option } from "fp-ts/lib/Option";
 
 import { ErrorResponses, notificationApiClient } from "../controllers/services";
 
-import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
+import {
+  ApiManagementClient,
+  SubscriptionContract
+} from "@azure/arm-apimanagement";
 import { fromNullable, toError } from "fp-ts/lib/Either";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../generated/api/ServiceId";

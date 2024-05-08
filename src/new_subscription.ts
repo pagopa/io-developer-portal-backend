@@ -6,12 +6,12 @@
  * 3. Creates a new Profile with a fake fiscal number
  * 4. Creates a new Service linked to the new subscription
  */
-import ApiManagementClient from "azure-arm-apimanagement";
+
 import * as t from "io-ts";
 
 import { Either, isLeft, left, right } from "fp-ts/lib/Either";
 
-import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
+
 
 import {
   addUserSubscriptionToProduct,
@@ -31,6 +31,7 @@ import { logger } from "./logger";
 
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { Service } from "../generated/api/Service";
+import { ApiManagementClient, SubscriptionContract } from "@azure/arm-apimanagement";
 
 const telemetryClient = new appinsights.TelemetryClient();
 

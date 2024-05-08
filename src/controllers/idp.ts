@@ -1,7 +1,7 @@
+import { ApiManagementClient } from "@azure/arm-apimanagement";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ValidUrl } from "@pagopa/ts-commons/lib/url";
-import ApiManagementClient from "azure-arm-apimanagement";
 import { isNone } from "fp-ts/lib/Option";
 import * as t from "io-ts";
 import {

@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@pagopa/ts-commons": "^9.1.0",
+    "@pagopa/io-functions-commons": "^19.2.0",
     "@types/memoizee": "^0.4.2",
     "applicationinsights": "^1.0.3",
     "auto-changelog": "^2.2.1",
@@ -69,7 +70,6 @@
     "winston": "^3.0.0"
   },
   "devDependencies": {
-    "@pagopa/io-functions-commons": "^19.2.0",
     "@pagopa/openapi-codegen-ts": "^9.0.0",
     "@types/cookie-parser": "^1.4.1",
     "@types/cookie-session": "^2.0.34",

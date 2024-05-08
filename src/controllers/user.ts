@@ -1,5 +1,4 @@
-import ApiManagementClient from "azure-arm-apimanagement";
-import { UserContract } from "azure-arm-apimanagement/lib/models";
+import { ApiManagementClient, UserContract } from "@azure/arm-apimanagement";
 import { isRight } from "fp-ts/lib/Either";
 import { isNone } from "fp-ts/lib/Option";
 import {

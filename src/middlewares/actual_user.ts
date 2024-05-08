@@ -2,10 +2,11 @@
  * Middleware that extracts the Active directory B2C user data
  * from the HTTP request.
  */
-import ApiManagementClient from "azure-arm-apimanagement";
+
 import { Either, left, right } from "fp-ts/lib/Either";
 import { isNone } from "fp-ts/lib/Option";
 
+import { ApiManagementClient } from "@azure/arm-apimanagement";
 import {
   IResponseErrorForbiddenNotAuthorized,
   ResponseErrorForbiddenNotAuthorized
