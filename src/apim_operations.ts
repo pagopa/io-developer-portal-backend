@@ -5,22 +5,22 @@
  *
  * See https://docs.microsoft.com/en-us/rest/api/apimanagement/
  */
-import { ApiManagementClient } from "azure-arm-apimanagement";
+import { asyncIteratorToArray } from "@pagopa/io-functions-commons/dist/src/utils/async";
+import { Set } from "json-set-map";
+import * as memoizee from "memoizee";
+import * as msRestAzure from "ms-rest-azure";
+import { logger } from "./logger";
+
+import * as config from "./config";
+
 import {
+  ApiManagementClient,
   SubscriptionCollection,
   SubscriptionContract,
   UserContract,
   UserCreateParameters,
   UserIdentityContract
-} from "azure-arm-apimanagement/lib/models";
-import { Set } from "json-set-map";
-import * as msRestAzure from "ms-rest-azure";
-import { logger } from "./logger";
-
-import * as memoizee from "memoizee";
-
-import * as config from "./config";
-
+} from "@azure/arm-apimanagement";
 import { Either, left, right } from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import {
@@ -174,7 +174,7 @@ async function getUserSubscription__(
     lconfig.azurermApim,
     subscriptionId
   );
-  if ((userId && subscription.userId !== userId) || !subscription.name) {
+  if ((userId && subscription.ownerId !== userId) || !subscription.name) {
     return none;
   }
   return some({ name: subscription.name, ...subscription });
@@ -205,7 +205,7 @@ export async function getUserSubscriptionManage(
     }
   )
     .map(subscription => {
-      if ((userId && subscription.userId !== userId) || !subscription.name) {
+      if ((userId && subscription.ownerId !== userId) || !subscription.name) {
         return none;
       }
       return { name: subscription.name, ...subscription };
@@ -231,18 +231,24 @@ export async function getUserSubscriptions(
   logger.debug("getUserSubscriptions");
 
   // this list is paginated with a next-link
-  return apiClient.userSubscription.list(
-    lconfig.azurermResourceGroup,
-    lconfig.azurermApim,
-    userId,
-    {
-      filter:
-        subscriptionsExceptManageOneApimFilter() +
-        subscriptionByNameApimFilter(subscriptionName),
-      skip: offset,
-      top: limit
-    }
+  const subContract = await asyncIteratorToArray(
+    apiClient.userSubscription.list(
+      lconfig.azurermResourceGroup,
+      lconfig.azurermApim,
+      userId,
+      {
+        filter:
+          subscriptionsExceptManageOneApimFilter() +
+          subscriptionByNameApimFilter(subscriptionName),
+        skip: offset,
+        top: limit
+      }
+    )
   );
+
+  return {
+    value: Array.from(subContract)
+  };
 }
 
 /**
@@ -342,10 +348,13 @@ async function getApimUser__(
   lconfig: IApimConfig = config
 ): Promise<Option<IExtendedUserContract>> {
   logger.debug("getApimUser");
-  const results = await apiClient.user.listByService(
-    lconfig.azurermResourceGroup,
-    lconfig.azurermApim,
-    { filter: "email eq '" + email + "'" }
+
+  const results = await asyncIteratorToArray(
+    apiClient.user.listByService(
+      lconfig.azurermResourceGroup,
+      lconfig.azurermApim,
+      { filter: "email eq '" + email + "'" }
+    )
   );
   logger.debug(
     "lookup apimUsers for (%s) (%s)",
@@ -419,9 +428,9 @@ export async function addUserSubscriptionToProduct(
     subscriptionId,
     {
       displayName: subscriptionId,
-      productId: product.id,
+      scope: `/products/${product.id}`,
       state: "active",
-      userId
+      ownerId: userId
     }
   );
   return right(subscription);
@@ -443,7 +452,7 @@ export async function removeUserFromGroups(
       logger.debug("removeUserFromGroups (%s)", group);
       // For some odd reason in the Azure ARM API user.name
       // here is actually the user.id
-      await apiClient.groupUser.deleteMethod(
+      await apiClient.groupUser.delete(
         lconfig.azurermResourceGroup,
         lconfig.azurermApim,
         group,
@@ -467,10 +476,12 @@ export async function addUserToGroups(
   if (!user || !user.name) {
     return left(new Error("Cannot parse user"));
   }
-  const existingGroups = await apiClient.userGroup.list(
-    lconfig.azurermResourceGroup,
-    lconfig.azurermApim,
-    user.name
+  const existingGroups = await asyncIteratorToArray(
+    apiClient.userGroup.list(
+      lconfig.azurermResourceGroup,
+      lconfig.azurermApim,
+      user.name
+    )
   );
   const existingGroupsNames = new Set(existingGroups.map(g => g.name));
   logger.debug(
@@ -531,10 +542,12 @@ export async function getUserGroups(
   if (!user.name) {
     return none;
   }
-  const existingGroups = await apiClient.userGroup.list(
-    lconfig.azurermResourceGroup,
-    lconfig.azurermApim,
-    user.name
+  const existingGroups = await asyncIteratorToArray(
+    apiClient.userGroup.list(
+      lconfig.azurermResourceGroup,
+      lconfig.azurermApim,
+      user.name
+    )
   );
 
   // obtain 2 lists of groups:
@@ -554,20 +567,13 @@ export async function getApimUsers(
   lconfig: IApimConfig = config
 ): Promise<ReadonlyArray<UserContract>> {
   // tslint:disable-next-line:readonly-array no-let
-  let users: UserContract[] = [];
   logger.debug("getUsers");
-  // tslint:disable-next-line:no-let
-  let nextUsers = await apiClient.user.listByService(
-    lconfig.azurermResourceGroup,
-    lconfig.azurermApim
+  return asyncIteratorToArray(
+    apiClient.user.listByService(
+      lconfig.azurermResourceGroup,
+      lconfig.azurermApim
+    )
   );
-  users = users.concat(nextUsers);
-  while (nextUsers.nextLink) {
-    logger.debug("getUsers (%s)", nextUsers.nextLink);
-    nextUsers = await apiClient.user.listByServiceNext(nextUsers.nextLink);
-    users = users.concat(nextUsers);
-  }
-  return users;
 }
 
 export async function createApimUserIfNotExists(
