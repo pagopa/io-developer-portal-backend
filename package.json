@@ -10,7 +10,6 @@
   },
   "scripts": {
     "start": "node build/src/app",
-    "prepare": "patch-package",
     "build:clean": "rimraf build",
     "build:tsc": "tsc",
     "build": "npm-run-all -s generate build:clean build:tsc",
@@ -60,7 +59,6 @@
     "passport": "*",
     "passport-azure-ad": "^4.3.4",
     "passport-jwt": "^4.0.0",
-    "patch-package": "^6.2.1",
     "randomstring": "^1.1.5",
     "referrer-policy": "^1.1.0",
     "request": "^2.83.0",
