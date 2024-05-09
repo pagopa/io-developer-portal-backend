@@ -5,7 +5,10 @@
  *
  * See https://docs.microsoft.com/en-us/rest/api/apimanagement/
  */
-import { asyncIteratorToArray } from "@pagopa/io-functions-commons/dist/src/utils/async";
+import {
+  asyncIteratorToArray,
+  asyncIteratorToPageArray
+} from "@pagopa/io-functions-commons/dist/src/utils/async";
 import { Set } from "json-set-map";
 import * as memoizee from "memoizee";
 import { logger } from "./logger";
@@ -45,6 +48,7 @@ import {
   FilterFieldEnum,
   FilterSupportedFunctionsEnum
 } from "./utils/apim_filters";
+import { NonNegativeInteger } from "italia-ts-commons/lib/numbers";
 
 export interface IApimConfig {
   readonly azurermResourceGroup: string;
@@ -85,9 +89,10 @@ async function getUserSubscription__(
   if (!subscription.ownerId) {
     throw new Error("ownerId was not found on getSubscription response");
   }
-  const splitOwnerId = subscription.ownerId?.split("/");
 
-  const extractedOwnerId = splitOwnerId[splitOwnerId.length - 1];
+  const extractedOwnerId = parseOwnerIdFullPath(
+    subscription.ownerId as NonEmptyString
+  );
 
   if ((userId && extractedOwnerId !== userId) || !subscription.name) {
     return none;
@@ -147,7 +152,7 @@ export async function getUserSubscriptions(
   logger.debug("getUserSubscriptions");
 
   // this list is paginated with a next-link
-  const subContract = await asyncIteratorToArray(
+  const subContract = await asyncIteratorToPageArray(
     apiClient.userSubscription.list(
       lconfig.azurermResourceGroup,
       lconfig.azurermApim,
@@ -156,14 +161,22 @@ export async function getUserSubscriptions(
         filter:
           subscriptionsExceptManageOneApimFilter() +
           subscriptionByNameApimFilter(subscriptionName),
-        skip: offset,
-        top: limit
+        skip: offset
       }
-    )
+    ),
+    (limit ?? 20) as NonNegativeInteger
   );
 
+  const result = subContract.results.reduce<{
+    [key: string]: typeof subContract.results[0];
+  }>((acc, curr, index) => {
+    acc[index.toString()] = curr;
+    return acc;
+  }, {});
+
   return {
-    value: Array.from(subContract)
+    ...result,
+    nextLink: limit && subContract.results.length === limit ? "next" : undefined
   };
 }
 
