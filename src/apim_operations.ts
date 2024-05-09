@@ -68,21 +68,6 @@ export const formatApimAccountEmailForSelfcareOrganization = (
     throw new Error(`Cannot format APIM account email for the organization`);
   });
 
-/**
- * Given a SelfCare organizzation, compose a Apim user data object
- * in the expected shape
- */
-
-// TODO: questo applicativo non è più in uso su selfcare, rimuovere tutta la catena inclusa l'api resolve identity
-export const apimUserForSelfCareOrganization = (
-  organization: SelfCareOrganization
-): IApimUserData => ({
-  firstName: organization.name,
-  lastName: organization.id,
-  note: organization.fiscal_code,
-  userEmail: formatApimAccountEmailForSelfcareOrganization(organization)
-});
-
 async function getUserSubscription__(
   apiClient: ApiManagementClient,
   subscriptionId: string,
