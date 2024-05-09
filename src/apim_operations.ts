@@ -81,7 +81,7 @@ async function getUserSubscription__(
     subscriptionId
   );
 
-  //extract id from ownerId
+  // extract id from ownerId
   if (!subscription.ownerId) {
     throw new Error("ownerId was not found on getSubscription response");
   }
@@ -344,9 +344,9 @@ export async function addUserSubscriptionToProduct(
     subscriptionId,
     {
       displayName: subscriptionId,
+      ownerId: userId,
       scope: `/products/${product.id}`,
-      state: "active",
-      ownerId: userId
+      state: "active"
     }
   );
   return right(subscription);

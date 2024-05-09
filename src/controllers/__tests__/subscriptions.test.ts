@@ -72,11 +72,11 @@ const aSubscriptionContract: SubscriptionContract & {
   readonly name: string;
 } = {
   name: aSubscriptionId,
+  ownerId: "1234",
   primaryKey: "234324",
   scope: "/products/1234",
   secondaryKey: "343434",
-  state: "active",
-  ownerId: "1234"
+  state: "active"
 };
 
 jest.spyOn(apimOperations, "getApimUser").mockReturnValue(
@@ -87,9 +87,8 @@ jest.spyOn(apimOperations, "getApimUser").mockReturnValue(
 
 jest.mock("../../utils/telemetry-client", () => ({
   initTelemetryClient: jest.fn().mockReturnValue({
-    // Il tuo oggetto mockato va qui
-    trackEvent: jest.fn(),
-    trackError: jest.fn()
+    trackError: jest.fn(),
+    trackEvent: jest.fn()
   })
 }));
 

@@ -10,8 +10,11 @@ import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
 import { IExtendedUserContract } from "../apim_operations";
 
+import {
+  ApiManagementClient,
+  SubscriptionContract
+} from "@azure/arm-apimanagement";
 import { ServiceId } from "../../generated/api/ServiceId";
-import { ApiManagementClient, SubscriptionContract } from "@azure/arm-apimanagement";
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -53,11 +56,11 @@ const apiManagementClientMock = ({} as unknown) as ApiManagementClient;
 
 const subscriptionContract: SubscriptionContract & { readonly name: string } = {
   name: "name",
+  ownerId: "1234",
   primaryKey: "234324",
   scope: "/products/1234",
   secondaryKey: "343434",
-  state: "active",
-  ownerId: "1234"
+  state: "active"
 };
 
 describe("putServiceLogo", () => {

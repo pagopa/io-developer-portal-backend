@@ -23,6 +23,10 @@ import {
   putServiceLogo
 } from "../services";
 
+import {
+  ApiManagementClient,
+  SubscriptionContract
+} from "@azure/arm-apimanagement";
 import { none, some } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
 import { ServiceId } from "../../../generated/api/ServiceId";
@@ -30,7 +34,6 @@ import { IExtendedUserContract } from "../../apim_operations";
 import { IJiraAPIClient } from "../../jira_client";
 import { IStorageQueueClient } from "../../storage_queue_client";
 import { SessionUser } from "../../utils/session";
-import { ApiManagementClient, SubscriptionContract } from "@azure/arm-apimanagement";
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -49,11 +52,11 @@ const userContract: IExtendedUserContract = {
 
 const subscriptionContract: SubscriptionContract & { readonly name: string } = {
   name: "name",
+  ownerId: "1234",
   primaryKey: "234324",
   scope: "/products/1234",
   secondaryKey: "343434",
-  state: "active",
-  ownerId: "1234"
+  state: "active"
 };
 
 const responseSuccess = ResponseSuccessRedirectToResource(
