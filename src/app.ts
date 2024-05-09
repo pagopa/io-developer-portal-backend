@@ -82,16 +82,12 @@ import { Either, fromOption, right, toError } from "fp-ts/lib/Either";
 import { fromEither, tryCatch } from "fp-ts/lib/TaskEither";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
-import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identity_strategy";
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
 import {
   getRequestReviewLegacyQueueConfigOrThrow,
-  getServicesCmsConfigOrThrow,
-  selfcareIdentityCreds
+  getServicesCmsConfigOrThrow
 } from "./config";
-import { resolveSelfCareIdentity } from "./controllers/idp";
 import { serviceData } from "./controllers/service_data";
-import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 
 import {
   IntegerFromString,
@@ -369,148 +365,91 @@ app.get(
   )
 );
 
-if (config.IDP === "selfcare") {
-  // Express middleware that checks IdentityToken
-  const identityTokenVerifier = setupSelfCareIdentityStrategy(
-    passport,
-    selfcareIdentityCreds
-  );
-
-  app.get(
-    "/idp/selfcare/resolve-identity",
-    identityTokenVerifier,
-    wrapRequestHandler(
-      withRequestMiddlewares(
-        getSelfCareIdentityFromRequestMiddleware(),
-        getApiClientMiddleware()
-      )(resolveSelfCareIdentity)
+// The following utility retrieves APIM account id for the current authenticated user
+// It does the job for this very specific use case, if needed in future we may think about moving it into common utils
+const getApimUserIdForLoggedUser = (
+  req: express.Request
+): Promise<Either<Error, string>> =>
+  tryCatch(
+    () => getApiClientMiddleware()(req),
+    _ => "Failed to create APIM client"
+  )
+    .chain(_ =>
+      fromEither(_).mapLeft(
+        __ => "Failed to create APIM client (should not pass here)"
+      )
     )
-  );
+    .chain(client =>
+      tryCatch(
+        () => getApimUser(client, getApimAccountEmail(req.user)),
+        _ => "Failed to fetch APIM user"
+      )
+    )
+    .chain(_ => fromEither(fromOption("Empty APIM user")(_)))
+    .map(({ id }) => id.substring(id.lastIndexOf("/")))
+    .mapLeft(_ => new Error(_))
+    .run();
 
-  // Expose subscription migration features
-  app.use(
-    "/subscriptions/migrations/*",
-    sessionTokenVerifier,
-    async (req, res) => {
-      const url = `${config.SUBSCRIPTION_MIGRATIONS_URL}/organizations/${req.user?.organization.fiscal_code}/${req.params[0]}`;
-      const { method, body } = req;
-
-      try {
-        const result = await nodeFetch(url, {
-          body: ["GET", "HEAD"].includes(method.toUpperCase())
-            ? undefined
-            : body,
-          headers: {
-            "X-Functions-Key": config.SUBSCRIPTION_MIGRATIONS_APIKEY
-          },
-          method
-        });
-
-        res.status(result.status);
-        res.send(await result.text());
-      } catch (error) {
-        logger.error(
-          `Failed to proxy request to subscription migrations service`,
-          error
-        );
-        res.status(500);
+// Expose subscription migration features
+app.use(
+  "/subscriptions/migrations/*",
+  sessionTokenVerifier,
+  // enrich request with apim user id
+  async (req, res, next) => {
+    try {
+      const maybeApimUserId = await getApimUserIdForLoggedUser(req);
+      if (maybeApimUserId.isRight()) {
+        // tslint:disable-next-line: no-object-mutation
+        req.user.apimUserId = maybeApimUserId.value;
+        next();
+      } else {
+        throw new Error(`Failed to get APIM user: ${maybeApimUserId.value}`);
       }
-
+    } catch (error) {
+      res.status(500);
+      res.json(ProblemJson.encode({ detail: toError(error).message }));
       res.end();
     }
-  );
-} else if (config.IDP === "azure-ad") {
-  // The following utility retrieves APIM account id for the current authenticated user
-  // It does the job for this very specific use case, if needed in future we may think about moving it into common utils
-  const getApimUserIdForLoggedUser = (
-    req: express.Request
-  ): Promise<Either<Error, string>> =>
-    tryCatch(
-      () => getApiClientMiddleware()(req),
-      _ => "Failed to create APIM client"
-    )
-      .chain(_ =>
-        fromEither(_).mapLeft(
-          __ => "Failed to create APIM client (should not pass here)"
-        )
-      )
-      .chain(client =>
-        tryCatch(
-          () => getApimUser(client, getApimAccountEmail(req.user)),
-          _ => "Failed to fetch APIM user"
-        )
-      )
-      .chain(_ => fromEither(fromOption("Empty APIM user")(_)))
-      .map(({ id }) => id.substring(id.lastIndexOf("/")))
-      .mapLeft(_ => new Error(_))
-      .run();
+  },
+  async (req, res) => {
+    const url = `${config.SUBSCRIPTION_MIGRATIONS_URL}/delegates/${req.user.apimUserId}/${req.params[0]}`;
 
-  // Expose subscription migration features
-  app.use(
-    "/subscriptions/migrations/*",
-    sessionTokenVerifier,
-    // enrich request with apim user id
-    async (req, res, next) => {
-      try {
-        const maybeApimUserId = await getApimUserIdForLoggedUser(req);
-        if (maybeApimUserId.isRight()) {
-          // tslint:disable-next-line: no-object-mutation
-          req.user.apimUserId = maybeApimUserId.value;
-          next();
-        } else {
-          throw new Error(`Failed to get APIM user: ${maybeApimUserId.value}`);
-        }
-      } catch (error) {
-        res.status(500);
-        res.json(ProblemJson.encode({ detail: toError(error).message }));
-        res.end();
-      }
-    },
-    async (req, res) => {
-      const url = `${config.SUBSCRIPTION_MIGRATIONS_URL}/delegates/${req.user.apimUserId}/${req.params[0]}`;
+    const { method, body } = req;
 
-      const { method, body } = req;
+    try {
+      const result = await nodeFetch(url, {
+        body: ["GET", "HEAD"].includes(method.toUpperCase()) ? undefined : body,
+        headers: {
+          "X-Functions-Key": config.SUBSCRIPTION_MIGRATIONS_APIKEY
+        },
+        method
+      });
 
-      try {
-        const result = await nodeFetch(url, {
-          body: ["GET", "HEAD"].includes(method.toUpperCase())
-            ? undefined
-            : body,
-          headers: {
-            "X-Functions-Key": config.SUBSCRIPTION_MIGRATIONS_APIKEY
-          },
-          method
-        });
-
-        res.status(result.status);
-        res.send(await result.text());
-      } catch (error) {
-        logger.error(
-          `Failed to proxy request to subscription migrations service`,
-          error
-        );
-        res.status(500);
-      }
-
-      res.end();
+      res.status(result.status);
+      res.send(await result.text());
+    } catch (error) {
+      logger.error(
+        `Failed to proxy request to subscription migrations service`,
+        error
+      );
+      res.status(500);
     }
-  );
-  // Expose proxied endpoints to retrieve admin data for services
-  app.get(
-    "/organizations/:organizationFiscalCode/services",
-    sessionTokenVerifier,
-    wrapRequestHandler(
-      withRequestMiddlewares(
-        getApiClientMiddleware(),
-        getUserFromRequestMiddleware(),
-        RequiredParamMiddleware(
-          "organizationFiscalCode",
-          OrganizationFiscalCode
-        )
-      )(serviceData)
-    )
-  );
-}
+
+    res.end();
+  }
+);
+// Expose proxied endpoints to retrieve admin data for services
+app.get(
+  "/organizations/:organizationFiscalCode/services",
+  sessionTokenVerifier,
+  wrapRequestHandler(
+    withRequestMiddlewares(
+      getApiClientMiddleware(),
+      getUserFromRequestMiddleware(),
+      RequiredParamMiddleware("organizationFiscalCode", OrganizationFiscalCode)
+    )(serviceData)
+  )
+);
 
 app.get("/configuration", toExpressHandler(getConfiguration));
 
