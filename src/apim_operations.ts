@@ -121,6 +121,27 @@ export async function getUserSubscriptionManage(
       return "getUserSubscriptionManage|error";
     }
   )
+    .chain(subscription => {
+      // get secrets for subscription using listSecrets
+      return tryCatch(
+        async () =>
+          await apiClient.subscription.listSecrets(
+            lconfig.azurermResourceGroup,
+            lconfig.azurermApim,
+            MANAGE_APIKEY_PREFIX + userName
+          ),
+        _ => {
+          return "getUserSubscriptionManage|error";
+        }
+      ).map(subSecrets => {
+        logger.debug("FETCHING SUBSCRIPTION %s SECRETS", subscription.name);
+        return {
+          ...subscription,
+          primaryKey: subSecrets.primaryKey,
+          secondaryKey: subSecrets.secondaryKey
+        };
+      });
+    })
     .map(subscription => {
       if ((userId && subscription.ownerId !== userId) || !subscription.name) {
         return none;
