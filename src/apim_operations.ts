@@ -80,12 +80,21 @@ async function getUserSubscription__(
     lconfig.azurermApim,
     subscriptionId
   );
-  // TODO: probabilmente serve il metodo che estrae l'id, ownerId è un path
-  if ((userId && subscription.ownerId !== userId) || !subscription.name) {
+
+  //extract id from ownerId
+  if (!subscription.ownerId) {
+    throw new Error("ownerId was not found on getSubscription response");
+  }
+  const splitOwnerId = subscription.ownerId?.split("/");
+
+  const extractedOwnerId = splitOwnerId[splitOwnerId.length - 1];
+
+  if ((userId && extractedOwnerId !== userId) || !subscription.name) {
     return none;
   }
   return some({ name: subscription.name, ...subscription });
 }
+
 export const getUserSubscription = memoizee(getUserSubscription__, {
   max: 100,
   maxAge: 3600000,
