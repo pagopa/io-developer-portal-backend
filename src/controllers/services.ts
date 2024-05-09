@@ -115,47 +115,52 @@ export async function getService(
   | IResponseErrorInternal
   | IResponseErrorNotFound
 > {
-  const maybeApimUser = await getApimUser(
-    apiClient,
-    getApimAccountEmail(authenticatedUser)
-  );
-  if (O.isNone(maybeApimUser)) {
-    return ResponseErrorNotFound(
-      "API user not found",
-      "Cannot find a user in the API management with the provided email address"
+  try {
+    const maybeApimUser = await getApimUser(
+      apiClient,
+      getApimAccountEmail(authenticatedUser)
     );
-  }
-  const apimUser = maybeApimUser.value;
+    if (O.isNone(maybeApimUser)) {
+      return ResponseErrorNotFound(
+        "API user not found",
+        "Cannot find a user in the API management with the provided email address"
+      );
+    }
+    const apimUser = maybeApimUser.value;
 
-  // Authenticates this request against the logged in user
-  // checking that serviceId = subscriptionId
-  // if the user is an admin we skip the check on userId
+    // Authenticates this request against the logged in user
+    // checking that serviceId = subscriptionId
+    // if the user is an admin we skip the check on userId
 
-  const maybeSubscription = await getUserSubscription(
-    apiClient,
-    serviceId,
-    isAdminUser(apimUser) ? undefined : apimUser.id
-  );
-
-  if (O.isNone(maybeSubscription)) {
-    return ResponseErrorInternal("Cannot get user subscription");
-  }
-
-  const errorOrServiceResponse = toEither(
-    await notificationApiClient.getService({
-      id: serviceId
-    })
-  );
-
-  if (E.isLeft(errorOrServiceResponse)) {
-    return ResponseErrorNotFound(
-      "Cannot get service",
-      "Cannot get existing service"
+    const maybeSubscription = await getUserSubscription(
+      apiClient,
+      serviceId,
+      isAdminUser(apimUser) ? undefined : apimUser.id
     );
-  }
 
-  const service = errorOrServiceResponse.value;
-  return ResponseSuccessJson(service);
+    if (O.isNone(maybeSubscription)) {
+      return ResponseErrorInternal("Cannot get user subscription");
+    }
+
+    const errorOrServiceResponse = toEither(
+      await notificationApiClient.getService({
+        id: serviceId
+      })
+    );
+
+    if (E.isLeft(errorOrServiceResponse)) {
+      return ResponseErrorNotFound(
+        "Cannot get service",
+        "Cannot get existing service"
+      );
+    }
+
+    const service = errorOrServiceResponse.value;
+    return ResponseSuccessJson(service);
+  } catch (e) {
+    logger.error("An error has occurred while getting the service ", e);
+    throw e;
+  }
 }
 
 const extractOwnerId = (

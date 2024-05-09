@@ -5,10 +5,7 @@
  *
  * See https://docs.microsoft.com/en-us/rest/api/apimanagement/
  */
-import {
-  asyncIteratorToArray,
-  asyncIteratorToPageArray
-} from "@pagopa/io-functions-commons/dist/src/utils/async";
+import { asyncIteratorToArray } from "@pagopa/io-functions-commons/dist/src/utils/async";
 import { Set } from "json-set-map";
 import * as memoizee from "memoizee";
 import { logger } from "./logger";
@@ -48,7 +45,6 @@ import {
   FilterFieldEnum,
   FilterSupportedFunctionsEnum
 } from "./utils/apim_filters";
-import { NonNegativeInteger } from "italia-ts-commons/lib/numbers";
 
 export interface IApimConfig {
   readonly azurermResourceGroup: string;
@@ -149,11 +145,11 @@ export async function getUserSubscriptions(
   subscriptionName?: string,
   lconfig: IApimConfig = config
 ): Promise<SubscriptionCollection> {
-  logger.debug("getUserSubscriptions");
+  try {
+    logger.debug("getUserSubscriptions");
 
-  // this list is paginated with a next-link
-  const subContract = await asyncIteratorToPageArray(
-    apiClient.userSubscription.list(
+    // Get PagedAsyncIterator
+    const userSubscriptionPagedAsyncIter = apiClient.userSubscription.list(
       lconfig.azurermResourceGroup,
       lconfig.azurermApim,
       userId,
@@ -163,21 +159,65 @@ export async function getUserSubscriptions(
           subscriptionByNameApimFilter(subscriptionName),
         skip: offset
       }
-    ),
-    (limit ?? 20) as NonNegativeInteger
-  );
+    );
 
-  const result = subContract.results.reduce<{
-    [key: string]: typeof subContract.results[0];
-  }>((acc, curr, index) => {
-    acc[index.toString()] = curr;
-    return acc;
-  }, {});
+    const subContract = Array<SubscriptionContract>();
 
-  return {
-    ...result,
-    nextLink: limit && subContract.results.length === limit ? "next" : undefined
-  };
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      if (subContract.length === limit) {
+        break;
+      }
+      const next = await userSubscriptionPagedAsyncIter.next();
+
+      if (next.done === true) {
+        break;
+      }
+
+      const subscriptionContract = next.value;
+
+      if (!subscriptionContract.name) {
+        throw new Error("malformed subscriptionContract, name is missing");
+      }
+
+      // get secrets for subscription using listSecrets
+      const subSecrets = await apiClient.subscription.listSecrets(
+        lconfig.azurermResourceGroup,
+        lconfig.azurermApim,
+        subscriptionContract.name
+      );
+
+      logger.debug(
+        "FETCHING SUBSCRIPTION %s SECRETS",
+        subscriptionContract.name
+      );
+
+      const enrichedSubContract = {
+        ...subscriptionContract,
+        primaryKey: subSecrets.primaryKey,
+        secondaryKey: subSecrets.secondaryKey
+      };
+      // eslint-disable-next-line functional/immutable-data
+      subContract.push(enrichedSubContract);
+    }
+
+    const result = subContract.reduce<{
+      readonly [key: string]: typeof subContract[0];
+    }>((acc, curr, index) => {
+      return {
+        ...acc,
+        [index.toString()]: curr
+      };
+    }, {});
+
+    return {
+      ...result,
+      nextLink: limit && subContract.length === limit ? "next" : undefined
+    };
+  } catch (e) {
+    logger.error("getUserSubscriptions|error ", e);
+    throw e;
+  }
 }
 
 /**
