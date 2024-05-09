@@ -14,6 +14,7 @@ import * as subscriptionController from "../../controllers/subscriptions";
 import * as actualUser from "../../middlewares/actual_user";
 import * as newSubscription from "../../new_subscription";
 import { SessionUser } from "../../utils/session";
+
 import {
   getSubscriptionCIDRs,
   getSubscriptionManage,
@@ -83,6 +84,14 @@ jest.spyOn(apimOperations, "getApimUser").mockReturnValue(
     resolve(some(anAdminUser));
   })
 );
+
+jest.mock("../../utils/telemetry-client", () => ({
+  initTelemetryClient: jest.fn().mockReturnValue({
+    // Il tuo oggetto mockato va qui
+    trackEvent: jest.fn(),
+    trackError: jest.fn()
+  })
+}));
 
 jest
   .spyOn(notificationApiClient, "updateSubscriptionCidrs")

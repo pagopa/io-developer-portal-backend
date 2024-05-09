@@ -11,8 +11,6 @@ import * as t from "io-ts";
 
 import { Either, isLeft, left, right } from "fp-ts/lib/Either";
 
-
-
 import {
   addUserSubscriptionToProduct,
   IExtendedUserContract
@@ -20,7 +18,6 @@ import {
 
 import * as config from "./config";
 
-import * as appinsights from "applicationinsights";
 import {
   EmailString,
   NonEmptyString,
@@ -29,11 +26,15 @@ import {
 import { APIClient, toEither } from "./api_client";
 import { logger } from "./logger";
 
+import {
+  ApiManagementClient,
+  SubscriptionContract
+} from "@azure/arm-apimanagement";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { Service } from "../generated/api/Service";
-import { ApiManagementClient, SubscriptionContract } from "@azure/arm-apimanagement";
+import { initTelemetryClient } from "./utils/telemetry-client";
 
-const telemetryClient = new appinsights.TelemetryClient();
+const telemetryClient = initTelemetryClient();
 
 const notificationApiClient = APIClient(config.adminApiUrl, config.adminApiKey);
 
