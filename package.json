@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@pagopa/ts-commons": "^9.1.0",
-    "@pagopa/io-functions-commons": "^28.15.0",
+    "@pagopa/io-functions-commons": "^19.2.0",
     "@types/memoizee": "^0.4.2",
     "applicationinsights": "^1.0.3",
     "auto-changelog": "^2.2.1",
@@ -92,7 +92,7 @@
     "rimraf": "^2.6.3",
     "shx": "^0.3.2",
     "ts-jest": "^29.1.2",
-    "ts-node": "^6.1.1",
+    "ts-node": "^9.0.0",
     "tslint": "^5.8.0",
     "tslint-config-prettier": "^1.6.0",
     "tslint-immutable": "^4.4.0",
