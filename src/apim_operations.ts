@@ -143,7 +143,14 @@ export async function getUserSubscriptionManage(
       });
     })
     .map(subscription => {
-      if ((userId && subscription.ownerId !== userId) || !subscription.name) {
+      // extrtact id from ownerId
+      if (!subscription.ownerId) {
+        throw new Error("ownerId was not found on getSubscription response");
+      }
+      const extractedOwnerId = parseOwnerIdFullPath(
+        subscription.ownerId as NonEmptyString
+      );
+      if ((userId && extractedOwnerId !== userId) || !subscription.name) {
         return none;
       }
       return { name: subscription.name, ...subscription };
