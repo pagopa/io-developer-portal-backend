@@ -3,11 +3,7 @@ import {
   NonEmptyString,
   OrganizationFiscalCode
 } from "@pagopa/ts-commons/lib/strings";
-import ApiManagementClient from "azure-arm-apimanagement";
-import {
-  SubscriptionCollection,
-  SubscriptionContract
-} from "azure-arm-apimanagement/lib/models";
+
 import { isNone, none } from "fp-ts/lib/Option";
 import {
   IResponseErrorForbiddenNotAuthorized,
@@ -35,6 +31,11 @@ import {
 import { subscribeApimUser, SubscriptionData } from "../new_subscription";
 import { getApimAccountEmail, SessionUser } from "../utils/session";
 
+import {
+  ApiManagementClient,
+  SubscriptionCollection,
+  SubscriptionContract
+} from "@azure/arm-apimanagement";
 import { Either, fromOption, isLeft } from "fp-ts/lib/Either";
 import { identity } from "fp-ts/lib/function";
 import { NonNegativeInteger } from "italia-ts-commons/lib/numbers";
@@ -43,8 +44,8 @@ import { SubscriptionCIDRs } from "../../generated/api/SubscriptionCIDRs";
 import { APIClient, toEither } from "../api_client";
 import { AdUser } from "../auth-strategies/azure_ad_strategy";
 import { SelfCareUser } from "../auth-strategies/selfcare_session_strategy";
-import { manageFlowEnableUserList } from "../config";
 import * as config from "../config";
+import { manageFlowEnableUserList } from "../config";
 import { getActualUser } from "../middlewares/actual_user";
 import { MANAGE_APIKEY_PREFIX } from "../utils/api_key";
 

@@ -1,4 +1,3 @@
-import ApiManagementClient from "azure-arm-apimanagement";
 import * as E from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 import {
@@ -44,6 +43,7 @@ import { ServiceId } from "../../generated/api/ServiceId";
 import { ServiceMetadata } from "../../generated/api/ServiceMetadata";
 import { ServiceName } from "../../generated/api/ServiceName";
 
+import { ApiManagementClient } from "@azure/arm-apimanagement";
 import { identity } from "fp-ts/lib/function";
 import { fromPredicate, taskEither } from "fp-ts/lib/TaskEither";
 import { readableReport } from "italia-ts-commons/lib/reporters";
@@ -115,47 +115,52 @@ export async function getService(
   | IResponseErrorInternal
   | IResponseErrorNotFound
 > {
-  const maybeApimUser = await getApimUser(
-    apiClient,
-    getApimAccountEmail(authenticatedUser)
-  );
-  if (O.isNone(maybeApimUser)) {
-    return ResponseErrorNotFound(
-      "API user not found",
-      "Cannot find a user in the API management with the provided email address"
+  try {
+    const maybeApimUser = await getApimUser(
+      apiClient,
+      getApimAccountEmail(authenticatedUser)
     );
-  }
-  const apimUser = maybeApimUser.value;
+    if (O.isNone(maybeApimUser)) {
+      return ResponseErrorNotFound(
+        "API user not found",
+        "Cannot find a user in the API management with the provided email address"
+      );
+    }
+    const apimUser = maybeApimUser.value;
 
-  // Authenticates this request against the logged in user
-  // checking that serviceId = subscriptionId
-  // if the user is an admin we skip the check on userId
+    // Authenticates this request against the logged in user
+    // checking that serviceId = subscriptionId
+    // if the user is an admin we skip the check on userId
 
-  const maybeSubscription = await getUserSubscription(
-    apiClient,
-    serviceId,
-    isAdminUser(apimUser) ? undefined : apimUser.id
-  );
-
-  if (O.isNone(maybeSubscription)) {
-    return ResponseErrorInternal("Cannot get user subscription");
-  }
-
-  const errorOrServiceResponse = toEither(
-    await notificationApiClient.getService({
-      id: serviceId
-    })
-  );
-
-  if (E.isLeft(errorOrServiceResponse)) {
-    return ResponseErrorNotFound(
-      "Cannot get service",
-      "Cannot get existing service"
+    const maybeSubscription = await getUserSubscription(
+      apiClient,
+      serviceId,
+      isAdminUser(apimUser) ? undefined : apimUser.id
     );
-  }
 
-  const service = errorOrServiceResponse.value;
-  return ResponseSuccessJson(service);
+    if (O.isNone(maybeSubscription)) {
+      return ResponseErrorInternal("Cannot get user subscription");
+    }
+
+    const errorOrServiceResponse = toEither(
+      await notificationApiClient.getService({
+        id: serviceId
+      })
+    );
+
+    if (E.isLeft(errorOrServiceResponse)) {
+      return ResponseErrorNotFound(
+        "Cannot get service",
+        "Cannot get existing service"
+      );
+    }
+
+    const service = errorOrServiceResponse.value;
+    return ResponseSuccessJson(service);
+  } catch (e) {
+    logger.error("An error has occurred while getting the service ", e);
+    throw e;
+  }
 }
 
 const extractOwnerId = (

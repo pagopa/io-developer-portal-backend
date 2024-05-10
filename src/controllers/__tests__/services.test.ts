@@ -2,7 +2,6 @@ import * as apimOperations from "../../apim_operations";
 import * as config from "../../config";
 import * as uploadTasks from "../../middlewares/upload_logo";
 
-import ApiManagementClient from "azure-arm-apimanagement";
 import { fromLeft, taskEither } from "fp-ts/lib/TaskEither";
 import {
   ResponseErrorForbiddenNotAuthorized,
@@ -24,7 +23,10 @@ import {
   putServiceLogo
 } from "../services";
 
-import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
+import {
+  ApiManagementClient,
+  SubscriptionContract
+} from "@azure/arm-apimanagement";
 import { none, some } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
 import { ServiceId } from "../../../generated/api/ServiceId";
@@ -50,11 +52,11 @@ const userContract: IExtendedUserContract = {
 
 const subscriptionContract: SubscriptionContract & { readonly name: string } = {
   name: "name",
+  ownerId: "1234",
   primaryKey: "234324",
-  productId: "1234",
+  scope: "/products/1234",
   secondaryKey: "343434",
-  state: "state",
-  userId: "1234"
+  state: "active"
 };
 
 const responseSuccess = ResponseSuccessRedirectToResource(

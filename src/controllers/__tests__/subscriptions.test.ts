@@ -1,19 +1,26 @@
-import ApiManagementClient from "azure-arm-apimanagement";
-import { SubscriptionContract } from "azure-arm-apimanagement/lib/models";
+import {
+  ApiManagementClient,
+  SubscriptionContract
+} from "@azure/arm-apimanagement";
 import * as E from "fp-ts/lib/Either";
 import { none, some } from "fp-ts/lib/Option";
 import { ResponseErrorForbiddenNotAuthorized } from "italia-ts-commons/lib/responses";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import SerializableSet from "json-set-map/build/src/set";
 import { CIDR } from "../../../generated/api/CIDR";
-import { IExtendedUserContract } from "../../apim_operations";
 import * as apimOperations from "../../apim_operations";
+import { IExtendedUserContract } from "../../apim_operations";
 import * as subscriptionController from "../../controllers/subscriptions";
 import * as actualUser from "../../middlewares/actual_user";
 import * as newSubscription from "../../new_subscription";
 import { SessionUser } from "../../utils/session";
-import { getSubscriptionManage, notificationApiClient } from "../subscriptions";
-import { getSubscriptionCIDRs, putSubscriptionCIDRs } from "../subscriptions";
+
+import {
+  getSubscriptionCIDRs,
+  getSubscriptionManage,
+  notificationApiClient,
+  putSubscriptionCIDRs
+} from "../subscriptions";
 
 // tslint:disable-next-line
 const configModule = require("../../config");
@@ -65,11 +72,11 @@ const aSubscriptionContract: SubscriptionContract & {
   readonly name: string;
 } = {
   name: aSubscriptionId,
+  ownerId: "1234",
   primaryKey: "234324",
-  productId: "1234",
+  scope: "/products/1234",
   secondaryKey: "343434",
-  state: "state",
-  userId: "1234"
+  state: "active"
 };
 
 jest.spyOn(apimOperations, "getApimUser").mockReturnValue(
@@ -77,6 +84,13 @@ jest.spyOn(apimOperations, "getApimUser").mockReturnValue(
     resolve(some(anAdminUser));
   })
 );
+
+jest.mock("../../utils/telemetry-client", () => ({
+  initTelemetryClient: jest.fn().mockReturnValue({
+    trackError: jest.fn(),
+    trackEvent: jest.fn()
+  })
+}));
 
 jest
   .spyOn(notificationApiClient, "updateSubscriptionCidrs")

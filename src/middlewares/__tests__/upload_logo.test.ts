@@ -1,7 +1,6 @@
 import * as apim from "../../apim_operations";
 import * as services from "../../controllers/services";
 
-import ApiManagementClient from "azure-arm-apimanagement";
 import { none, option } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
 import {
@@ -13,6 +12,7 @@ import {
 
 import { Logo } from "../../../generated/api/Logo";
 
+import { ApiManagementClient } from "@azure/arm-apimanagement";
 import { OrganizationFiscalCode } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../../generated/api/ServiceId";
 import { SessionUser } from "../../utils/session";

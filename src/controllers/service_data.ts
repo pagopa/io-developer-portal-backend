@@ -1,4 +1,3 @@
-import ApiManagementClient from "azure-arm-apimanagement";
 import { fromOption, toError } from "fp-ts/lib/Either";
 import { Option } from "fp-ts/lib/Option";
 import {
@@ -21,6 +20,7 @@ import {
 import * as config from "../config";
 import { getApimAccountEmail, SessionUser } from "../utils/session";
 
+import { ApiManagementClient } from "@azure/arm-apimanagement";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
 import {
@@ -29,8 +29,8 @@ import {
   TaskEither,
   tryCatch
 } from "fp-ts/lib/TaskEither";
-import { identity } from "io-ts";
 import * as t from "io-ts";
+import { identity } from "io-ts";
 import nodeFetch from "node-fetch";
 
 /*

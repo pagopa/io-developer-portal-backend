@@ -82,16 +82,12 @@ import { Either, fromOption, right, toError } from "fp-ts/lib/Either";
 import { fromEither, tryCatch } from "fp-ts/lib/TaskEither";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
-import { setupSelfCareIdentityStrategy } from "./auth-strategies/selfcare_identity_strategy";
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
 import {
   getRequestReviewLegacyQueueConfigOrThrow,
-  getServicesCmsConfigOrThrow,
-  selfcareIdentityCreds
+  getServicesCmsConfigOrThrow
 } from "./config";
-import { resolveSelfCareIdentity } from "./controllers/idp";
 import { serviceData } from "./controllers/service_data";
-import { getSelfCareIdentityFromRequestMiddleware } from "./middlewares/idp";
 
 import {
   IntegerFromString,
@@ -369,57 +365,7 @@ app.get(
   )
 );
 
-if (config.IDP === "selfcare") {
-  // Express middleware that checks IdentityToken
-  const identityTokenVerifier = setupSelfCareIdentityStrategy(
-    passport,
-    selfcareIdentityCreds
-  );
-
-  app.get(
-    "/idp/selfcare/resolve-identity",
-    identityTokenVerifier,
-    wrapRequestHandler(
-      withRequestMiddlewares(
-        getSelfCareIdentityFromRequestMiddleware(),
-        getApiClientMiddleware()
-      )(resolveSelfCareIdentity)
-    )
-  );
-
-  // Expose subscription migration features
-  app.use(
-    "/subscriptions/migrations/*",
-    sessionTokenVerifier,
-    async (req, res) => {
-      const url = `${config.SUBSCRIPTION_MIGRATIONS_URL}/organizations/${req.user?.organization.fiscal_code}/${req.params[0]}`;
-      const { method, body } = req;
-
-      try {
-        const result = await nodeFetch(url, {
-          body: ["GET", "HEAD"].includes(method.toUpperCase())
-            ? undefined
-            : body,
-          headers: {
-            "X-Functions-Key": config.SUBSCRIPTION_MIGRATIONS_APIKEY
-          },
-          method
-        });
-
-        res.status(result.status);
-        res.send(await result.text());
-      } catch (error) {
-        logger.error(
-          `Failed to proxy request to subscription migrations service`,
-          error
-        );
-        res.status(500);
-      }
-
-      res.end();
-    }
-  );
-} else if (config.IDP === "azure-ad") {
+if (config.IDP === "azure-ad") {
   // The following utility retrieves APIM account id for the current authenticated user
   // It does the job for this very specific use case, if needed in future we may think about moving it into common utils
   const getApimUserIdForLoggedUser = (
@@ -511,7 +457,6 @@ if (config.IDP === "selfcare") {
     )
   );
 }
-
 app.get("/configuration", toExpressHandler(getConfiguration));
 
 const port = config.port || 3999;

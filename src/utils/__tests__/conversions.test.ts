@@ -242,10 +242,18 @@ describe("getServicePayloadUpdater", () => {
         "category",
         expectedCategory
       );
-      expect(result.service_metadata).toHaveProperty(
-        "custom_special_flow",
-        expectedCustomFlow
-      );
+
+      if (expectedCustomFlow) {
+        expect(result.service_metadata).toHaveProperty(
+          "custom_special_flow",
+          expectedCustomFlow
+        );
+      } else {
+        expect(result.service_metadata).not.toHaveProperty(
+          "custom_special_flow"
+        );
+      }
+
       if (expectedCategory === StandardServiceCategoryEnum.STANDARD) {
         expect(result.service_metadata).not.toHaveProperty(
           "custom_special_flow"
