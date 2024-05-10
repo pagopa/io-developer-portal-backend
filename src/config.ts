@@ -140,6 +140,23 @@ export const servicePrincipalSecret = process.env
 export const servicePrincipalTenantId = process.env
   .SERVICE_PRINCIPAL_TENANT_ID as string;
 
+export type ApimAuthConfig = t.TypeOf<typeof ApimAuthConfig>;
+export const ApimAuthConfig = t.interface({
+  clientId: NonEmptyString,
+  clientSecret: NonEmptyString,
+  subscriptionId: NonEmptyString,
+  tenantId: NonEmptyString
+});
+
+export const getApimAuthConfig = (): ApimAuthConfig => {
+  return {
+    clientId: process.env.SERVICE_PRINCIPAL_CLIENT_ID as NonEmptyString,
+    clientSecret: process.env.SERVICE_PRINCIPAL_SECRET as NonEmptyString,
+    subscriptionId: process.env.ARM_SUBSCRIPTION_ID as NonEmptyString,
+    tenantId: process.env.SERVICE_PRINCIPAL_TENANT_ID as NonEmptyString
+  };
+};
+
 export const sandboxFiscalCode = process.env.SANDBOX_FISCAL_CODE as FiscalCode;
 
 export const logoUrl = process.env.LOGO_URL;

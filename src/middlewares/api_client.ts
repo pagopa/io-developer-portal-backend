@@ -23,14 +23,15 @@ export function getApiClientMiddleware(): IRequestMiddleware<
   ApiManagementClient
 > {
   return async _ => {
+    const apiAuthConfig = config.getApimAuthConfig();
     return right(
       new ApiManagementClient(
         new ClientSecretCredential(
-          config.servicePrincipalTenantId,
-          config.servicePrincipalClientId,
-          config.servicePrincipalSecret
+          apiAuthConfig.tenantId,
+          apiAuthConfig.clientId,
+          apiAuthConfig.clientSecret
         ),
-        config.subscriptionId
+        apiAuthConfig.subscriptionId
       )
     );
   };
