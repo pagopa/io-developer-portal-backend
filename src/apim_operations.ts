@@ -90,7 +90,10 @@ async function getUserSubscription__(
     subscription.ownerId as NonEmptyString
   );
 
-  if ((userId && extractedOwnerId !== userId) || !subscription.name) {
+  if (
+    (userId && ![extractedOwnerId, subscription.ownerId].includes(userId)) ||
+    !subscription.name
+  ) {
     return none;
   }
   return some({ name: subscription.name, ...subscription });
