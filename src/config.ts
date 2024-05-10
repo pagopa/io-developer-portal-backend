@@ -144,16 +144,16 @@ export type ApimAuthConfig = t.TypeOf<typeof ApimAuthConfig>;
 export const ApimAuthConfig = t.interface({
   clientId: NonEmptyString,
   clientSecret: NonEmptyString,
-  tenantId: NonEmptyString,
-  subscriptionId: NonEmptyString
+  subscriptionId: NonEmptyString,
+  tenantId: NonEmptyString
 });
 
 export const getApimAuthConfig = (): ApimAuthConfig => {
   return {
     clientId: process.env.SERVICE_PRINCIPAL_CLIENT_ID as NonEmptyString,
     clientSecret: process.env.SERVICE_PRINCIPAL_SECRET as NonEmptyString,
-    tenantId: process.env.SERVICE_PRINCIPAL_TENANT_ID as NonEmptyString,
-    subscriptionId: process.env.ARM_SUBSCRIPTION_ID as NonEmptyString
+    subscriptionId: process.env.ARM_SUBSCRIPTION_ID as NonEmptyString,
+    tenantId: process.env.SERVICE_PRINCIPAL_TENANT_ID as NonEmptyString
   };
 };
 
