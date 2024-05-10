@@ -4,7 +4,7 @@
  */
 
 import { ApiManagementClient } from "@azure/arm-apimanagement";
-import { ClientSecretCredential } from "@azure/identity";
+import { AzureAuthorityHosts, ClientSecretCredential } from "@azure/identity";
 import * as AzureStorage from "azure-storage";
 import { right } from "fp-ts/lib/Either";
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
@@ -29,7 +29,10 @@ export function getApiClientMiddleware(): IRequestMiddleware<
         new ClientSecretCredential(
           apiAuthConfig.tenantId,
           apiAuthConfig.clientId,
-          apiAuthConfig.clientSecret
+          apiAuthConfig.clientSecret,
+          {
+            authorityHost: AzureAuthorityHosts.AzurePublicCloud
+          }
         ),
         apiAuthConfig.subscriptionId
       )
