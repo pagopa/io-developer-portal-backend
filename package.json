@@ -1,6 +1,6 @@
 {
   "name": "digital-citizenship-portal",
-  "version": "1.30.0",
+  "version": "1.31.0",
   "main": "./build/src/app",
   "typings": "src/typings",
   "license": "MIT",
