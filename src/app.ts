@@ -102,8 +102,11 @@ import { getApimAccountEmail } from "./utils/session";
 appinsights
   .setup(process.env.APPINSIGHTS_INSTRUMENTATIONKEY)
   .setAutoCollectConsole(true, true)
-  .setDistributedTracingMode(appinsights.DistributedTracingModes.AI_AND_W3C)
-  .start();
+  .setDistributedTracingMode(appinsights.DistributedTracingModes.AI_AND_W3C);
+
+appinsights.defaultClient.config.samplingPercentage = 33;
+
+appinsights.start();
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
