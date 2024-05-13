@@ -104,6 +104,7 @@ appinsights
   .setAutoCollectConsole(true, true)
   .setDistributedTracingMode(appinsights.DistributedTracingModes.AI_AND_W3C);
 
+// tslint:disable-next-line: no-object-mutation
 appinsights.defaultClient.config.samplingPercentage = 33;
 
 appinsights.start();
