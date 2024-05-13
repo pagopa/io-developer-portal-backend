@@ -2,34 +2,34 @@
  * Winston logger shared configuration.
  */
 import * as appInsights from "applicationinsights";
-import * as logform from "logform";
-import { createLogger, format, transports } from "winston";
-import * as config from "./config";
+import { Writable } from "stream";
+import { createLogger, format, Logger, transports } from "winston";
 
-const { timestamp, printf } = logform.format;
+// Configura Application Insights
+if (process.env.APPINSIGHTS_INSTRUMENTATIONKEY) {
+  appInsights
+    .setup(process.env.APPINSIGHTS_INSTRUMENTATIONKEY)
+    .setAutoCollectConsole(false)
+    .start();
+}
+const aiClient = appInsights.defaultClient;
 
-export const logger = createLogger({
-  format: format.combine(
-    timestamp(),
-    format.splat(),
-    format.simple(),
-    printf(nfo => {
-      const message = `${nfo.timestamp} [${nfo.level}]: ${nfo.message}`;
-
-      // Invia il log a Application Insights
-      if (appInsights.defaultClient) {
-        appInsights.defaultClient.trackTrace({
-          message,
-          severity: getSeverityLevel(nfo.level)
-        });
-      }
-      return message;
-    })
-  ),
-  transports: [new transports.Console({ level: config.logLevel || "info" })]
+// Crea un trasporto personalizzato per Application Insights
+const appInsightsTransport = new transports.Stream({
+  stream: new Writable({
+    write: (message: string) => {
+      const info = JSON.parse(message);
+      aiClient.trackTrace({
+        message: info.message,
+        severity: convertLevelToAISeverity(info.level)
+      });
+    }
+  }),
+  level: "info" // Imposta il livello minimo del log a 'info'
 });
 
-function getSeverityLevel(level: string): appInsights.Contracts.SeverityLevel {
+// Funzione per convertire il livello di log di Winston in livelli di severità di Application Insights
+function convertLevelToAISeverity(level: string): number {
   switch (level) {
     case "error":
       return appInsights.Contracts.SeverityLevel.Error;
@@ -37,23 +37,19 @@ function getSeverityLevel(level: string): appInsights.Contracts.SeverityLevel {
       return appInsights.Contracts.SeverityLevel.Warning;
     case "info":
       return appInsights.Contracts.SeverityLevel.Information;
-    case "verbose":
-    case "debug":
-      return appInsights.Contracts.SeverityLevel.Verbose;
     default:
-      return appInsights.Contracts.SeverityLevel.Information;
+      return appInsights.Contracts.SeverityLevel.Verbose;
   }
 }
 
-export const startAppInsights = () => {
-  // collect monotoring metrics automatically
-  appInsights
-    .setup(process.env.APPINSIGHTS_INSTRUMENTATIONKEY)
-    .setAutoCollectConsole(false) // Disabilita la raccolta automatica dei log
-    .setDistributedTracingMode(appInsights.DistributedTracingModes.AI_AND_W3C);
-
-  // tslint:disable-next-line: no-object-mutation
-  appInsights.defaultClient.config.samplingPercentage = 33;
-
-  appInsights.start();
-};
+// Configura il logger di Winston
+export const logger: Logger = createLogger({
+  format: format.combine(
+    format.json(), // Usa il formato JSON per i messaggi
+    format.timestamp()
+  ),
+  transports: [
+    appInsightsTransport,
+    new transports.Console() // Puoi mantenere questo se vuoi che i log siano mostrati anche in console
+  ]
+});

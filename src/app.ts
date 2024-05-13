@@ -61,7 +61,7 @@ import {
 } from "./controllers/subscriptions";
 import { getUser, getUsers } from "./controllers/user";
 import { secureExpressApp } from "./express";
-import { logger, startAppInsights } from "./logger";
+import { logger } from "./logger";
 import {
   getApiClientMiddleware,
   getCmsRestClientMiddleware,
@@ -96,9 +96,6 @@ import { ProblemJson } from "italia-ts-commons/lib/responses";
 import { CIDRsPayload } from "../generated/api/CIDRsPayload";
 import { getApimUser } from "./apim_operations";
 import { getApimAccountEmail } from "./utils/session";
-
-// collect monotoring metrics automatically
-startAppInsights();
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 

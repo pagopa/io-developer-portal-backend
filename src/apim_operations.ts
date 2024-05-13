@@ -75,7 +75,6 @@ async function getUserSubscription__(
   userId?: string,
   lconfig: IApimConfig = config
 ): Promise<Option<SubscriptionContract & { readonly name: string }>> {
-  logger.debug("getUserSubscription");
   const subscription = await apiClient.subscription.get(
     lconfig.azurermResourceGroup,
     lconfig.azurermApim,
@@ -84,6 +83,11 @@ async function getUserSubscription__(
 
   // extract id from ownerId
   if (!subscription.ownerId) {
+    logger.error(
+      "ownerId was not found on getSubscription response, failure getting subscriptionId %s for user %s",
+      subscriptionId,
+      userId ?? "admin"
+    );
     throw new Error("ownerId was not found on getSubscription response");
   }
 
@@ -196,8 +200,6 @@ export async function getUserSubscriptions(
   lconfig: IApimConfig = config
 ): Promise<SubscriptionCollection> {
   try {
-    logger.debug("getUserSubscriptions");
-
     // Get PagedAsyncIterator
     const userSubscriptionPagedAsyncIter = apiClient.userSubscription.list(
       lconfig.azurermResourceGroup,
@@ -227,6 +229,11 @@ export async function getUserSubscriptions(
       const subscriptionContract = next.value;
 
       if (!subscriptionContract.name) {
+        logger.error(
+          "An Error has occurred while retrieving subscriptions for user %s, the reason was malformed subscriptionContract, name is missing, subscriptionContract.id %s",
+          userId,
+          subscriptionContract.id
+        );
         throw new Error("malformed subscriptionContract, name is missing");
       }
 
@@ -235,11 +242,6 @@ export async function getUserSubscriptions(
         apiClient,
         subscriptionContract.name,
         lconfig
-      );
-
-      logger.debug(
-        "FETCHING SUBSCRIPTION %s SECRETS",
-        subscriptionContract.name
       );
 
       const enrichedSubContract = {
@@ -265,7 +267,11 @@ export async function getUserSubscriptions(
       nextLink: limit && subContract.length === limit ? "next" : undefined
     };
   } catch (e) {
-    logger.error("getUserSubscriptions|error ", e);
+    logger.error(
+      "An Error has occurred while retrieving subscriptions for user %s, the reason was %s",
+      userId,
+      e
+    );
     throw e;
   }
 }
@@ -294,7 +300,6 @@ async function regenerateKey__(
   keyType: "primary" | "secondary",
   lconfig: IApimConfig = config
 ): Promise<Option<SubscriptionContract>> {
-  logger.debug("regeneratePrimaryKey");
   const maybeSubscription = await getUserSubscription__(
     apiClient,
     subscriptionId,
@@ -366,8 +371,6 @@ async function getApimUser__(
   email: string,
   lconfig: IApimConfig = config
 ): Promise<Option<IExtendedUserContract>> {
-  logger.debug("getApimUser");
-
   const results = await asyncIteratorToArray(
     apiClient.user.listByService(
       lconfig.azurermResourceGroup,
