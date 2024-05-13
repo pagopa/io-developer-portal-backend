@@ -494,7 +494,6 @@ export async function addUserToGroups(
   groups: ReadonlyArray<string>,
   lconfig: IApimConfig = config
 ): Promise<Either<Error, ReadonlyArray<string>>> {
-  logger.debug("addUserToGroups");
   if (!user || !user.name) {
     return left(new Error("Cannot parse user"));
   }
@@ -658,7 +657,7 @@ export async function createApimUserIfNotExists(
 
     return maybeRetrievedUser;
   } catch (e) {
-    logger.error("error %s", e);
+    logger.error("An error has occurred on createApimUserIfNotExists, the reason was => %s", e);
     return none;
   }
 }
