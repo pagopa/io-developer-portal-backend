@@ -88,15 +88,21 @@ const fetchServicesCms = async <T>(
     return O.some(validationResult.value);
   } else {
     const responseBody = await response.text();
-    logger.error(`An Error has occurred on fetchServicesCms, the reason was => Response error url ${url}`);
+    logger.error(
+      `An Error has occurred on fetchServicesCms, the reason was => Response error url ${url}`
+    );
     if (headers) {
       logger.error(
         `An Error has occurred on fetchServicesCms, the reason was => Response error headers {x-subscription-id:${headers["x-subscription-id"]}, x-user-email:${headers["x-user-email"]}, x-user-groups:${headers["x-user-groups"]}, x-user-id:${headers["x-user-id"]}}`
       );
     }
 
-    logger.error(`An Error has occurred on fetchServicesCms, the reason was => Response error status ${response.status}`);
-    logger.error(`An Error has occurred on fetchServicesCms, the reason was => Response error body ${responseBody}`);
+    logger.error(
+      `An Error has occurred on fetchServicesCms, the reason was => Response error status ${response.status}`
+    );
+    logger.error(
+      `An Error has occurred on fetchServicesCms, the reason was => Response error body ${responseBody}`
+    );
     throw new Error(`Request failed with status ${response.status}`);
   }
 };

@@ -158,7 +158,10 @@ export async function getService(
     const service = errorOrServiceResponse.value;
     return ResponseSuccessJson(service);
   } catch (e) {
-    logger.error("An error has occurred while getting the service, the reason was =>", e);
+    logger.error(
+      "An error has occurred while getting the service, the reason was =>",
+      e
+    );
     throw e;
   }
 }
@@ -340,7 +343,10 @@ export async function putService(
       ResponseSuccessJson
     );
   } catch (e) {
-    logger.error("An error has occurred while updating the service, the reason was => ", e);
+    logger.error(
+      "An error has occurred while updating the service, the reason was => ",
+      e
+    );
     throw e;
   }
 }

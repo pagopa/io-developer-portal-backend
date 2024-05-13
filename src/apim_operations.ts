@@ -657,7 +657,10 @@ export async function createApimUserIfNotExists(
 
     return maybeRetrievedUser;
   } catch (e) {
-    logger.error("An error has occurred on createApimUserIfNotExists, the reason was => %s", e);
+    logger.error(
+      "An error has occurred on createApimUserIfNotExists, the reason was => %s",
+      e
+    );
     return none;
   }
 }
