@@ -4,7 +4,6 @@
  * Azure API management developer portal resource.
  *
  */
-import * as appinsights from "applicationinsights";
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as cors from "cors";
@@ -62,7 +61,7 @@ import {
 } from "./controllers/subscriptions";
 import { getUser, getUsers } from "./controllers/user";
 import { secureExpressApp } from "./express";
-import { logger } from "./logger";
+import { logger, startAppInsights } from "./logger";
 import {
   getApiClientMiddleware,
   getCmsRestClientMiddleware,
@@ -99,15 +98,7 @@ import { getApimUser } from "./apim_operations";
 import { getApimAccountEmail } from "./utils/session";
 
 // collect monotoring metrics automatically
-appinsights
-  .setup(process.env.APPINSIGHTS_INSTRUMENTATIONKEY)
-  .setAutoCollectConsole(true, true)
-  .setDistributedTracingMode(appinsights.DistributedTracingModes.AI_AND_W3C);
-
-// tslint:disable-next-line: no-object-mutation
-appinsights.defaultClient.config.samplingPercentage = 33;
-
-appinsights.start();
+startAppInsights();
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
