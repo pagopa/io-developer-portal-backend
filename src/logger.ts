@@ -16,6 +16,7 @@ const aiClient = appInsights.defaultClient;
 
 // Crea un trasporto personalizzato per Application Insights
 const appInsightsTransport = new transports.Stream({
+  level: "info", // Imposta il livello minimo del log a 'info'
   stream: new Writable({
     write: (message: string) => {
       const info = JSON.parse(message);
@@ -24,8 +25,7 @@ const appInsightsTransport = new transports.Stream({
         severity: convertLevelToAISeverity(info.level)
       });
     }
-  }),
-  level: "info" // Imposta il livello minimo del log a 'info'
+  })
 });
 
 // Funzione per convertire il livello di log di Winston in livelli di severità di Application Insights
