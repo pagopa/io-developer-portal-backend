@@ -16,6 +16,7 @@ import {
   ApiManagementClient,
   SubscriptionCollection,
   SubscriptionContract,
+  SubscriptionListSecretsResponse,
   UserContract,
   UserIdentityContract
 } from "@azure/arm-apimanagement";
@@ -96,7 +97,20 @@ async function getUserSubscription__(
   ) {
     return none;
   }
-  return some({ name: subscription.name, ...subscription });
+
+  // Retrieve subscription secrets
+  const subSecrets = await getSubscriptionSecrets(
+    apiClient,
+    subscription.name,
+    lconfig
+  );
+
+  return some({
+    name: subscription.name,
+    ...subscription,
+    primaryKey: subSecrets.primaryKey,
+    secondaryKey: subSecrets.secondaryKey
+  });
 }
 
 export const getUserSubscription = memoizee(getUserSubscription__, {
@@ -128,10 +142,10 @@ export async function getUserSubscriptionManage(
       // get secrets for subscription using listSecrets
       return tryCatch(
         async () =>
-          await apiClient.subscription.listSecrets(
-            lconfig.azurermResourceGroup,
-            lconfig.azurermApim,
-            MANAGE_APIKEY_PREFIX + userName
+          await getSubscriptionSecrets(
+            apiClient,
+            MANAGE_APIKEY_PREFIX + userName,
+            lconfig
           ),
         _ => {
           return "getUserSubscriptionManage|error";
@@ -159,6 +173,18 @@ export async function getUserSubscriptionManage(
     .run();
 
   return res;
+}
+
+async function getSubscriptionSecrets(
+  apiClient: ApiManagementClient,
+  subscriptionName: string,
+  lconfig: IApimConfig = config
+): Promise<SubscriptionListSecretsResponse> {
+  return apiClient.subscription.listSecrets(
+    lconfig.azurermResourceGroup,
+    lconfig.azurermApim,
+    subscriptionName
+  );
 }
 
 export async function getUserSubscriptions(
@@ -205,10 +231,10 @@ export async function getUserSubscriptions(
       }
 
       // get secrets for subscription using listSecrets
-      const subSecrets = await apiClient.subscription.listSecrets(
-        lconfig.azurermResourceGroup,
-        lconfig.azurermApim,
-        subscriptionContract.name
+      const subSecrets = await getSubscriptionSecrets(
+        apiClient,
+        subscriptionContract.name,
+        lconfig
       );
 
       logger.debug(
