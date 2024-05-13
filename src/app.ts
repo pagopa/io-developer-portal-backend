@@ -99,8 +99,11 @@ import { getApimUser } from "./apim_operations";
 import { getApimAccountEmail } from "./utils/session";
 
 // collect monotoring metrics automatically
-appinsights.setup(process.env.APPINSIGHTS_INSTRUMENTATIONKEY);
-appinsights.start();
+appinsights
+  .setup(process.env.APPINSIGHTS_INSTRUMENTATIONKEY)
+  .setAutoCollectConsole(true, true)
+  .setDistributedTracingMode(appinsights.DistributedTracingModes.AI_AND_W3C)
+  .start();
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
