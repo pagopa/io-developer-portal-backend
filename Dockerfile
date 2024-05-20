@@ -1,4 +1,4 @@
-FROM circleci/node:10.14.1 as builder
+FROM circleci/node:10.14.1@sha256:0c1cbe6e97abda4edced99066a3cd9328f8fcc482503ac3a3fe5effb25f3c3ba as builder
 
 WORKDIR /usr/src/app
 
@@ -13,7 +13,7 @@ RUN sudo chmod -R 777 /usr/src/app
 RUN npm install
 RUN npm run build
 
-FROM node:10.14.1-alpine
+FROM node:10.14.1-alpine@sha256:35fcf0a48f57bef4bafa0f844f62edb659d036364a1d086995efe5b43ca0c4af
 LABEL maintainer="https://pagopa.gov.it"
 
 # Install major CA certificates to cover
