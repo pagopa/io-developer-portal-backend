@@ -27,7 +27,9 @@
       // "no-this": true,
       // "no-class": true,
       "no-mixed-interface": true,
-      "prettier": true
+      "prettier": true,
+      // To avoid error 'Import sources within a group must be alphabetized.'
+      "ordered-imports": [false],
     },
     "rulesDirectory": []
 }
