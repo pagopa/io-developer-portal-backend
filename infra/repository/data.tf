@@ -1,10 +1,10 @@
 data "azurerm_user_assigned_identity" "identity_prod_ci" {
-  name                = "${local.project}-dev-portal-backend-github-ci-identity"
+  name                = "${local.project}-devportal-backend-github-ci-identity"
   resource_group_name = local.identity_resource_group_name
 }
 
 data "azurerm_user_assigned_identity" "identity_prod_cd" {
-  name                = "${local.project}-dev-portal-backend-github-cd-identity"
+  name                = "${local.project}-devportal-backend-github-cd-identity"
   resource_group_name = local.identity_resource_group_name
 }
 
