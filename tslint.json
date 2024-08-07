@@ -33,7 +33,13 @@
       // To avoid error 'variable name must be in lowerCamelCase, PascalCase or UPPER_CASE'
       "variable-name": [
         true,
-        "allow-leading-underscore"
+        "ban-keywords",
+        "check-format",
+        "allow-pascal-case",
+        "allow-leading-underscore",
+        "allow-snake-case",
+        "allow-trailing-underscore",
+        "require-const-for-all-caps"
       ]
     },
     "rulesDirectory": []
