@@ -29,7 +29,12 @@
       "no-mixed-interface": true,
       "prettier": true,
       // To avoid error 'Import sources within a group must be alphabetized.'
-      "ordered-imports": false
+      "ordered-imports": false,
+      // To avoid error 'variable name must be in lowerCamelCase, PascalCase or UPPER_CASE'
+      "variable-name": [
+        true,
+        "allow-leading-underscore"
+      ]
     },
     "rulesDirectory": []
 }
