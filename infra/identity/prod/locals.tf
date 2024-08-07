@@ -4,7 +4,7 @@ locals {
   env       = "prod"
   location  = "italynorth"
   project   = "${local.prefix}-${local.env_short}"
-  domain    = "dev-portal-backend"
+  domain    = "devportal-backend"
 
   repo_name = "io-developer-portal-backend"
 
