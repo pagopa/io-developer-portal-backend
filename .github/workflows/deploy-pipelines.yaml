@@ -145,7 +145,6 @@ jobs:
           subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
       - name: Deploy
-        if: ${{ inputs.use_staging_slot == false }}
         run: |
           az webapp up \
             --dryrun \
