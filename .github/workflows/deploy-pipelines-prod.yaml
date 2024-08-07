@@ -2,9 +2,7 @@ name: Deploy Pipelines - PROD
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - EC-386-devops-decommissioning
+    
 jobs:
   deploy_on_prod:
     uses: ./.github/workflows/deploy-pipelines.yaml
