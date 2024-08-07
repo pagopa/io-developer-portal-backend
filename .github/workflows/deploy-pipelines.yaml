@@ -143,7 +143,15 @@ jobs:
           client-id: ${{ secrets.ARM_CLIENT_ID }}
           tenant-id: ${{ secrets.ARM_TENANT_ID }}
           subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      
+
+      - name: Deploy
+        if: ${{ inputs.use_staging_slot == false }}
+        run: |
+          az webapp up \
+            --dryrun \
+            --resource-group ${{ inputs.resource_group_name }} \
+            --name ${{ inputs.app_name }} \
+
       # - name: Deploy
       #   if: ${{ inputs.use_staging_slot == false }}
       #   run: |
