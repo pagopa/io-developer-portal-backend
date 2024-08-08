@@ -1,0 +1,16 @@
+name: Deploy Pipelines - PROD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_on_prod:
+    uses: ./.github/workflows/deploy-pipelines.yaml
+    name: Deploy on PROD
+    secrets: inherit
+    with:
+      environment: 'prod'
+      resource_group_name: 'io-p-selfcare-be-rg'
+      app_name: 'io-p-app-devportal-be'
+      use_staging_slot: false
+      use_private_agent: false
