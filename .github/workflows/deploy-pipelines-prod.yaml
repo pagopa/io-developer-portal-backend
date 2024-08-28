@@ -12,5 +12,4 @@ jobs:
       environment: 'prod'
       resource_group_name: 'io-p-selfcare-be-rg'
       app_name: 'io-p-app-devportal-be'
-      use_staging_slot: false
       use_private_agent: false
