@@ -15,11 +15,6 @@ on:
         description: Web App name.
         type: string
         required: true
-      use_staging_slot:
-        description: True if artifact should be deployed to staging slot
-        type: boolean
-        required: false
-        default: true
       use_private_agent:
         description: Use a private agent to deploy the built artifact.
         type: boolean
@@ -148,31 +143,11 @@ jobs:
           subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
       - name: Deploy
-        if: ${{ inputs.use_staging_slot == false }}
         run: |
           az webapp deploy \
             --resource-group ${{ inputs.resource_group_name }} \
             --name ${{ inputs.app_name }} \
             --src-path  ${{ github.workspace }}/${{ env.BUNDLE_NAME }}.zip \
             --type zip \
-            --async false
-
-      - name: Deploy to Staging Slot
-        if: ${{ inputs.use_staging_slot == true }}
-        run: |
-          az webapp deploy \
-            --resource-group ${{ inputs.resource_group_name }} \
-            --name ${{ inputs.app_name }} \
-            --slot staging \
-            --src-path  ${{ github.workspace }}/${{ env.BUNDLE_NAME }}.zip \
-            --type zip \
-            --async false
-
-      - name: Swap Staging and Production Slots
-        if: ${{ inputs.use_staging_slot == true }}
-        run: |
-          az webapp deployment slot swap \
-            -g ${{ inputs.resource_group_name }} \
-            -n ${{ inputs.app_name }} \
-            --slot staging \
-            --target-slot production
+            --async false \
+            | grep -v "hidden-link:"   
