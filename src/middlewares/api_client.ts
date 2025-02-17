@@ -4,9 +4,9 @@
  */
 
 import { ApiManagementClient } from "@azure/arm-apimanagement";
-import { AzureAuthorityHosts, ClientSecretCredential } from "@azure/identity";
+import { DefaultAzureCredential } from "@azure/identity";
 import * as AzureStorage from "azure-storage";
-import { right } from "fp-ts/lib/Either";
+import { left, right } from "fp-ts/lib/Either";
 import { IRequestMiddleware } from "italia-ts-commons/lib/request_middleware";
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
 import { CmsRestClient, getCmsRestClient } from "../cms_api_client";
@@ -17,26 +17,24 @@ import {
   IStorageQueueClient,
   StorageQueueClient
 } from "../storage_queue_client";
+import { logger } from "../logger";
 
 export function getApiClientMiddleware(): IRequestMiddleware<
-  never,
+  Error,
   ApiManagementClient
 > {
   return async _ => {
     const apiAuthConfig = config.getApimAuthConfig();
-    return right(
-      new ApiManagementClient(
-        new ClientSecretCredential(
-          apiAuthConfig.tenantId,
-          apiAuthConfig.clientId,
-          apiAuthConfig.clientSecret,
-          {
-            authorityHost: AzureAuthorityHosts.AzurePublicCloud
-          }
-        ),
+    try {
+      const res = new ApiManagementClient(
+        new DefaultAzureCredential(),
         apiAuthConfig.subscriptionId
-      )
-    );
+      );
+      return right(res);
+    } catch (err) {
+      logger.error(`errore: ${err}`);
+      return left(err);
+    }
   };
 }
 
