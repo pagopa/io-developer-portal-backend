@@ -132,28 +132,14 @@ export const subscriptionId = process.env.ARM_SUBSCRIPTION_ID as string;
 export const logLevel = process.env.LOG_LEVEL as string;
 export const port = process.env.PORT;
 
-export const useServicePrincipal = process.env.USE_SERVICE_PRINCIPAL as string;
-export const servicePrincipalClientId = process.env
-  .SERVICE_PRINCIPAL_CLIENT_ID as string;
-export const servicePrincipalSecret = process.env
-  .SERVICE_PRINCIPAL_SECRET as string;
-export const servicePrincipalTenantId = process.env
-  .SERVICE_PRINCIPAL_TENANT_ID as string;
-
 export type ApimAuthConfig = t.TypeOf<typeof ApimAuthConfig>;
 export const ApimAuthConfig = t.interface({
-  clientId: NonEmptyString,
-  clientSecret: NonEmptyString,
-  subscriptionId: NonEmptyString,
-  tenantId: NonEmptyString
+  subscriptionId: NonEmptyString
 });
 
 export const getApimAuthConfig = (): ApimAuthConfig => {
   return {
-    clientId: process.env.SERVICE_PRINCIPAL_CLIENT_ID as NonEmptyString,
-    clientSecret: process.env.SERVICE_PRINCIPAL_SECRET as NonEmptyString,
-    subscriptionId: process.env.ARM_SUBSCRIPTION_ID as NonEmptyString,
-    tenantId: process.env.SERVICE_PRINCIPAL_TENANT_ID as NonEmptyString
+    subscriptionId: process.env.ARM_SUBSCRIPTION_ID as NonEmptyString
   };
 };
 
