@@ -1,0 +1,16 @@
+name: Deploy Pipelines - STAGING
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_on_staging:
+    uses: ./.github/workflows/deploy-pipelines.yaml
+    name: Deploy on STAGING
+    secrets: inherit
+    with:
+      environment: 'prod'
+      resource_group_name: 'io-p-selfcare-be-rg'
+      app_name: 'io-p-app-devportal-be'
+      use_private_agent: false
+      slot: 'staging'

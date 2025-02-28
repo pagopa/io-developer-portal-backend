@@ -20,6 +20,11 @@ on:
         type: boolean
         required: false
         default: true
+      slot:
+        description: Slot for deploy
+        type: string
+        required: false
+        default: "production"
 
 env:
   BUNDLE_NAME: bundle
@@ -145,6 +150,7 @@ jobs:
       - name: Deploy
         run: |
           az webapp deploy \
+            --slot ${{ inputs.slot }}
             --resource-group ${{ inputs.resource_group_name }} \
             --name ${{ inputs.app_name }} \
             --src-path  ${{ github.workspace }}/${{ env.BUNDLE_NAME }}.zip \
