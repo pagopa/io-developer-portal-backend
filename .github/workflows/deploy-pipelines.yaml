@@ -20,6 +20,11 @@ on:
         type: boolean
         required: false
         default: true
+      use_staging_slot:
+        description: True if artifact should be deployed to staging slot
+        type: boolean
+        required: false
+        default: false
 
 env:
   BUNDLE_NAME: bundle
@@ -142,7 +147,20 @@ jobs:
           tenant-id: ${{ secrets.ARM_TENANT_ID }}
           subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
+      - name: Deploy - staging
+        if: ${{ inputs.use_staging_slot == true }}
+        run: |
+          az webapp deploy \
+            --slot "staging" \
+            --resource-group ${{ inputs.resource_group_name }} \
+            --name ${{ inputs.app_name }} \
+            --src-path  ${{ github.workspace }}/${{ env.BUNDLE_NAME }}.zip \
+            --type zip \
+            --async false \
+            | grep -v "hidden-link:"   
+
       - name: Deploy
+        if: ${{ inputs.use_staging_slot == false }}
         run: |
           az webapp deploy \
             --resource-group ${{ inputs.resource_group_name }} \
