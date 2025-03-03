@@ -13,4 +13,4 @@ jobs:
       resource_group_name: 'io-p-selfcare-be-rg'
       app_name: 'io-p-app-devportal-be'
       use_private_agent: false
-      slot: 'staging'
+      use_staging_slot: true
