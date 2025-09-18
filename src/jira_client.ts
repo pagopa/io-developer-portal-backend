@@ -29,9 +29,6 @@ export const JIRA_SERVICE_TAG_PREFIX = "devportal-service-";
 export const JIRA_DISABLE_LABEL = "DISATTIVAZIONE";
 
 export const SearchJiraIssueResponse = t.interface({
-  startAt: t.number,
-  total: t.number,
-
   issues: t.readonlyArray(
     t.interface({
       id: NonEmptyString,
@@ -41,11 +38,7 @@ export const SearchJiraIssueResponse = t.interface({
       fields: t.interface({
         assignee: t.union([t.null, t.any]),
         comment: t.interface({
-          comments: t.any,
-          maxResults: t.number,
-          self: t.string,
-          startAt: t.number,
-          total: t.number
+          comments: t.any
         }),
         labels: t.union([t.null, t.any]),
         status: t.interface({
@@ -79,8 +72,7 @@ const JiraIssueSearchPayload = t.interface({
   expand: t.array(t.string),
   fields: t.array(t.string),
   fieldsByKeys: t.boolean,
-  jql: t.string,
-  startAt: t.number
+  jql: t.string
 });
 type JiraIssueSearchPayload = t.TypeOf<typeof JiraIssueSearchPayload>;
 
@@ -132,7 +124,7 @@ export function JiraAPIClient(
   };
   const jiraIssueSearch = (bodyData: JiraIssueSearchPayload) =>
     tryCatch(() => {
-      return fetchApi(`${baseUrl}/rest/api/2/search`, {
+      return fetchApi(`${baseUrl}/rest/api/3/search/jql`, {
         body: JSON.stringify(bodyData),
         headers: jiraHeaders,
         method: "POST"
@@ -285,8 +277,7 @@ export function JiraAPIClient(
       expand: ["names"],
       fields: ["summary", "status", "assignee", "comment"],
       fieldsByKeys: false,
-      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} OR (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`,
-      startAt: 0
+      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} OR (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`
     };
     return jiraIssueSearch(bodyData);
   };
@@ -299,8 +290,7 @@ export function JiraAPIClient(
       fields: ["summary", "status", "assignee", "comment", "labels"],
       fieldsByKeys: false,
       // Check if is better without JIRA_SERVICE_TAG_PREFIX
-      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND status != ${config.statusComplete}) ORDER BY created DESC`,
-      startAt: 0
+      jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND status != ${config.statusComplete}) ORDER BY created DESC`
     };
     return jiraIssueSearch(bodyData);
   };
