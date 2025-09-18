@@ -33,19 +33,12 @@ const aCreateJiraIssueResponse = {
 };
 
 const aSearchJiraIssueResponse = {
-  startAt: 0,
-  total: 1,
-
   issues: [
     {
       fields: {
         assignee: {},
         comment: {
-          comments: [],
-          maxResults: 50,
-          self: "http://",
-          startAt: 0,
-          total: 0
+          comments: []
         },
         labels: {},
         status: {
