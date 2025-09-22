@@ -1,8 +1,8 @@
 declare module "adf-to-md" {
-  export interface ConvertResult {
-    result: string;
-    warnings: Set<string>;
+  export interface IConvertResult {
+    readonly result: string;
+    readonly warnings: Set<string>;
   }
 
-  export function convert(adf: unknown): ConvertResult;
+  export function convert(adf: unknown): IConvertResult;
 }

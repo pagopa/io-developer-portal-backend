@@ -194,19 +194,19 @@ describe("JiraAPIClient#search and apply transition", () => {
 describe("JiraAPIClient type check for StringFromADF", () => {
   const comment = "Questo è un commento";
   const validADF = {
-    version: 1,
-    type: "doc",
     content: [
       {
-        type: "paragraph",
         content: [
           {
-            type: "text",
-            text: comment
+            text: comment,
+            type: "text"
           }
-        ]
+        ],
+        type: "paragraph"
       }
-    ]
+    ],
+    type: "doc",
+    version: 1
   };
   const validADFString = JSON.stringify(validADF);
 
@@ -226,8 +226,8 @@ describe("JiraAPIClient type check for StringFromADF", () => {
 
   it("should fail to decode an invalid ADF object", () => {
     const invalidADF = {
-      type: "doc",
-      invalidField: "value"
+      invalidField: "value",
+      type: "doc"
     };
 
     const result = StringFromADF.decode(invalidADF);
@@ -236,14 +236,14 @@ describe("JiraAPIClient type check for StringFromADF", () => {
 
   it("should return empty string for wrong nested ADF", () => {
     const invalidADF = {
-      version: 1,
-      type: "doc",
       content: [
         {
-          type: "paragraph",
-          content: [{ type: "unknown_node_type", text: "should be ignored" }]
+          content: [{ text: "should be ignored", type: "unknown_node_type" }],
+          type: "paragraph"
         }
-      ]
+      ],
+      type: "doc",
+      version: 1
     };
 
     const result = StringFromADF.decode(invalidADF);
@@ -261,7 +261,7 @@ describe("JiraAPIClient type check for StringFromADF", () => {
   it("should validate string type correctly", () => {
     expect(StringFromADF.is("valid string")).toBe(true);
     expect(StringFromADF.is(123)).toBe(false);
-    expect(StringFromADF.is(null)).toBe(false);
+    expect(StringFromADF.is(undefined)).toBe(false);
     expect(StringFromADF.is({})).toBe(false);
   });
 });
