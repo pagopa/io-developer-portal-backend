@@ -1,7 +1,8 @@
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import { ServiceId } from "../../generated/api/ServiceId";
 import * as config from "../config";
-import { JiraAPIClient } from "../jira_client";
+import { JiraAPIClient, StringFromADF } from "../jira_client";
+import * as E from "fp-ts/lib/Either";
 
 const JIRA_CONFIG = {
   JIRA_BOARD: "BOARD",
@@ -187,5 +188,80 @@ describe("JiraAPIClient#search and apply transition", () => {
       .run();
     expect(aJiraIssueTransitionResponse.isRight()).toBeTruthy();
     expect(aJiraIssueTransitionResponse.value).toEqual("OK");
+  });
+});
+
+describe("JiraAPIClient type check for StringFromADF", () => {
+  const comment = "Questo è un commento";
+  const validADF = {
+    version: 1,
+    type: "doc",
+    content: [
+      {
+        type: "paragraph",
+        content: [
+          {
+            type: "text",
+            text: comment
+          }
+        ]
+      }
+    ]
+  };
+  const validADFString = JSON.stringify(validADF);
+
+  it("should decode a valid ADF object to string", () => {
+    const result = StringFromADF.decode(validADF);
+    expect(E.isRight(result)).toBeTruthy();
+    if (E.isRight(result)) {
+      expect(result.value).toBe(comment);
+    }
+  });
+
+  it("should throw error when encoding", () => {
+    expect(() => StringFromADF.encode(validADFString)).toThrow(
+      "Cannot convert markdown to adf object"
+    );
+  });
+
+  it("should fail to decode an invalid ADF object", () => {
+    const invalidADF = {
+      type: "doc",
+      invalidField: "value"
+    };
+
+    const result = StringFromADF.decode(invalidADF);
+    expect(E.isLeft(result)).toBeTruthy();
+  });
+
+  it("should return empty string for wrong nested ADF", () => {
+    const invalidADF = {
+      version: 1,
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "unknown_node_type", text: "should be ignored" }]
+        }
+      ]
+    };
+
+    const result = StringFromADF.decode(invalidADF);
+    expect(E.isRight(result)).toBeTruthy();
+    if (E.isRight(result)) {
+      expect(result.value).toBe("");
+    }
+  });
+
+  it("should fail to decode a non-object input", () => {
+    const result = StringFromADF.decode("not an object");
+    expect(E.isLeft(result)).toBeTruthy();
+  });
+
+  it("should validate string type correctly", () => {
+    expect(StringFromADF.is("valid string")).toBe(true);
+    expect(StringFromADF.is(123)).toBe(false);
+    expect(StringFromADF.is(null)).toBe(false);
+    expect(StringFromADF.is({})).toBe(false);
   });
 });

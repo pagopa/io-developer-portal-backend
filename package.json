@@ -34,6 +34,7 @@
     "@pagopa/io-functions-commons": "^19.2.0",
     "@pagopa/ts-commons": "^9.1.0",
     "@types/memoizee": "^0.4.2",
+    "adf-to-md": "^1.2.1",
     "applicationinsights": "^2.9.0",
     "auto-changelog": "^2.2.1",
     "azure-storage": "^2.10.7",

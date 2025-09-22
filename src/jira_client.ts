@@ -13,6 +13,8 @@ import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
 import nodeFetch from "node-fetch";
 import { EmailAddress } from "../generated/api/EmailAddress";
 import { ServiceId } from "../generated/api/ServiceId";
+import * as E from "fp-ts/lib/Either";
+import { convert } from "adf-to-md";
 
 export interface IJiraConfig {
   readonly boardId: NonEmptyString;
@@ -28,6 +30,34 @@ export const JIRA_SERVICE_TAG_PREFIX = "devportal-service-";
 
 export const JIRA_DISABLE_LABEL = "DISATTIVAZIONE";
 
+const ADF = t.type({
+  content: t.readonlyArray(t.unknown),
+  type: t.string,
+  version: t.number
+});
+type ADF = t.TypeOf<typeof ADF>;
+
+export const StringFromADF = new t.Type<string, ADF>(
+  "StringFromADF",
+  (s): s is string => typeof s === "string",
+  (i, ctx) =>
+    ADF.decode(i)
+      .mapLeft(readableReport)
+      .chain(adf =>
+        E.tryCatch2v(
+          () => convert(adf),
+          e => `ADF conversion failed: ${E.toError(e).message}`
+        )
+      )
+      .fold(
+        error => t.failure(i, ctx, error),
+        value => t.success(value.result)
+      ),
+  () => {
+    throw new Error("Cannot convert markdown to adf object");
+  }
+);
+
 export const SearchJiraIssueResponse = t.interface({
   issues: t.readonlyArray(
     t.interface({
@@ -38,7 +68,9 @@ export const SearchJiraIssueResponse = t.interface({
       fields: t.interface({
         assignee: t.union([t.null, t.any]),
         comment: t.interface({
-          comments: t.any
+          comments: t.readonlyArray(
+            t.type({ body: StringFromADF, created: NonEmptyString })
+          )
         }),
         labels: t.union([t.null, t.any]),
         status: t.interface({
