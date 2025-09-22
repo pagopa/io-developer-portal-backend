@@ -244,9 +244,7 @@ describe("jiraStatus", () => {
             key: "DMT-1" as NonEmptyString,
             self: "SELF" as NonEmptyString
           }
-        ],
-        startAt: 0,
-        total: 1
+        ]
       })
     );
 
@@ -266,9 +264,7 @@ describe("jiraStatus", () => {
   it("should respond with Jira Issue Status Not Found", async () => {
     jiraClientFnMock.mockReturnValue(
       taskEither.of({
-        issues: [],
-        startAt: 0,
-        total: 0
+        issues: []
       })
     );
 

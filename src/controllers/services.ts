@@ -441,7 +441,7 @@ export async function getReviewStatus(
     >(_ => ResponseErrorInternal(_.message))
     .chain(
       fromPredicate(
-        _ => _.total > 0,
+        _ => _.issues.length > 0,
         _ =>
           ResponseErrorNotFound(
             `Review Status: ${serviceId}`,
@@ -531,7 +531,7 @@ export async function newDisableRequest(
     )
     .chain(
       fromPredicate(
-        _ => _.total === 0,
+        _ => _.issues.length === 0,
         _ =>
           ResponseErrorConflict(
             "A review is already in progress for the service"
@@ -550,7 +550,7 @@ export async function newDisableRequest(
     )
     .chain(
       fromPredicate(
-        _ => _.total === 0,
+        _ => _.issues.length === 0,
         _ =>
           ResponseErrorConflict(
             "A review is already in progress for the service"
@@ -660,7 +660,7 @@ export async function newReviewRequest(
       )
       .chain(
         fromPredicate(
-          _ => _.total === 0,
+          _ => _.issues.length === 0,
           _ =>
             ResponseErrorConflict(
               "A review is already in progress for the service"
@@ -678,7 +678,7 @@ export async function newReviewRequest(
           )
           .chain(
             fromPredicate(
-              _ => _.total === 0,
+              _ => _.issues.length === 0,
               _ =>
                 ResponseErrorConflict(
                   "A review is already in progress for the service"
@@ -699,7 +699,7 @@ export async function newReviewRequest(
       )
       .chain(rejectedIssues =>
         fromPredicate<SearchJiraIssueResponse, SearchJiraIssueResponse>(
-          _ => _.total > 0,
+          _ => _.issues.length > 0,
           _ => _
         )(rejectedIssues).foldTaskEither(
           (_: SearchJiraIssueResponse) => taskEither.of(_),
