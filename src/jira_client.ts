@@ -101,7 +101,7 @@ export type CreateJiraCommentIssueResponse = t.TypeOf<
 >;
 
 const JiraIssueSearchPayload = t.interface({
-  expand: t.array(t.string),
+  expand: t.string,
   fields: t.array(t.string),
   fieldsByKeys: t.boolean,
   jql: t.string
@@ -306,7 +306,7 @@ export function JiraAPIClient(
     readonly status: NonEmptyString;
   }) => {
     const bodyData: JiraIssueSearchPayload = {
-      expand: ["names"],
+      expand: "names",
       fields: ["summary", "status", "assignee", "comment"],
       fieldsByKeys: false,
       jql: `project = ${config.boardId} AND issuetype = Task AND (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} OR (labels = ${JIRA_SERVICE_TAG_PREFIX}${params.serviceId} AND labels = ${JIRA_DISABLE_LABEL})) AND status = ${params.status} ORDER BY created DESC`
@@ -318,7 +318,7 @@ export function JiraAPIClient(
     readonly serviceId: ServiceId;
   }) => {
     const bodyData: JiraIssueSearchPayload = {
-      expand: ["names"],
+      expand: "names",
       fields: ["summary", "status", "assignee", "comment", "labels"],
       fieldsByKeys: false,
       // Check if is better without JIRA_SERVICE_TAG_PREFIX
