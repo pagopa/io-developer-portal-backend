@@ -118,7 +118,7 @@ stages:
             artifact: Bundle
 
   # Deploy 
-  - stage: 'Deploy_to_staging'
+  - stage: 'Deploy_to_prod'
     dependsOn:
       - Prepare_artifact
     jobs:
@@ -137,5 +137,5 @@ stages:
               package: '$(Pipeline.Workspace)/Bundle'
               deploymentMethod: 'auto'
               deployToSlotOrASE: true
-              slotName: 'staging'
-            displayName: 'Deploy to staging slot'
+              slotName: 'production'
+            displayName: 'Deploy to production slot'
