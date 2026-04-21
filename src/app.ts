@@ -362,31 +362,6 @@ app.get(
 );
 
 if (config.IDP === "azure-ad") {
-  // The following utility retrieves APIM account id for the current authenticated user
-  // It does the job for this very specific use case, if needed in future we may think about moving it into common utils
-  const getApimUserIdForLoggedUser = (
-    req: express.Request
-  ): Promise<Either<Error, string>> =>
-    tryCatch(
-      () => getApiClientMiddleware()(req),
-      _ => "Failed to create APIM client"
-    )
-      .chain(_ =>
-        fromEither(_).mapLeft(
-          __ => "Failed to create APIM client (should not pass here)"
-        )
-      )
-      .chain(client =>
-        tryCatch(
-          () => getApimUser(client, getApimAccountEmail(req.user)),
-          _ => "Failed to fetch APIM user"
-        )
-      )
-      .chain(maybeUser => fromEither(fromOption("Empty APIM user")(maybeUser as Option<IExtendedUserContract>) ))
-      .map(({ id }) => id.substring(id.lastIndexOf("/")))
-      .mapLeft(_ => new Error(_))
-      .run();
-
   // Expose proxied endpoints to retrieve admin data for services
   app.get(
     "/organizations/:organizationFiscalCode/services",
