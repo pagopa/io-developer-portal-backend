@@ -78,6 +78,7 @@ import { SubscriptionData } from "./new_subscription";
 import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 
 import { Either, fromOption, right, toError } from "fp-ts/lib/Either";
+import { Option } from "fp-ts/lib/Option";
 import { fromEither, tryCatch } from "fp-ts/lib/TaskEither";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
@@ -94,7 +95,7 @@ import {
 } from "italia-ts-commons/lib/numbers";
 import { ProblemJson } from "italia-ts-commons/lib/responses";
 import { CIDRsPayload } from "../generated/api/CIDRsPayload";
-import { getApimUser } from "./apim_operations";
+import { getApimUser, IExtendedUserContract } from "./apim_operations";
 import { getApimAccountEmail } from "./utils/session";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
@@ -381,7 +382,7 @@ if (config.IDP === "azure-ad") {
           _ => "Failed to fetch APIM user"
         )
       )
-      .chain(_ => fromEither(fromOption("Empty APIM user")(_)))
+      .chain(maybeUser => fromEither(fromOption("Empty APIM user")(maybeUser as Option<IExtendedUserContract>) ))
       .map(({ id }) => id.substring(id.lastIndexOf("/")))
       .mapLeft(_ => new Error(_))
       .run();
