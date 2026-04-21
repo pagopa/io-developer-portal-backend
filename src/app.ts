@@ -77,9 +77,7 @@ import { SubscriptionData } from "./new_subscription";
 
 import { ExtractFromPayloadMiddleware } from "./middlewares/extract_payload";
 
-import { Either, fromOption, right, toError } from "fp-ts/lib/Either";
-import { Option } from "fp-ts/lib/Option";
-import { fromEither, tryCatch } from "fp-ts/lib/TaskEither";
+import { right } from "fp-ts/lib/Either";
 import { Logo } from "../generated/api/Logo";
 import { ServiceId } from "../generated/api/ServiceId";
 import { setupSelfCareSessionStrategy } from "./auth-strategies/selfcare_session_strategy";
@@ -93,10 +91,7 @@ import {
   IntegerFromString,
   NonNegativeInteger
 } from "italia-ts-commons/lib/numbers";
-import { ProblemJson } from "italia-ts-commons/lib/responses";
 import { CIDRsPayload } from "../generated/api/CIDRsPayload";
-import { getApimUser, IExtendedUserContract } from "./apim_operations";
-import { getApimAccountEmail } from "./utils/session";
 
 process.on("unhandledRejection", e => logger.error(JSON.stringify(e)));
 
