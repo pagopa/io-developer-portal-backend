@@ -387,56 +387,6 @@ if (config.IDP === "azure-ad") {
       .mapLeft(_ => new Error(_))
       .run();
 
-  // Expose subscription migration features
-  app.use(
-    "/subscriptions/migrations/*",
-    sessionTokenVerifier,
-    // enrich request with apim user id
-    async (req, res, next) => {
-      try {
-        const maybeApimUserId = await getApimUserIdForLoggedUser(req);
-        if (maybeApimUserId.isRight()) {
-          // tslint:disable-next-line: no-object-mutation
-          req.user.apimUserId = maybeApimUserId.value;
-          next();
-        } else {
-          throw new Error(`Failed to get APIM user: ${maybeApimUserId.value}`);
-        }
-      } catch (error) {
-        res.status(500);
-        res.json(ProblemJson.encode({ detail: toError(error).message }));
-        res.end();
-      }
-    },
-    async (req, res) => {
-      const url = `${config.SUBSCRIPTION_MIGRATIONS_URL}/delegates/${req.user.apimUserId}/${req.params[0]}`;
-
-      const { method, body } = req;
-
-      try {
-        const result = await nodeFetch(url, {
-          body: ["GET", "HEAD"].includes(method.toUpperCase())
-            ? undefined
-            : body,
-          headers: {
-            "X-Functions-Key": config.SUBSCRIPTION_MIGRATIONS_APIKEY
-          },
-          method
-        });
-
-        res.status(result.status);
-        res.send(await result.text());
-      } catch (error) {
-        logger.error(
-          `Failed to proxy request to subscription migrations service`,
-          error
-        );
-        res.status(500);
-      }
-
-      res.end();
-    }
-  );
   // Expose proxied endpoints to retrieve admin data for services
   app.get(
     "/organizations/:organizationFiscalCode/services",
