@@ -16,8 +16,6 @@ import cookieSession = require("cookie-session");
 // tslint:disable-next-line: no-var-requires
 const packageJson = require("../package.json");
 
-import nodeFetch from "node-fetch";
-
 /*
  * Useful for testing the web application locally.
  * 'local.env' file does not need to exists in the
