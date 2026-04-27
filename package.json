@@ -13,6 +13,9 @@
     "build:clean": "rimraf build",
     "build:tsc": "tsc",
     "build": "npm-run-all -s generate build:clean build:tsc",
+    "changeset": "changeset",
+    "changeset:version": "changeset version && yarn version:changelog",
+    "changeset:release": "changeset publish",
     "clean:api-models": "rimraf generated/api && shx mkdir -p generated/api",
     "generate:api-models:public": "gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-functions/v0.64.0/api/public_api_v1.yaml --no-strict --out-dir generated/api",
     "generate:api-models:admin": "gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/io-functions-admin/master/apps/io-functions-admin/openapi/index.yaml --no-strict --out-dir generated/api",
@@ -24,6 +27,7 @@
     "lint": "tslint --project .",
     "test:coverage": "jest --coverage",
     "preversion": "auto-changelog  --config .auto-changelog.json --unreleased --commit-limit false --stdout --template preview.hbs",
+    "version:changelog": "auto-changelog -p --config .auto-changelog.json --unreleased && git add CHANGELOG.md package.json .changeset",
     "version": "auto-changelog -p --config .auto-changelog.json --unreleased && git add CHANGELOG.md",
     "postbuild": "dependency-check package.json --no-dev --missing ./build/**/*.js"
   },
@@ -67,6 +71,7 @@
     "winston": "^3.0.0"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.7",
     "@pagopa/openapi-codegen-ts": "^9.0.0",
     "@types/cookie-parser": "^1.4.1",
     "@types/cookie-session": "^2.0.34",
