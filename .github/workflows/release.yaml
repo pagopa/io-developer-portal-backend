@@ -9,14 +9,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   release:
     name: Release
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       published: ${{ steps.release.outputs.published }}
       publishedPackages: ${{ steps.release.outputs.publishedPackages }}
@@ -62,6 +61,9 @@ jobs:
     needs: [release]
     if: needs.release.outputs.published == 'true'
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
     continue-on-error: true
     strategy:
       matrix:
