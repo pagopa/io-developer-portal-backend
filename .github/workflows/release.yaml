@@ -16,9 +16,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    outputs:
-      published: ${{ steps.release.outputs.published }}
-      publishedPackages: ${{ steps.release.outputs.publishedPackages }}
     steps:
       - name: Check-out code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -36,43 +33,13 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Create Release Pull Request or Publish
+      - name: Create Release Pull Request or Tag
         id: changesets
         uses: changesets/action@6a0a831ff30acef54f2c6aa1cbbc1096b066edaf # v1.7.0
         with:
-          version: yarn changeset:version
-          publish: yarn changeset:release
+          version: yarn changeset version
+          publish: yarn changeset tag
           commit: "ci(changesets): version package"
           title: "ci(changesets): version package"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Release output
-        id: release
-        run: |
-          publishedPackages='${{ toJSON(steps.changesets.outputs.publishedPackages) }}'
-
-          echo 'published=${{ steps.changesets.outputs.published }}' >> "$GITHUB_OUTPUT"
-          echo "publishedPackages=$publishedPackages" >> "$GITHUB_OUTPUT"
-
-  publish:
-    name: Publish
-    needs: [release]
-    if: needs.release.outputs.published == 'true'
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-    continue-on-error: true
-    strategy:
-      matrix:
-        package: ${{ fromJson(needs.release.outputs.publishedPackages) }}
-    steps:
-      - name: Create release
-        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2.2.2
-        with:
-          draft: false
-          tag_name: ${{ matrix.package.name }}@${{ matrix.package.version }}
-          name: ${{ matrix.package.name }}@${{ matrix.package.version }}
-          generate_release_notes: true
-          target_commitish: ${{ github.sha }}
