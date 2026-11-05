@@ -5792,9 +5792,7 @@ moment@^2.19.3:
   integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
 
 morgan@^1.9.0:
-  version "1.9.1"
-  resolved "https://registry.npmjs.org/morgan/-/morgan-1.9.1.tgz"
-  integrity sha512-HQStPIV4y3afTiCYVxirakhlCfGkI161c76kKFca7Fk1JusM//Qeo1ej2XaMniiNeaZklMVrh3vTtIzpzwbpmA==
+  version "1.11.0"
   dependencies:
     basic-auth "~2.0.0"
     debug "2.6.9"
