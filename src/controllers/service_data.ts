@@ -31,7 +31,7 @@ import {
 } from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
 import { identity } from "io-ts";
-import nodeFetch from "node-fetch";
+import { createUncompressedFetch } from "../utils/uncompressed-fetch";
 
 /*
   The shape of Success Response
@@ -52,8 +52,7 @@ export type ServiceDataSuccessResponse = t.TypeOf<
 
 export const serviceDataTask = (
   organizationFiscalCode: OrganizationFiscalCode,
-  // tslint:disable-next-line:no-any
-  fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
+  fetchApi?: typeof fetch
 ): TaskEither<
   IResponseErrorInternal,
   IResponseSuccessJson<ServiceDataSuccessResponse>
@@ -61,7 +60,7 @@ export const serviceDataTask = (
   return tryCatch(
     async () => {
       const url = `${config.SERVICE_DATA_URL}/organizations/${organizationFiscalCode}/services`;
-      const response = await fetchApi(url, {
+      const response = await createUncompressedFetch(fetchApi)(url, {
         headers: {
           "X-Functions-Key": config.SERVICE_DATA_APIKEY
         }

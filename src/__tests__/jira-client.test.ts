@@ -24,6 +24,7 @@ const serviceID: ServiceId = "TEST-SERVICE-ID" as ServiceId;
 const mockFetchJson = jest.fn();
 const getMockFetchWithStatus = (status: number) =>
   jest.fn().mockImplementation(async () => ({
+    headers: new Headers(),
     json: mockFetchJson,
     status
   }));
@@ -87,11 +88,15 @@ describe("JiraAPIClient#createJiraIssue", () => {
       )
       .run();
 
-    expect(mockFetch).toBeCalledWith(expect.any(String), {
-      body: expect.any(String),
-      headers: expect.any(Object),
-      method: "POST"
-    });
+    expect(mockFetch).toBeCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.any(String),
+        compress: false,
+        headers: expect.any(Array),
+        method: "POST"
+      })
+    );
     expect(issue.isRight()).toBeTruthy();
     expect(issue.value).toHaveProperty("id", aCreateJiraIssueResponse.id);
     expect(issue.value).toHaveProperty("key", aCreateJiraIssueResponse.key);
@@ -123,11 +128,15 @@ describe("JiraAPIClient#search and apply transition", () => {
         serviceId: serviceID
       })
       .run();
-    expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
-      body: expect.any(String),
-      headers: expect.any(Object),
-      method: "POST"
-    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.any(String),
+        compress: false,
+        headers: expect.any(Array),
+        method: "POST"
+      })
+    );
     expect(searchResponse.isRight()).toBeTruthy();
     expect(searchResponse.value).toEqual(aSearchJiraIssueResponse);
   });
@@ -155,11 +164,15 @@ describe("JiraAPIClient#search and apply transition", () => {
         status: JIRA_CONFIG.JIRA_STATUS_NEW
       })
       .run();
-    expect(mockFetch).toHaveBeenCalledWith(expect.any(String), {
-      body: expect.any(String),
-      headers: expect.any(Object),
-      method: "POST"
-    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: expect.any(String),
+        compress: false,
+        headers: expect.any(Array),
+        method: "POST"
+      })
+    );
     // We expect to don't have any total from search issue
     expect(searchResponse.isRight()).toBeTruthy();
     expect(searchResponse.value).toEqual(aSearchJiraIssueResponse);

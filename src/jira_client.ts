@@ -10,11 +10,11 @@ import {
 import * as t from "io-ts";
 import { readableReport } from "italia-ts-commons/lib/reporters";
 import { EmailString, NonEmptyString } from "italia-ts-commons/lib/strings";
-import nodeFetch from "node-fetch";
 import { EmailAddress } from "../generated/api/EmailAddress";
 import { ServiceId } from "../generated/api/ServiceId";
 import * as E from "fp-ts/lib/Either";
 import { convert } from "adf-to-md";
+import { createUncompressedFetch } from "./utils/uncompressed-fetch";
 
 export interface IJiraConfig {
   readonly boardId: NonEmptyString;
@@ -144,9 +144,9 @@ export interface IJiraAPIClient {
 export function JiraAPIClient(
   baseUrl: NonEmptyString,
   config: IJiraConfig,
-  // tslint:disable-next-line:no-any
-  fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
+  fetchApi?: typeof fetch
 ): IJiraAPIClient {
+  const uncompressedFetch = createUncompressedFetch(fetchApi);
   const jiraHeaders = {
     Accept: "application/json",
     Authorization: `Basic ${Buffer.from(
@@ -156,7 +156,7 @@ export function JiraAPIClient(
   };
   const jiraIssueSearch = (bodyData: JiraIssueSearchPayload) =>
     tryCatch(() => {
-      return fetchApi(`${baseUrl}/rest/api/3/search/jql`, {
+      return uncompressedFetch(`${baseUrl}/rest/api/3/search/jql`, {
         body: JSON.stringify(bodyData),
         headers: jiraHeaders,
         method: "POST"
@@ -195,7 +195,7 @@ export function JiraAPIClient(
   ) => {
     return tryCatch(
       () =>
-        fetchApi(`${baseUrl}/rest/api/2/issue`, {
+        uncompressedFetch(`${baseUrl}/rest/api/2/issue`, {
           body: JSON.stringify({
             fields: {
               description,
@@ -244,7 +244,7 @@ export function JiraAPIClient(
   const deleteJiraIssue = (issueId: NonEmptyString) =>
     tryCatch(
       () =>
-        fetchApi(`${baseUrl}/rest/api/2/issue/${issueId}`, {
+        uncompressedFetch(`${baseUrl}/rest/api/2/issue/${issueId}`, {
           headers: jiraHeaders,
           method: "DELETE"
         }),
@@ -271,7 +271,7 @@ export function JiraAPIClient(
   ) =>
     tryCatch(
       () =>
-        fetchApi(`${baseUrl}/rest/api/2/issue/${issueId}/comment`, {
+        uncompressedFetch(`${baseUrl}/rest/api/2/issue/${issueId}/comment`, {
           body: JSON.stringify({
             body: comment
           }),
@@ -332,28 +332,31 @@ export function JiraAPIClient(
     newComment?: NonEmptyString
   ) => {
     return tryCatch(() => {
-      return fetchApi(`${baseUrl}/rest/api/2/issue/${issueId}/transitions`, {
-        body: JSON.stringify({
-          ...fromNullable(newComment)
-            .map(_ => ({
-              update: {
-                comment: [
-                  {
-                    add: {
-                      body: _
+      return uncompressedFetch(
+        `${baseUrl}/rest/api/2/issue/${issueId}/transitions`,
+        {
+          body: JSON.stringify({
+            ...fromNullable(newComment)
+              .map(_ => ({
+                update: {
+                  comment: [
+                    {
+                      add: {
+                        body: _
+                      }
                     }
-                  }
-                ]
-              }
-            }))
-            .toUndefined(),
-          transition: {
-            id: transitionId
-          }
-        }),
-        headers: jiraHeaders,
-        method: "POST"
-      });
+                  ]
+                }
+              }))
+              .toUndefined(),
+            transition: {
+              id: transitionId
+            }
+          }),
+          headers: jiraHeaders,
+          method: "POST"
+        }
+      );
     }, toError).chain<"OK">(_ => {
       if (_.status >= 500) {
         return fromLeft(new Error("Jira API returns an error"));
