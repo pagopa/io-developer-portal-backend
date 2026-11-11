@@ -79,7 +79,8 @@ export const createUncompressedFetch = (
   const inputSignal =
     typeof input !== "string" && "signal" in input ? input.signal : undefined;
   // An explicit init signal takes precedence over a Request's signal.
-  const callerSignal = init && "signal" in init ? init.signal : inputSignal;
+  const callerSignal =
+    init && init.signal !== undefined ? init.signal : inputSignal;
   const headers = new nodeFetch.Headers(
     ((init && init.headers) || inputHeaders) as nodeFetch.HeadersInit
   );
