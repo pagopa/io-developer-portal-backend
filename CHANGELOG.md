@@ -1,5 +1,11 @@
 ### Changelog
 
+## 1.36.1
+
+### Patch Changes
+
+- 1b4b644: Require uncompressed fetch responses
+
 ## 1.36.0
 
 ### Minor Changes
