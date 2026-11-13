@@ -27,7 +27,6 @@ import {
 } from "italia-ts-commons/lib/requests";
 
 import { NonEmptyString } from "italia-ts-commons/lib/strings";
-import nodeFetch from "node-fetch";
 import { DevelopmentProfile } from "../generated/api/DevelopmentProfile";
 import { ExtendedProfile } from "../generated/api/ExtendedProfile";
 import { FiscalCode } from "../generated/api/FiscalCode";
@@ -39,6 +38,7 @@ import { ServicePublic } from "../generated/api/ServicePublic";
 import { CIDRsPayload } from "../generated/api/CIDRsPayload";
 import { Logo } from "../generated/api/Logo";
 import { SubscriptionCIDRs } from "../generated/api/SubscriptionCIDRs";
+import { createUncompressedFetch } from "./utils/uncompressed-fetch";
 
 const OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 type OcpApimSubscriptionKey = typeof OcpApimSubscriptionKey;
@@ -166,8 +166,7 @@ export type UpdateSubscriptionCIDRsT = IPutApiRequestType<
 export function APIClient(
   baseUrl: string,
   token: string,
-  // tslint:disable-next-line:no-any
-  fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
+  fetchApi?: typeof fetch
 ): {
   readonly createDevelopmentProfile: TypeofApiCall<CreateDevelopmentProfileT>;
   readonly createService: TypeofApiCall<CreateServiceT>;
@@ -181,7 +180,7 @@ export function APIClient(
 } {
   const options = {
     baseUrl,
-    fetchApi
+    fetchApi: createUncompressedFetch(fetchApi)
   };
 
   const tokenHeaderProducer = SubscriptionKeyHeaderProducer(token);

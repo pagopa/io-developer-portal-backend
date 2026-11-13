@@ -19,6 +19,7 @@ import {
   getReviewStatus,
   newReviewRequest,
   notificationApiClient,
+  putService,
   putOrganizationLogo,
   putServiceLogo
 } from "../services";
@@ -30,10 +31,15 @@ import {
 import { none, some } from "fp-ts/lib/Option";
 import SerializableSet from "json-set-map/build/src/set";
 import { ServiceId } from "../../../generated/api/ServiceId";
+import { EmailAddress } from "../../../generated/api/EmailAddress";
 import { IExtendedUserContract } from "../../apim_operations";
-import { IJiraAPIClient } from "../../jira_client";
+import { IJiraAPIClient, JiraAPIClient } from "../../jira_client";
 import { IStorageQueueClient } from "../../storage_queue_client";
 import { SessionUser } from "../../utils/session";
+import { withLocalHttpServer } from "../../__test_helpers__/local-http-server";
+import { getCmsRestClient } from "../../cms_api_client";
+import { logger } from "../../logger";
+import { brotliCompressSync } from "zlib";
 
 afterEach(() => {
   jest.clearAllMocks();
@@ -317,5 +323,68 @@ describe("jiraRequest", () => {
 
     expect(response.kind).toEqual("IResponseErrorInternal");
     expect(storageQueueClientMock.insertNewMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe("compressed downstream responses", () => {
+  it("does not update a service after an encoded CMS 404", async () => {
+    const observed = jest.fn();
+    const updateService = jest.spyOn(notificationApiClient, "updateService");
+    const logError = jest.spyOn(logger, "error").mockReturnValue(logger);
+    try {
+      await withLocalHttpServer(
+        (request, response) => {
+          observed(request.url);
+          response.writeHead(404, { "Content-Encoding": "br" });
+          response.end(brotliCompressSync('{"error":"not found"}'));
+        },
+        async baseUrl => {
+          await expect(
+            putService(
+              apiManagementClientMock,
+              adUser,
+              serviceId,
+              { is_visible: true },
+              getCmsRestClient(baseUrl as NonEmptyString)
+            )
+          ).rejects.toThrow("Unsupported Content-Encoding");
+          expect(observed).toHaveBeenCalledWith(
+            "/internal/services/s123/release"
+          );
+          expect(notificationApiClient.getService).not.toHaveBeenCalled();
+          expect(updateService).not.toHaveBeenCalled();
+        }
+      );
+    } finally {
+      updateService.mockRestore();
+      logError.mockRestore();
+    }
+  });
+
+  it("maps an encoded Jira response to an internal error", async () => {
+    await withLocalHttpServer(
+      (_request, response) => {
+        response.writeHead(200, { "Content-Encoding": "br" });
+        response.end(brotliCompressSync('{"issues":[]}'));
+      },
+      async baseUrl => {
+        const jiraClient = JiraAPIClient(baseUrl as NonEmptyString, {
+          boardId: "BOARD" as NonEmptyString,
+          delegateIdField: "delegate" as NonEmptyString,
+          emailIdField: "email" as NonEmptyString,
+          jiraEmail: "bot@example.invalid" as EmailAddress,
+          organizationIdField: "organization" as NonEmptyString,
+          statusComplete: "Complete" as NonEmptyString,
+          token: "test-token" as NonEmptyString
+        });
+        const result = await getReviewStatus(
+          apiManagementClientMock,
+          jiraClient,
+          adUser,
+          serviceId
+        );
+        expect(result.kind).toBe("IResponseErrorInternal");
+      }
+    );
   });
 });

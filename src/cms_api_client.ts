@@ -5,8 +5,8 @@
 
 import * as O from "fp-ts/lib/Option";
 import * as t from "io-ts";
-import nodeFetch from "node-fetch";
 import { logger } from "./logger";
+import { createUncompressedFetch } from "./utils/uncompressed-fetch";
 
 import { EmailString } from "@pagopa/ts-commons/lib/strings";
 import { readableReport } from "italia-ts-commons/lib/reporters";
@@ -61,10 +61,9 @@ const fetchServicesCms = async <T>(
   url: string,
   decoder: t.Type<T, unknown, unknown>,
   headers?: ServicesCmsHeader,
-  // tslint:disable-next-line:no-any
-  fetchApi: typeof fetch = (nodeFetch as any) as typeof fetch
+  fetchApi?: typeof fetch
 ) => {
-  const response = await fetchApi(url, {
+  const response = await createUncompressedFetch(fetchApi)(url, {
     headers: {
       ...(headers ? headers : {}),
       "Content-Type": "application/json"
